@@ -1,4 +1,3 @@
-// src/core/CameraController.js
 import { clampCamera } from "../config/worldConfig.js";
 
 export class CameraController {
@@ -6,20 +5,20 @@ export class CameraController {
     this.canvas = canvas;
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
-
-    this.viewW = viewW;
-    this.viewH = viewH;
-
+    this.viewW = viewW || canvas?._cssWidth || window.innerWidth;
+    this.viewH = viewH || canvas?._cssHeight || window.innerHeight;
     this.offsetX = 0;
     this.offsetY = 0;
-
     this.dragging = false;
     this.lastMouse = { x: 0, y: 0 };
 
     this.addEventListeners();
+    this.clamp();
   }
 
   addEventListeners() {
+    if (!this.canvas) return;
+
     this.canvas.addEventListener("contextmenu", e => e.preventDefault());
 
     this.canvas.addEventListener("mousedown", e => {
@@ -39,22 +38,28 @@ export class CameraController {
 
     this.canvas.addEventListener("mousemove", e => {
       if (!this.dragging) return;
-
+      
       const dx = e.clientX - this.lastMouse.x;
       const dy = e.clientY - this.lastMouse.y;
-
+      
       this.offsetX -= dx;
       this.offsetY -= dy;
-
+      
       this.clamp();
       this.lastMouse = { x: e.clientX, y: e.clientY };
     });
 
     window.addEventListener("resize", () => {
-      this.viewW = window.innerWidth;
-      this.viewH = window.innerHeight;
+      this.viewW = this.canvas?._cssWidth || window.innerWidth;
+      this.viewH = this.canvas?._cssHeight || window.innerHeight;
       this.clamp();
     });
+  }
+
+  updateViewSize(viewW, viewH) {
+    this.viewW = viewW || this.viewW;
+    this.viewH = viewH || this.viewH;
+    this.clamp();
   }
 
   clamp() {

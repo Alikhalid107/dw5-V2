@@ -4,7 +4,7 @@ import { FlakManager } from "../sections/FlakManager.js";
 import { WallSection } from "../sections/WallSection.js";
 import { FlagManager } from "../sections/FlagManager.js";
 import { FactoryManager } from "../sections/FactoryManager.js";
-
+import { GarageUI } from "../components/GarageUI.js";
 
 export class CompositeBase {
   constructor(worldWidth, worldHeight) {
@@ -20,203 +20,105 @@ export class CompositeBase {
     const randY = Math.floor(Math.random() * (this.worldHeight - this.baseHeight));
     const objects = [];
 
-    // Base + Tree
-    const baseSection = new BaseSection(randX, randY, this.baseWidth, this.baseHeight);
-    objects.push(...baseSection.getObjects());
+    // Create sections
+    this.baseSection = new BaseSection(randX, randY, this.baseWidth, this.baseHeight);
+    objects.push(...this.baseSection.getObjects());
 
-    // Garage
-    const garageSection = new GarageSection(randX, randY, this.baseWidth, this.baseHeight);
-    objects.push(...garageSection.getObjects());
+    this.garageSection = new GarageSection(randX, randY, this.baseWidth, this.baseHeight);
+    objects.push(...this.garageSection.getObjects());
 
-    // Flaks
-    const flakManager = new FlakManager(
-      garageSection.getGarageX(),
-      garageSection.getGarageY(),
-      garageSection.getGarageWidth(),
-      garageSection.getGarageHeight()
-    );
-    objects.push(...flakManager.getObjects());
+    // Create managers using garage bounds
+    const gx = this.garageSection.getGarageX();
+    const gy = this.garageSection.getGarageY();
+    const gw = this.garageSection.getGarageWidth();
+    const gh = this.garageSection.getGarageHeight();
 
-    // Walls
-    const wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight);
-    objects.push(...wallSection.getObjects());
+    this.flakManager = new FlakManager(gx, gy, gw, gh);
+    objects.push(...this.flakManager.getObjects());
 
-    // Flags (spawn relative to garage)
-    const flagManager = new FlagManager(
-      garageSection.getGarageX(),
-      garageSection.getGarageY(),
-      garageSection.getGarageWidth(),
-      garageSection.getGarageHeight()
-    );
-    objects.push(...flagManager.getObjects());
+    this.garageUI = new GarageUI(this.flakManager, gx, gy, gw, gh);
 
-    // Factories (spawn relative to garage)
-    const factoryManager = new FactoryManager(
-      garageSection.getGarageX(),
-      garageSection.getGarageY(),
-      garageSection.getGarageWidth(),
-      garageSection.getGarageHeight()
-    );
-    objects.push(...factoryManager.getObjects());
+    this.wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight);
+    objects.push(...this.wallSection.getObjects());
 
-    // Save references
-    this.baseSection = baseSection;
-    this.garageSection = garageSection;
-    this.flakManager = flakManager;
-    this.wallSection = wallSection;
-    this.flagManager = flagManager;
-    this.factoryManager = factoryManager;
+    this.flagManager = new FlagManager(gx, gy, gw, gh);
+    objects.push(...this.flagManager.getObjects());
+
+    this.factoryManager = new FactoryManager(gx, gy, gw, gh);
+    objects.push(...this.factoryManager.getObjects());
 
     return objects;
   }
 
-  getObjects() {
-    return this.objects;
-  }
+  getObjects() { return this.objects; }
 
-  // Update dynamic objects
   update(deltaTime) {
-    if (this.flagManager) {
-      this.flagManager.update(deltaTime);
-    }
+    this.flagManager?.update(deltaTime);
+    this.garageUI?.update(deltaTime);
+    this.factoryManager?.update(deltaTime);
 
-    // Update FlakManager and handle upgrades
     if (this.flakManager?.update) {
-      if (this.flakManager.update(deltaTime)) {
-        // Flak upgrade completed, update objects array
-        this.updateFlakObjects();
-      }
+      const buildCompleted = this.flakManager.update(deltaTime);
+      if (buildCompleted) this.updateFlakObjects();
     }
 
-    if (this.factoryManager) {
-      this.factoryManager.update(deltaTime);
-    }
-
-    // Handle factory level changes dynamically
-    if (this.factoryManager) {
-      const currentFactoryObjects = this.factoryManager.getObjects();
-      
-      // Check if factory objects have changed
-      const currentFactoryCount = this.objects.filter(obj => 
-        obj.type === "factory" || obj.type === "factory_additional"
-      ).length;
-      
-      if (currentFactoryCount !== currentFactoryObjects.length) {
-        this.objects = this.objects.filter(obj => 
-          obj.type !== "factory" && obj.type !== "factory_additional"
-        );
-        this.objects.push(...currentFactoryObjects);
-      }
-    }
+    this.updateFactoryObjects();
   }
 
-  // Update flak objects in the main objects array when flak level changes
   updateFlakObjects() {
-    // Remove old flak objects
-    this.objects = this.objects.filter(obj => !(obj instanceof Flak));
+    this.objects = this.objects.filter(obj => 
+      obj && obj.type !== "flak" && obj.constructor?.name !== "Flak"
+    );
+    this.objects.push(...(this.flakManager?.getObjects() || []));
+  }
+
+  updateFactoryObjects() {
+    if (!this.factoryManager) return;
     
-    // Add new flak objects
-    this.objects.push(...this.flakManager.getObjects());
+    const currentFactoryObjects = this.factoryManager.getObjects();
+    const currentCount = this.objects.filter(obj => 
+      obj.type === "factory" || obj.type === "factory_additional"
+    ).length;
+    
+    if (currentCount !== currentFactoryObjects.length) {
+      this.objects = this.objects.filter(obj => 
+        obj.type !== "factory" && obj.type !== "factory_additional"
+      );
+      this.objects.push(...currentFactoryObjects);
+    }
   }
 
-  // Handle mouse movement for factory hover detection
   handleMouseMove(mouseX, mouseY) {
-    if (this.factoryManager) {
-      this.factoryManager.handleMouseMove(mouseX, mouseY);
-    }
+    this.factoryManager?.handleMouseMove?.(mouseX, mouseY);
+    this.garageUI?.handleMouseMove(mouseX, mouseY);
   }
 
-  // Handle mouse clicks for factory upgrades
   handleClick(mouseX, mouseY) {
-    if (this.factoryManager) {
-      return this.factoryManager.handleClick(mouseX, mouseY);
-    }
-    return false;
+    if (this.factoryManager?.handleClick?.(mouseX, mouseY)) return true;
+    return this.garageUI?.handleClick(mouseX, mouseY) || false;
   }
 
-  // Draw UI elements (call this after drawing all objects)
   drawUI(ctx, offsetX, offsetY) {
-    if (this.factoryManager) {
-      this.factoryManager.drawUI(ctx, offsetX, offsetY);
-    }
+    this.factoryManager?.drawUI?.(ctx, offsetX, offsetY);
+    this.garageUI?.drawUI(ctx, offsetX, offsetY);
   }
 
-  // Factory-related helper methods
-  getFactoryLevel(factoryType) {
-    return this.factoryManager?.getFactoryLevel(factoryType) || 0;
+  // Proxy methods
+  getFlakCount() { return this.flakManager?.getTotalFlakCount() || 2; }
+  isFlakBuilding() { return this.flakManager?.isBuilding() || false; }
+  buildFlak() { return this.flakManager?.startBuilding() || false; }
+  getFlakBuildProgress() { return this.flakManager?.getBuildProgress() || 0; }
+  getRemainingFlakBuildTime() { return this.flakManager?.getRemainingBuildTime() || 0; }
+  canBuildFlak() { return this.flakManager?.canBuild() || false; }
+  getFlakCapacity() { return this.flakManager?.getMaxFlakCapacity() || 50; }
+  setFlakScale(newScale) { 
+    this.flakManager.setFlakScale(newScale); 
+    this.updateFlakObjects(); 
   }
-
-  getAllFactoryLevels() {
-    return this.factoryManager?.getAllFactoryLevels() || {};
-  }
-
-  upgradeFactory(factoryType) {
-    return this.factoryManager?.startUpgrade(factoryType) || false;
-  }
-
-  // FlakManager helper methods
-  getFlakLevel() {
-    return this.flakManager?.getLevel() || 1;
-  }
-
-  upgradeFlak() {
-    if (this.flakManager?.startUpgrade()) {
-      return true;
-    }
-    return false;
-  }
-
-  isFlakUpgrading() {
-    return this.flakManager?.isUpgrading() || false;
-  }
-
-  getFlakUpgradeProgress() {
-    return this.flakManager?.getUpgradeProgress() || 0;
-  }
-
-  getRemainingFlakUpgradeTime() {
-    return this.flakManager?.getRemainingUpgradeTime() || 0;
-  }
-
-  getCurrentFlakCount() {
-    return this.flakManager?.getCurrentFlakCount() || 2;
-  }
-
-  isFlakMaxLevel() {
-    return this.flakManager?.isMaxLevel() || false;
-  }
-
-  // Existing proxy helper methods (Flaks + Walls)
-  setFlakScale(newScale) {
-    this.flakManager.setFlakScale(newScale);
-    this.updateFlakObjects(); // Update objects array after scale change
-  }
-
-  getTotalFlakCount() {
-    return this.flakManager.getTotalFlakCount();
-  }
-
-  getAllFlaks() {
-    return this.flakManager.getAllFlaks();
-  }
-
-  updateFlakRowConfig(rowIndex, newConfig) {
-    this.flakManager.updateFlakRowConfig(rowIndex, newConfig);
-  }
-
-  toggleFlakRows() {
-    this.flakManager.toggleFlakRows();
-  }
-
-  setWallOffsets(leftOffsetX, leftOffsetY, rightOffsetX, rightOffsetY) {
-    this.wallSection.setWallOffsets(leftOffsetX, leftOffsetY, rightOffsetX, rightOffsetY);
-  }
-
-  getLeftWall() {
-    return this.wallSection.getLeftWall();
-  }
-
-  getRightWall() {
-    return this.wallSection.getRightWall();
-  }
+  getTotalFlakCount() { return this.flakManager.getTotalFlakCount(); }
+  getAllFlaks() { return this.flakManager.getAllFlaks(); }
+  updateFlakRowConfig(rowIndex, newConfig) { this.flakManager.updateFlakRowConfig(rowIndex, newConfig); }
+  setWallOffsets(lx, ly, rx, ry) { this.wallSection.setWallOffsets(lx, ly, rx, ry); }
+  getLeftWall() { return this.wallSection.getLeftWall(); }
+  getRightWall() { return this.wallSection.getRightWall(); }
 }

@@ -9,11 +9,19 @@ export class Base {
     return this.compositeBase.getObjects();
   }
 
-  // ADD THIS MISSING UPDATE METHOD
   update(deltaTime) {
-   
-    if (this.compositeBase && this.compositeBase.update) {
-      this.compositeBase.update(deltaTime);
-    }
+    this.compositeBase?.update(deltaTime);
+  }
+
+  handleMouseMove(mouseX, mouseY) {
+    return this.compositeBase?.handleMouseMove(mouseX, mouseY);
+  }
+
+  handleClick(mouseX, mouseY) {
+    return this.compositeBase?.handleClick(mouseX, mouseY);
+  }
+
+  drawUI(ctx, offsetX, offsetY) {
+    return this.compositeBase?.drawUI(ctx, offsetX, offsetY);
   }
 }
