@@ -1,9 +1,5 @@
 import { worldConfig } from "../config/worldConfig.js";
-<<<<<<< HEAD
 import { setupCanvas, drawWithZoomAware } from "./canvasSetup.js";
-=======
-import { setupCanvas } from "./canvasSetup.js";
->>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
 import { Grass } from "../components/Grass.js";
 import { Base } from "../components/Base.js";
 import { CameraController } from "./CameraController.js";
@@ -51,7 +47,6 @@ export class Game {
 
   getMouseCoordinates(event) {
     const rect = this.canvas.getBoundingClientRect();
-<<<<<<< HEAD
     const renderInfo = this.camera.getRenderingInfo();
     
     // Adjust mouse coordinates for black bars if present
@@ -66,11 +61,6 @@ export class Game {
     return {
       x: mouseX + (this.camera.offsetX || 0),
       y: mouseY + (this.camera.offsetY || 0)
-=======
-    return {
-      x: event.clientX - rect.left + (this.camera.offsetX || 0),
-      y: event.clientY - rect.top + (this.camera.offsetY || 0)
->>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
     };
   }
 
@@ -94,7 +84,6 @@ export class Game {
       this.viewH = this.canvas._cssHeight || window.innerHeight;
       this.camera.updateViewSize(this.viewW, this.viewH);
     });
-<<<<<<< HEAD
 
     // Add zoom change detection
     let lastZoom = this.camera.currentZoom;
@@ -107,8 +96,6 @@ export class Game {
       requestAnimationFrame(checkZoom);
     };
     checkZoom();
-=======
->>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
   }
 
   updateGame(deltaTime) {
@@ -122,7 +109,6 @@ export class Game {
     );
 
     if (activeBase) {
-<<<<<<< HEAD
       const renderInfo = this.camera.getRenderingInfo();
       let offsetX = this.camera.offsetX;
       let offsetY = this.camera.offsetY;
@@ -134,9 +120,6 @@ export class Game {
       }
       
       activeBase.compositeBase.drawUI(this.ctx, offsetX, offsetY);
-=======
-      activeBase.compositeBase.drawUI(this.ctx, this.camera.offsetX, this.camera.offsetY);
->>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
     }
   }
 
@@ -146,7 +129,6 @@ export class Game {
 
     this.updateGame(deltaTime);
 
-<<<<<<< HEAD
     // Use zoom-aware rendering
     drawWithZoomAware(this.ctx, this.camera, (ctx, renderInfo) => {
       // Clear the render area (not the entire canvas if using black bars)
@@ -166,16 +148,6 @@ export class Game {
           );
         });
     });
-=======
-    const drawList = this.getDrawObjects();
-    this.ctx.clearRect(0, 0, this.viewW, this.viewH);
-
-    drawList
-      .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0))
-      .forEach(obj => {
-        obj.draw?.(this.ctx, this.camera.offsetX, this.camera.offsetY, this.camera.viewW, this.camera.viewH);
-      });
->>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
 
     this.drawUI();
     requestAnimationFrame((time) => this.gameLoop(time));
@@ -193,12 +165,9 @@ export class Game {
   getAllFactoryLevels(baseIndex) { 
     return this.bases[baseIndex]?.compositeBase?.getAllFactoryLevels?.() || {}; 
   }
-<<<<<<< HEAD
 
   // New helper methods for zoom handling
   getCurrentZoom() { return this.camera.currentZoom; }
   isUsingBlackBars() { return this.camera.getRenderingInfo().useBlackBars; }
   getRenderInfo() { return this.camera.getRenderingInfo(); }
-=======
->>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
 }

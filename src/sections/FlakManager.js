@@ -13,11 +13,7 @@ export class FlakManager {
 
     this.building = false;
     this.buildTimer = 0;
-<<<<<<< HEAD
     this.buildDuration = 1;
-=======
-    this.buildDuration = 1000;
->>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
 
     this.flakRows = [
       { count: 8, zIndex: -89, rowOffsetY: -15, rowOffsetX: -60, spacing: 33 },

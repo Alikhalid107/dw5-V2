@@ -6,7 +6,6 @@ export function setupCanvas(canvas) {
   function resize() {
     const cssW = Math.max(1, Math.floor(window.innerWidth));
     const cssH = Math.max(1, Math.floor(window.innerHeight));
-<<<<<<< HEAD
     
     // Enhanced DPR calculation for better zoom handling
     let dpr = window.devicePixelRatio || 1;
@@ -32,36 +31,19 @@ export function setupCanvas(canvas) {
     canvas.height = Math.floor(cssH * dpr);
 
     // Scale context to match DPR
-=======
-    const dpr = window.devicePixelRatio || 1;
-
-    // Set CSS and backing store sizes
-    canvas.style.width = cssW + "px";
-    canvas.style.height = cssH + "px";
-    canvas.width = Math.floor(cssW * dpr);
-    canvas.height = Math.floor(cssH * dpr);
-
-    // Reset and scale context
->>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     // Save metadata
     canvas._dpr = dpr;
     canvas._cssWidth = cssW;
     canvas._cssHeight = cssH;
-<<<<<<< HEAD
     canvas._zoom = zoom;
 
     // Enhanced image smoothing settings
-=======
-
-    // Disable image smoothing
->>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
     ctx.imageSmoothingEnabled = false;
     if (ctx.webkitImageSmoothingEnabled !== undefined) {
       ctx.webkitImageSmoothingEnabled = false;
     }
-<<<<<<< HEAD
     if (ctx.mozImageSmoothingEnabled !== undefined) {
       ctx.mozImageSmoothingEnabled = false;
     }
@@ -80,8 +62,6 @@ export function setupCanvas(canvas) {
     if (Math.abs(zoom1 - 1) > 0.1) return zoom1;
     if (Math.abs(zoom2 - 1) > 0.1) return zoom2;
     return 1;
-=======
->>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
   }
 
   resize();
@@ -98,7 +78,6 @@ export function setupCanvas(canvas) {
     }
   });
 
-<<<<<<< HEAD
   // Add zoom detection listener
   let lastZoom = detectBrowserZoom();
   window.addEventListener("scroll", () => {
@@ -156,7 +135,4 @@ export function drawWithZoomAware(ctx, camera, drawCallback) {
   if (renderInfo.useBlackBars) {
     ctx.restore();
   }
-=======
-  return ctx;
->>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
 }
