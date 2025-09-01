@@ -12,16 +12,20 @@ export class CameraController {
     this.dragging = false;
     this.lastMouse = { x: 0, y: 0 };
 
+<<<<<<< HEAD
     // Zoom detection properties
     this.baseWidth = 1600; // Your native resolution
     this.baseHeight = 900;
     this.currentZoom = this.detectZoomLevel();
     this.minZoomForFullScreen = 0.8; // 80%
 
+=======
+>>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
     this.addEventListeners();
     this.clamp();
   }
 
+<<<<<<< HEAD
   detectZoomLevel() {
     // Detect zoom by comparing actual viewport to expected viewport
     const expectedWidth = this.baseWidth;
@@ -32,6 +36,8 @@ export class CameraController {
     return (actualWidth * dpr) / expectedWidth;
   }
 
+=======
+>>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
   addEventListeners() {
     if (!this.canvas) return;
 
@@ -66,11 +72,18 @@ export class CameraController {
     });
 
     window.addEventListener("resize", () => {
+<<<<<<< HEAD
       this.updateViewSize();
+=======
+      this.viewW = this.canvas?._cssWidth || window.innerWidth;
+      this.viewH = this.canvas?._cssHeight || window.innerHeight;
+      this.clamp();
+>>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
     });
   }
 
   updateViewSize(viewW, viewH) {
+<<<<<<< HEAD
     this.viewW = viewW || this.canvas?._cssWidth || window.innerWidth;
     this.viewH = viewH || this.canvas?._cssHeight || window.innerHeight;
     this.currentZoom = this.detectZoomLevel();
@@ -123,12 +136,24 @@ export class CameraController {
 
   clamp() {
     const renderInfo = this.getRenderingInfo();
+=======
+    this.viewW = viewW || this.viewW;
+    this.viewH = viewH || this.viewH;
+    this.clamp();
+  }
+
+  clamp() {
+>>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
     const clamped = clampCamera(
       this.offsetX,
       this.offsetY,
       this.worldWidth,
       this.worldHeight,
+<<<<<<< HEAD
       { width: renderInfo.renderWidth, height: renderInfo.renderHeight }
+=======
+      { width: this.viewW, height: this.viewH }
+>>>>>>> 10b4892a0d7c5b6be548eb07ee4631e344072d93
     );
     this.offsetX = clamped.x;
     this.offsetY = clamped.y;
