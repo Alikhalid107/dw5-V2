@@ -10,13 +10,16 @@ export class Flak extends GameObject {
     this.cols = 72;
     this.rows = 1;
     this.scaleFactor = scaleFactor;
-    this.ready = false;
 
+    // animation / rotation state
+    this.ready = false;
     this.angle = 0;
     this.currentFrame = 0;
     this.targetAngle = 0;
     this.isRotating = false;
     this.rotationSpeed = 0.8;
+
+    // rotation timing
     this.lastRotationTime = Date.now();
     this.nextRotationDelay = this.getRandomRotationDelay();
 
@@ -25,11 +28,8 @@ export class Flak extends GameObject {
 
   setupSpriteImage() {
     if (!this.image) return;
-    if (this.image.complete && this.image.naturalWidth > 0) {
-      this.initSprite();
-    } else {
-      this.image.onload = () => this.initSprite();
-    }
+    if (this.image.complete && this.image.naturalWidth > 0) this.initSprite();
+    else this.image.onload = () => this.initSprite();
   }
 
   initSprite() {
@@ -59,25 +59,25 @@ export class Flak extends GameObject {
   }
 
   updateRotation() {
-    const currentTime = Date.now();
-    
-    if (!this.isRotating && currentTime - this.lastRotationTime > this.nextRotationDelay) {
+    const now = Date.now();
+
+    if (!this.isRotating && now - this.lastRotationTime > this.nextRotationDelay) {
       this.targetAngle = this.getRandomRotationOffset();
       this.isRotating = true;
-      this.lastRotationTime = currentTime;
+      this.lastRotationTime = now;
       this.nextRotationDelay = this.getRandomRotationDelay();
     }
 
     if (this.isRotating) {
-      let angleDiff = this.targetAngle - this.angle;
-      if (angleDiff > 180) angleDiff -= 360;
-      else if (angleDiff < -180) angleDiff += 360;
+      let diff = this.targetAngle - this.angle;
+      if (diff > 180) diff -= 360;
+      else if (diff < -180) diff += 360;
 
-      if (Math.abs(angleDiff) < 2) {
+      if (Math.abs(diff) < 2) {
         this.angle = this.targetAngle;
         this.isRotating = false;
       } else {
-        this.angle += (angleDiff > 0 ? 1 : -1) * this.rotationSpeed;
+        this.angle += (diff > 0 ? 1 : -1) * this.rotationSpeed;
         if (this.angle < 0) this.angle += 360;
         if (this.angle >= 360) this.angle -= 360;
       }
@@ -85,28 +85,26 @@ export class Flak extends GameObject {
     }
   }
 
-  draw(ctx, offsetX, offsetY) {
+  draw(ctx, offsetX = 0, offsetY = 0) {
+    // if sprite not ready, don't draw (removed debug rectangle)
+    if (!this.ready || !this.image) return;
+
+    this.updateRotation();
+
     const drawX = Math.floor(this.x - offsetX);
     const drawY = Math.floor(this.y - offsetY);
+    const srcX = Math.floor(this.currentFrame) * this.frameWidth;
 
-    if (this.ready && this.image) {
-      this.updateRotation();
-      const srcX = Math.floor(this.currentFrame) * this.frameWidth;
-      ctx.drawImage(
-        this.image,
-        srcX, 0,
-        this.frameWidth, this.frameHeight,
-        drawX, drawY,
-        this.width, this.height
-      );
-    } else {
-      // Placeholder rectangle
-      ctx.strokeStyle = "orange";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(drawX, drawY, this.width || 30, this.height || 20);
-    }
+    ctx.drawImage(
+      this.image,
+      srcX, 0,
+      this.frameWidth, this.frameHeight,
+      drawX, drawY,
+      this.width, this.height
+    );
   }
 
+  // convenience accessors retained
   get scaledWidth() { return this.width; }
   get scaledHeight() { return this.height; }
 

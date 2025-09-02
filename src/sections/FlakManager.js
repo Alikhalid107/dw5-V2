@@ -28,13 +28,10 @@ export class FlakManager {
     this.initializeFirstFlaks();
   }
 
-  // --------------- helpers ---------------
-  totalCapacityForRow(i) {
-    return (this.flakRows[i]?.count || 0) * 2;
-  }
+  // ---------- helpers ----------
+  totalCapacityForRow(i) { return (this.flakRows[i]?.count || 0) * 2; }
 
   getFlaksOnRow(rowIndex) {
-    // number of flaks currently assigned to this row (0..capacity)
     let prev = 0;
     for (let i = 0; i < rowIndex; i++) prev += this.totalCapacityForRow(i);
     return Math.max(0, Math.min(this.currentFlakCount - prev, this.totalCapacityForRow(rowIndex)));
@@ -64,6 +61,7 @@ export class FlakManager {
     return -1;
   }
 
+  // schedule async positioning; waits until flak.ready then sets X (clamped)
   scheduleAsyncPositioning(flak, getTargetX) {
     const id = Symbol("pos");
     this.pendingPositions.add(id);
@@ -71,12 +69,21 @@ export class FlakManager {
     const attempt = () => {
       if (!this.pendingPositions.has(id)) return;
       if (flak.ready) {
-        flak.x = getTargetX();
+        let x = getTargetX();
+
+        // clamp to a sane range (defensive: prevents huge out-of-map values)
+        const leftClamp = this.garageX - 300;
+        const rightClamp = this.garageX + this.garageWidth + 300;
+        if (x < leftClamp) x = leftClamp;
+        if (x > rightClamp) x = rightClamp;
+
+        flak.x = x;
         this.pendingPositions.delete(id);
       } else {
         setTimeout(attempt, 10);
       }
     };
+
     setTimeout(attempt, 10);
   }
 
@@ -88,13 +95,14 @@ export class FlakManager {
     f.type = "flak";
 
     const { left, right } = this.getLeftRightCounts(rowIndex);
+
     if (side === "left") {
-      const indexOnSide = left + 1; // next left index
+      const indexOnSide = left + 1;
       this.scheduleAsyncPositioning(f, () =>
         this.garageX - row.rowOffsetX - indexOnSide * row.spacing
       );
     } else {
-      const indexOnSide = right + 1; // next right index
+      const indexOnSide = right + 1;
       this.scheduleAsyncPositioning(f, () =>
         this.garageX + this.garageWidth + row.rowOffsetX + indexOnSide * row.spacing - f.width
       );
@@ -105,17 +113,13 @@ export class FlakManager {
     return f;
   }
 
-  // --------------- initialization ---------------
+  // ---------- init ----------
   initializeFirstFlaks() {
-    const firstRowIndex = 0;
-    // left
-    this.createFlakAt("left", firstRowIndex);
-    // right (positioned asynchronously)
-    this.createFlakAt("right", firstRowIndex);
-    // ensure count matches original behaviour (createFlakAt increments)
+    this.createFlakAt("left", 0);
+    this.createFlakAt("right", 0);
   }
 
-  // --------------- build flow ---------------
+  // ---------- build flow ----------
   startBuilding() {
     if (this.building || !this.canBuild()) return false;
     this.building = true;
@@ -149,15 +153,12 @@ export class FlakManager {
 
     const flaksOnRow = this.getFlaksOnRow(rowIndex);
     const { left: leftCount, right: rightCount } = this.getLeftRightCounts(rowIndex);
-
-    // alternate by total on row but never exceed per-side limits
     let addLeft = flaksOnRow % 2 === 0;
     const rowLimit = this.flakRows[rowIndex].count;
 
     if (addLeft && leftCount >= rowLimit) addLeft = false;
     else if (!addLeft && rightCount >= rowLimit) addLeft = true;
 
-    // if chosen side is still full, try the other; if still full, fail this row (shouldn't happen due to findRowWithSpace)
     if (addLeft && leftCount >= rowLimit) {
       if (rightCount < rowLimit) addLeft = false;
       else return false;
@@ -175,11 +176,9 @@ export class FlakManager {
     this.objects = [];
   }
 
-  // --------------- public getters / setters ---------------
+  // ---------- public getters / setters ----------
   isBuilding() { return this.building; }
-  getBuildProgress() {
-    return this.building ? Math.min(1, Math.max(0, 1 - (this.buildTimer / this.buildDuration))) : 0;
-  }
+  getBuildProgress() { return this.building ? Math.min(1, Math.max(0, 1 - (this.buildTimer / this.buildDuration))) : 0; }
   getRemainingBuildTime() { return this.building ? Math.ceil(this.buildTimer / 1000) : 0; }
   canBuild() { return !this.building && this.currentFlakCount < this.maxFlakCapacity; }
   getMaxFlakCapacity() { return this.maxFlakCapacity; }
@@ -195,7 +194,6 @@ export class FlakManager {
     this.cleanup();
     this.currentFlakCount = 0;
     this.initializeFirstFlaks();
-    // add remaining flaks (start from 2 created above)
     while (this.currentFlakCount < targetCount) {
       if (!this.addNewFlak()) break;
     }

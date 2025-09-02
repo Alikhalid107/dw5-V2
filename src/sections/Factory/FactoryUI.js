@@ -75,7 +75,7 @@ export class FactoryUI {
       if (!factory.isMaxLevel()) {
         factory.level = factory.maxLevel;
         factory.updateVisuals();
-        console.log(`${factory.type} factory upgraded to max level ${factory.maxLevel}`);
+
       }
     });
   }
@@ -84,7 +84,7 @@ export class FactoryUI {
     for (const [type, panel] of Object.entries(this.factoryPanels)) {
       const factory = this.factoryManager.factories[type];
       if (factory.isHovered && panel.handleClick(mouseX, mouseY, this.currentOffsetX, this.currentOffsetY)) {
-        console.log(`Attempting to upgrade ${type} factory`);
+
         return this.factoryManager.startUpgrade(type);
       }
     }
