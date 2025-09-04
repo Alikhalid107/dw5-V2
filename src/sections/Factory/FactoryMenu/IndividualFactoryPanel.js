@@ -2,8 +2,17 @@ export class IndividualFactoryPanel {
   constructor(factory, factoryType) {
     this.factory = factory;
     this.factoryType = factoryType;
-    this.panelWidth = 200;
-    this.panelHeight = 120;
+    
+    // Get panel configuration from factory properties or use defaults
+    const panelConfig = factory.panelConfig 
+    
+    // Set panel properties from config
+    this.panelWidth = panelConfig.panelWidth;
+    this.panelHeight = panelConfig.panelHeight;
+    this.panelOffsetX = panelConfig.panelOffsetX;
+    this.panelOffsetY = panelConfig.panelOffsetY;
+    
+    // Button properties
     this.buttonWidth = 60;
     this.buttonHeight = 30;
     this.buttonBounds = null;
@@ -11,10 +20,11 @@ export class IndividualFactoryPanel {
   }
 
   calculatePanelPosition(factory) {
-    // Fix potential NaN/undefined values that cause gradient errors
-    const factoryWidth = factory.width || factory.factoryWidth || 0;
-    const panelX = (factory.x || 0) + (factoryWidth / 2) - (this.panelWidth / 2);
-    const panelY = (factory.y || 0) - this.panelHeight + 10;
+    // Use manual offsets instead of complex calculations
+    const factoryCenterX = factory.x + (factory.width / 2);
+    const panelX = factoryCenterX + this.panelOffsetX - (this.panelWidth / 2);
+    const panelY = factory.y + this.panelOffsetY;
+    
     return { x: panelX, y: panelY };
   }
 
@@ -42,9 +52,9 @@ export class IndividualFactoryPanel {
     ctx.fillRect(x, y, this.panelWidth, this.panelHeight);
 
     // Border
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(x, y, this.panelWidth, this.panelHeight);
+    // ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    // ctx.lineWidth = 1;
+    // ctx.strokeRect(x, y, this.panelWidth, this.panelHeight);
   }
 
   drawContent(ctx, x, y, factory) {
@@ -86,9 +96,9 @@ export class IndividualFactoryPanel {
     ctx.fillStyle = buttonColor;
     ctx.fillRect(buttonX, buttonY, this.buttonWidth, this.buttonHeight);
 
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-    ctx.lineWidth = 1;
-    ctx.strokeRect(buttonX, buttonY, this.buttonWidth, this.buttonHeight);
+    // ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    // ctx.lineWidth = 1;
+    // ctx.strokeRect(buttonX, buttonY, this.buttonWidth, this.buttonHeight);
 
     // Button text
     ctx.fillStyle = "white";

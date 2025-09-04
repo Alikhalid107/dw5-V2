@@ -38,24 +38,26 @@ export class GameObject {
     }
   }
 
-  draw(ctx, offsetX = 0, offsetY = 0, viewW = 1000, viewH = 1000) {
-    if (!this.loaded || !this.isVisible(offsetX, offsetY, viewW, viewH)) return;
-    const drawX = Math.floor(this.x - offsetX), drawY = Math.floor(this.y - offsetY);
+draw(ctx, offsetX = 0, offsetY = 0, viewW = 1000, viewH = 1000) {
+  if (!this.loaded || !this.isVisible(offsetX, offsetY, viewW, viewH)) return;
+  const drawX = Math.floor(this.x - offsetX), drawY = Math.floor(this.y - offsetY);
 
-    const prevAlpha = ctx.globalAlpha, prevComp = ctx.globalCompositeOperation;
-    ctx.globalAlpha = this.opacity; ctx.globalCompositeOperation = this.blendMode;
+  const prevAlpha = ctx.globalAlpha, prevComp = ctx.globalCompositeOperation;
+  ctx.globalAlpha = this.opacity; 
+  ctx.globalCompositeOperation = this.blendMode;
 
-    try {
-      if (this.spriteSheet) {
-        const sx = this.currentFrame * this.frameWidth;
-        ctx.drawImage(this.image, sx, 0, this.frameWidth, this.frameHeight, drawX, drawY, this.width, this.height);
-      } else {
-        ctx.drawImage(this.image, drawX, drawY, this.width, this.height);
-      }
-    } finally {
-      ctx.globalAlpha = prevAlpha; ctx.globalCompositeOperation = prevComp;
+  try {
+    if (this.spriteSheet) {
+      const sx = this.currentFrame * this.frameWidth;
+      ctx.drawImage(this.image, sx, 0, this.frameWidth, this.frameHeight, drawX, drawY, this.width, this.height);
+    } else {
+      ctx.drawImage(this.image, drawX, drawY, this.width, this.height);
     }
+  } finally {
+    ctx.globalAlpha = prevAlpha; 
+    ctx.globalCompositeOperation = prevComp;
   }
+}
 
   setOpacity(opacity) { this.opacity = Math.max(0, Math.min(1, opacity)); }
   setBlendMode(mode) { this.blendMode = mode; }

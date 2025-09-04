@@ -3,8 +3,14 @@ import { FactoryUI } from "./Factory/FactoryUI.js";
 import { FactoryTypes } from "./Factory/FactoryTypes.js";
 
 export class FactoryManager {
-  constructor(garageX, garageY, garageWidth, garageHeight, options = {}) {
-    Object.assign(this, { garageX, garageY, garageWidth, garageHeight, factoryProperties: FactoryTypes, showGrid: false, showUpgradeAll: false, hoveredFactory: null });
+  constructor(garageX, garageY, garageWidth, garageHeight) {
+    Object.assign(this, { 
+      garageX, garageY, garageWidth, garageHeight, 
+      factoryProperties: FactoryTypes, 
+      showGrid: false, 
+      showUpgradeAll: false 
+    });
+    
     this.factories = this.createFactories();
     this.ui = new FactoryUI(this);
   }
@@ -17,9 +23,7 @@ export class FactoryManager {
   }
 
   update(deltaTime) {
-    Object.values(this.factories).forEach(factory => {
-      if (factory.update(deltaTime)) factory.completeUpgrade();
-    });
+    Object.values(this.factories).forEach(factory => factory.update(deltaTime));
     this.ui?.update?.(deltaTime);
   }
 
@@ -27,7 +31,10 @@ export class FactoryManager {
     Object.values(this.factories).forEach(f => f.isHovered = false);
 
     const anyFactoryHovered = Object.values(this.factories).some(factory => {
-      if (this.isPointInsideFactoryWithPanel(mouseX, mouseY, factory)) { factory.isHovered = true; return true; }
+      if (this.isPointInsideFactoryWithPanel(mouseX, mouseY, factory)) { 
+        factory.isHovered = true; 
+        return true; 
+      }
       return false;
     });
 
@@ -37,37 +44,67 @@ export class FactoryManager {
   }
 
   isPointInsideFactoryWithPanel(mouseX, mouseY, factory) {
+    // First check if mouse is inside the actual factory
     if (factory.isPointInside(mouseX, mouseY)) return true;
 
-    const panelWidth = 200, panelHeight = 120, gap = 6, buffer = 6;
-    const panelX = factory.x + (factory.width / 2) - (panelWidth / 2);
-    const panelY = factory.y - panelHeight - gap;
-
-    const bounds = {
-      x: Math.min(panelX, factory.x) - buffer,
-      y: panelY - buffer,
-      width: Math.max(panelWidth, factory.width) + buffer * 2,
-      height: panelHeight + buffer * 2
+    // Get manual hover area configuration from factory properties
+    const panelConfig = factory.panelConfig || {
+      hoverAreaX: -20,
+      hoverAreaY: -140,
+      hoverAreaWidth: 250,
+      hoverAreaHeight: 260
     };
 
-    return mouseX >= bounds.x && mouseX <= bounds.x + bounds.width && mouseY >= bounds.y && mouseY <= bounds.y + bounds.height;
+    // Calculate hover area bounds using manual configuration
+    const hoverBounds = {
+      x: factory.x + panelConfig.hoverAreaX,
+      y: factory.y + panelConfig.hoverAreaY,
+      width: panelConfig.hoverAreaWidth,
+      height: panelConfig.hoverAreaHeight
+    };
+
+    // Check if mouse is inside the manually configured hover area
+    return mouseX >= hoverBounds.x && 
+           mouseX <= hoverBounds.x + hoverBounds.width && 
+           mouseY >= hoverBounds.y && 
+           mouseY <= hoverBounds.y + hoverBounds.height;
   }
 
-  // factory operations
-  startUpgrade(factoryType) { return this.factories[factoryType]?.startUpgrade() || false; }
-  completeUpgrade(factoryType) { return this.factories[factoryType]?.completeUpgrade() || 0; }
-  getFactoryLevel(factoryType) { return this.factories[factoryType]?.level || 0; }
-  getAllFactoryLevels() { return Object.keys(this.factories).reduce((acc, type) => { acc[type] = this.factories[type].level; return acc; }, {}); }
-  isFactoryUpgrading(factoryType) { return this.factories[factoryType]?.upgrading || false; }
-  getRemainingUpgradeTime(factoryType) { return this.factories[factoryType]?.getRemainingUpgradeTime() || 0; }
-  getUpgradeProgress(factoryType) { return this.factories[factoryType]?.getUpgradeProgress() || 0; }
+  // Factory operations
+  getFactoryLevel(factoryType) { 
+    return this.factories[factoryType]?.level || 0; 
+  }
+  
+  getAllFactoryLevels() { 
+    return Object.keys(this.factories).reduce((acc, type) => { 
+      acc[type] = this.factories[type].level; 
+      return acc; 
+    }, {}); 
+  }
 
-  setFactoryZIndex(factoryType, zIndex) { this.factories[factoryType]?.setZIndex(zIndex); }
-  getFactoryZIndex(factoryType) { return this.factories[factoryType]?.zIndex || 7; }
-  setAllFactoryZIndexes(zIndexMap) { Object.keys(zIndexMap).forEach(type => { if (this.factories[type]) this.setFactoryZIndex(type, zIndexMap[type]); }); }
+  setFactoryZIndex(factoryType, zIndex) { 
+    this.factories[factoryType]?.setZIndex(zIndex); 
+  }
+  
+  getFactoryZIndex(factoryType) { 
+    return this.factories[factoryType]?.zIndex || 7; 
+  }
+  
+  setAllFactoryZIndexes(zIndexMap) { 
+    Object.keys(zIndexMap).forEach(type => { 
+      if (this.factories[type]) this.setFactoryZIndex(type, zIndexMap[type]); 
+    }); 
+  }
 
-  getObjects() { return Object.values(this.factories).flatMap(factory => factory.getObjects()); }
+  getObjects() { 
+    return Object.values(this.factories).flatMap(factory => factory.getObjects()); 
+  }
 
-  drawUI(ctx, offsetX, offsetY) { this.ui.drawUI(ctx, offsetX, offsetY); }
-  handleClick(mouseX, mouseY) { return this.ui.handleClick(mouseX, mouseY); }
+  drawUI(ctx, offsetX, offsetY) { 
+    this.ui.drawUI(ctx, offsetX, offsetY); 
+  }
+  
+  handleClick(mouseX, mouseY) { 
+    return this.ui.handleClick(mouseX, mouseY); 
+  }
 }

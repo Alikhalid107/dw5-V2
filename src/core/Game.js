@@ -41,10 +41,23 @@ export class Game {
   }
 
   getDrawObjects() {
-    const baseObjects = this.bases.flatMap(base => base.getObjects());
-    return [...this.grassObjects, ...baseObjects];
+  const baseObjects = this.bases.flatMap(base => base.getObjects());
+  const allObjects = [...this.grassObjects, ...baseObjects];
+  
+  // Remove duplicates using Set with object references
+  const uniqueObjects = [];
+  const seen = new Set();
+  
+  for (const obj of allObjects) {
+    if (!seen.has(obj)) {
+      seen.add(obj);
+      uniqueObjects.push(obj);
+    }
   }
+  
 
+  return uniqueObjects;
+}
   getMouseCoordinates(event) {
     const rect = this.canvas.getBoundingClientRect();
     const renderInfo = this.camera.getRenderingInfo();
