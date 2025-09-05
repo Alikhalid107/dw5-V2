@@ -1,6 +1,7 @@
 import { Factory } from "./Factory/Factory.js";
 import { FactoryUI } from "./Factory/FactoryUI.js";
 import { FactoryTypes } from "./Factory/FactoryTypes.js";
+import { ProductionTimerOverlay } from "./Factory/ProductionMenu/ProductionTimerOverlay.js";
 
 export class FactoryManager {
   constructor(garageX, garageY, garageWidth, garageHeight) {
@@ -13,11 +14,22 @@ export class FactoryManager {
     
     this.factories = this.createFactories();
     this.ui = new FactoryUI(this);
+    
+    // Create production timer overlays for each factory
+    this.activeConfirmationDialog = null; // Track which factory type has active dialog
+    this.productionOverlays = this.createProductionOverlays();
   }
 
   createFactories() {
     return Object.keys(this.factoryProperties).reduce((acc, type) => {
       acc[type] = new Factory(type, this.factoryProperties[type], this.garageX, this.garageY);
+      return acc;
+    }, {});
+  }
+
+  createProductionOverlays() {
+    return Object.keys(this.factories).reduce((acc, type) => {
+      acc[type] = new ProductionTimerOverlay(this.factories[type]);
       return acc;
     }, {});
   }
@@ -28,6 +40,23 @@ export class FactoryManager {
   }
 
   handleMouseMove(mouseX, mouseY) {
+    // Don't change showGrid based on hover if confirmation dialog is active
+    if (this.activeConfirmationDialog) {
+      this.showGrid = true; // Keep grid visible when dialog is open
+      
+      // Still update hover states for the factory with active dialog
+      const factory = this.factories[this.activeConfirmationDialog];
+      if (factory) {
+        factory.isHovered = true;
+        const panel = this.ui.factoryPanels[this.activeConfirmationDialog];
+        if (panel) {
+          panel.updateHoverState(mouseX, mouseY);
+        }
+      }
+      return;
+    }
+
+    // Existing hover logic for when no dialog is active
     Object.values(this.factories).forEach(f => f.isHovered = false);
 
     const anyFactoryHovered = Object.values(this.factories).some(factory => {
@@ -41,6 +70,35 @@ export class FactoryManager {
     const overUpgradeAll = this.ui?.upgradeAllButton?.isPointInsideWorld?.(mouseX, mouseY) || false;
     this.showGrid = anyFactoryHovered || overUpgradeAll;
     this.showUpgradeAll = overUpgradeAll;
+    
+    // Update hover states for factory panels
+    Object.entries(this.ui.factoryPanels).forEach(([type, panel]) => {
+      const factory = this.factories[type];
+      if (factory.isHovered) {
+        panel.updateHoverState(mouseX, mouseY);
+      }
+    });
+  }
+
+  // Add method to manage confirmation dialogs
+  setConfirmationDialog(factoryType, show) {
+    if (show) {
+      this.activeConfirmationDialog = factoryType;
+      this.showGrid = true; // Force grid visibility
+      
+      // Ensure the factory is marked as hovered
+      const factory = this.factories[factoryType];
+      if (factory) {
+        factory.isHovered = true;
+      }
+    } else {
+      this.activeConfirmationDialog = null;
+      // Reset hover state for the factory
+      const factory = this.factories[factoryType];
+      if (factory) {
+        factory.isHovered = false;
+      }
+    }
   }
 
   isPointInsideFactoryWithPanel(mouseX, mouseY, factory) {
@@ -52,7 +110,7 @@ export class FactoryManager {
       hoverAreaX: -20,
       hoverAreaY: -140,
       hoverAreaWidth: 250,
-      hoverAreaHeight: 260
+      hoverAreaHeight: 300 // Increased height to account for production buttons
     };
 
     // Calculate hover area bounds using manual configuration
@@ -96,12 +154,52 @@ export class FactoryManager {
     }); 
   }
 
+  // Production system methods
+  startFactoryProduction(factoryType, hours) {
+    const factory = this.factories[factoryType];
+    if (factory) {
+      return factory.startProduction(hours);
+    }
+    return false;
+  }
+
+  cancelFactoryProduction(factoryType) {
+    const factory = this.factories[factoryType];
+    if (factory) {
+      factory.cancelProduction();
+    }
+  }
+
+  isFactoryProducing(factoryType) {
+    const factory = this.factories[factoryType];
+    return factory ? factory.isProducing : false;
+  }
+
+  getFactoryProductionTime(factoryType) {
+    const factory = this.factories[factoryType];
+    return factory ? factory.getFormattedProductionTime() : "";
+  }
+
   getObjects() { 
     return Object.values(this.factories).flatMap(factory => factory.getObjects()); 
   }
 
   drawUI(ctx, offsetX, offsetY) { 
-    this.ui.drawUI(ctx, offsetX, offsetY); 
+    this.ui.drawUI(ctx, offsetX, offsetY);
+    
+    // Draw production timer overlays - these should always be visible when active
+    Object.values(this.productionOverlays).forEach(overlay => {
+      overlay.draw(ctx, offsetX, offsetY);
+    });
+
+    // Always draw confirmation dialog if active, regardless of hover
+    if (this.activeConfirmationDialog) {
+      const factory = this.factories[this.activeConfirmationDialog];
+      const panel = this.ui.factoryPanels[this.activeConfirmationDialog];
+      if (factory && panel && panel.confirmationDialog) {
+        panel.confirmationDialog.draw(ctx, offsetX, offsetY, panel.width);
+      }
+    }
   }
   
   handleClick(mouseX, mouseY) { 

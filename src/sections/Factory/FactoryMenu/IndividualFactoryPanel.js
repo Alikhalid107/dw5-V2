@@ -1,149 +1,171 @@
+import { PanelBackground } from '../ProductionMenu/PanelBackground.js';
+import { UpgradeButton } from '../ProductionMenu/UpgradeButton.js';
+import { ProductionButtons } from '../ProductionMenu/ProductionButtons.js';
+import { CancelBadges } from '../ProductionMenu/CancelBadges.js';
+import { ConfirmationDialog } from '../ProductionMenu/ConfirmationDialog.js';
+import { MessageDisplay } from '../ProductionMenu/MessageDisplay.js';
+
 export class IndividualFactoryPanel {
   constructor(factory, factoryType) {
     this.factory = factory;
     this.factoryType = factoryType;
-    
-    // Get panel configuration from factory properties or use defaults
-    const panelConfig = factory.panelConfig 
-    
-    // Set panel properties from config
-    this.panelWidth = panelConfig.panelWidth;
-    this.panelHeight = panelConfig.panelHeight;
-    this.panelOffsetX = panelConfig.panelOffsetX;
-    this.panelOffsetY = panelConfig.panelOffsetY;
-    
-    // Button properties
-    this.buttonWidth = 60;
-    this.buttonHeight = 30;
-    this.buttonBounds = null;
-    this.isButtonHovered = false;
+
+    const cfg = factory.panelConfig || {};
+    this.panelWidth = cfg.panelWidth;
+    this.panelHeight = (cfg.panelHeight || 0) + 45; // preserve original extra height
+    this.panelOffsetX = cfg.panelOffsetX;
+    this.panelOffsetY = cfg.panelOffsetY;
+
+    // Initialize components
+    this.background = new PanelBackground();
+    this.upgradeButton = new UpgradeButton();
+    this.productionButtons = new ProductionButtons();
+    this.cancelBadges = new CancelBadges();
+    this.confirmDialog = new ConfirmationDialog();
+    this.messageDisplay = new MessageDisplay();
   }
 
   calculatePanelPosition(factory) {
-    // Use manual offsets instead of complex calculations
-    const factoryCenterX = factory.x + (factory.width / 2);
-    const panelX = factoryCenterX + this.panelOffsetX - (this.panelWidth / 2);
-    const panelY = factory.y + this.panelOffsetY;
-    
-    return { x: panelX, y: panelY };
-  }
-
-  draw(ctx, offsetX, offsetY, factory) {
-    const pos = this.calculatePanelPosition(factory);
-    const x = pos.x - (offsetX || 0);
-    const y = pos.y - (offsetY || 0);
-
-    // Validate coordinates before drawing
-    if (!isFinite(x) || !isFinite(y)) return;
-
-    this.drawBackground(ctx, x, y);
-    this.drawContent(ctx, x, y, factory);
-  }
-
-  drawBackground(ctx, x, y) {
-    // Validate gradient coordinates
-    if (!isFinite(x) || !isFinite(y)) return;
-
-    const gradient = ctx.createLinearGradient(x, y, x, y + this.panelHeight);
-    gradient.addColorStop(0, 'rgba(21, 59, 70, 0.85)');
-    gradient.addColorStop(1, 'rgba(21, 59, 70, 0.75)');
-
-    ctx.fillStyle = gradient;
-    ctx.fillRect(x, y, this.panelWidth, this.panelHeight);
-
-    // Border
-    // ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    // ctx.lineWidth = 1;
-    // ctx.strokeRect(x, y, this.panelWidth, this.panelHeight);
-  }
-
-  drawContent(ctx, x, y, factory) {
-    // Label
-    ctx.fillStyle = "white";
-    ctx.font = "700 12px Arial";
-    ctx.textAlign = "left";
-    ctx.fillText(factory.name.replace(' Factory', ''), x + 10, y + 25);
-
-    // Status
-    ctx.font = "12px Arial";
-    ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-    const statusText = factory.upgrading 
-      ? `Upgrading... ${factory.getRemainingUpgradeTime()}s`
-      : factory.isMaxLevel() 
-        ? `Level ${factory.level} (MAX)`
-        : `Level ${factory.level} → ${factory.level + 1}`;
-    ctx.fillText(statusText, x + 10, y + 45);
-
-    // Button
-    this.drawButton(ctx, x + 10, y + 60, factory);
-  }
-
-  drawButton(ctx, buttonX, buttonY, factory) {
-    this.buttonBounds = { x: buttonX, y: buttonY, width: this.buttonWidth, height: this.buttonHeight };
-
-    // Button color based on state
-    const colors = {
-      upgrading: "rgba(255, 165, 0, 0.8)",
-      maxLevel: "rgba(34, 139, 34, 0.8)",
-      default: "rgb(82, 122, 151)"
+    const factoryCenterX = factory.x + factory.width / 2;
+    return {
+      x: factoryCenterX + this.panelOffsetX - this.panelWidth / 2,
+      y: factory.y + this.panelOffsetY,
     };
-    
-    let buttonColor = colors.default;
-    if (factory.upgrading) buttonColor = colors.upgrading;
-    else if (factory.isMaxLevel()) buttonColor = colors.maxLevel;
-
-    // Draw button
-    ctx.fillStyle = buttonColor;
-    ctx.fillRect(buttonX, buttonY, this.buttonWidth, this.buttonHeight);
-
-    // ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-    // ctx.lineWidth = 1;
-    // ctx.strokeRect(buttonX, buttonY, this.buttonWidth, this.buttonHeight);
-
-    // Button text
-    ctx.fillStyle = "white";
-    ctx.font = "10px Arial";
-    ctx.textAlign = "center";
-    
-    const textY = buttonY + this.buttonHeight / 2 + 4;
-    const buttonText = factory.upgrading ? "Upgrading..." : factory.isMaxLevel() ? "MAX" : "UPGRADE";
-    ctx.fillText(buttonText, buttonX + this.buttonWidth / 2, textY);
-
-    // Progress bar
-    if (factory.upgrading) {
-      const progress = factory.getUpgradeProgress();
-      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-      ctx.fillRect(buttonX, buttonY + this.buttonHeight - 3, this.buttonWidth * progress, 3);
-    }
-
-    // Hover effect
-    if (this.isButtonHovered) {
-      ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
-      ctx.fillRect(buttonX, buttonY, this.buttonWidth, this.buttonHeight);
-    }
   }
 
-  handleClick(mouseX, mouseY, offsetX = 0, offsetY = 0) {
-    if (!this.buttonBounds) return false;
-    
-    const adjustedX = mouseX - offsetX;
-    const adjustedY = mouseY - offsetY;
-    const b = this.buttonBounds;
-    
-    const inside = adjustedX >= b.x && adjustedX <= b.x + b.width &&
-                   adjustedY >= b.y && adjustedY <= b.y + b.height;
-    
-    return inside && !this.factory.upgrading && !this.factory.isMaxLevel();
+  draw(ctx, offsetX = 0, offsetY = 0, factory = this.factory) {
+    const pos = this.calculatePanelPosition(factory);
+    const x = pos.x - offsetX,
+      y = pos.y - offsetY;
+    if (!isFinite(x) || !isFinite(y)) return;
+
+    // Draw background and factory info
+    this.background.drawBackground(ctx, x, y, this.panelWidth, this.panelHeight);
+    this.background.drawFactoryInfo(ctx, x, y, factory);
+
+    // Draw upgrade button
+    this.upgradeButton.draw(ctx, x + 10, y + 60, factory);
+
+    // Draw production buttons
+    const by = y + 100;
+    this.productionButtons.draw(ctx, x + 10, by, factory);
+
+    // Draw cancel badges if producing
+    if (factory.isProducing) {
+      const oneX = x + 10;
+      const fifteenX = oneX + this.productionButtons.prodButtonWidth + 10;
+      this.cancelBadges.draw(ctx, oneX, fifteenX, by, this.productionButtons.prodButtonWidth);
+    }
+
+    // Draw dialogs and messages
+    this.confirmDialog.draw(ctx, x, y, this.panelWidth);
+    this.messageDisplay.draw(ctx, x, y, this.panelWidth);
+  }
+
+  // ✅ Updated handleClick with confirmation persistence
+  handleClick(mouseX, mouseY, offsetX = 0, offsetY = 0, factory = this.factory, factoryManager = null) {
+    const ax = mouseX - offsetX,
+      ay = mouseY - offsetY;
+
+    // If confirmation dialog is shown, handle its clicks
+    if (this.confirmDialog?.showConfirmDialog) {
+      const result = this.confirmDialog.handleClick(ax, ay, factory);
+      if (result) {
+        // If dialog was clicked, tell factory manager to update state
+        if (!this.confirmDialog.showConfirmDialog && factoryManager) {
+          factoryManager.setConfirmationDialog(factory.type, false);
+        }
+        return true; // stop further click handling
+      }
+    }
+
+    // Handle cancel badge click -> show dialog
+    if (this.cancelBadges.handleClick(ax, ay, this.factory)) {
+      this.confirmDialog.show();
+      if (factoryManager) {
+        factoryManager.setConfirmationDialog(factory.type, true);
+      }
+      return true;
+    }
+
+    // Production buttons
+    if (this.productionButtons.handleClick(ax, ay, this.factory, (msg) => this.showMessageBriefly(msg))) {
+      return true;
+    }
+
+    // Upgrade button
+    return this.upgradeButton.handleClick(ax, ay, this.factory);
   }
 
   updateHoverState(mouseX, mouseY) {
-    if (!this.buttonBounds) {
-      this.isButtonHovered = false;
-      return;
-    }
-    
-    const b = this.buttonBounds;
-    this.isButtonHovered = mouseX >= b.x && mouseX <= b.x + b.width &&
-                           mouseY >= b.y && mouseY <= b.y + b.height;
+    this.upgradeButton.updateHoverState(mouseX, mouseY);
+    this.productionButtons.updateHoverState(mouseX, mouseY);
+  }
+
+  showMessageBriefly(message, duration = 3000) {
+    this.messageDisplay.showBriefly(message, duration);
+  }
+
+  // Compatibility getters for backward compatibility
+  get buttonBounds() { return this.upgradeButton.buttonBounds; }
+  get isButtonHovered() { return this.upgradeButton.isButtonHovered; }
+  get buttonWidth() { return this.upgradeButton.buttonWidth; }
+  get buttonHeight() { return this.upgradeButton.buttonHeight; }
+  get prodButtonWidth() { return this.productionButtons.prodButtonWidth; }
+  get prodButtonHeight() { return this.productionButtons.prodButtonHeight; }
+  get oneHourButtonBounds() { return this.productionButtons.oneHourButtonBounds; }
+  get fifteenHourButtonBounds() { return this.productionButtons.fifteenHourButtonBounds; }
+  get isOneHourHovered() { return this.productionButtons.isOneHourHovered; }
+  get isFifteenHourHovered() { return this.productionButtons.isFifteenHourHovered; }
+  get cancelButtonSize() { return this.cancelBadges.cancelButtonSize; }
+  get oneHourCancelBounds() { return this.cancelBadges.oneHourCancelBounds; }
+  get fifteenHourCancelBounds() { return this.cancelBadges.fifteenHourCancelBounds; }
+  get showConfirmDialog() { return this.confirmDialog.showConfirmDialog; }
+  get confirmYesBounds() { return this.confirmDialog.confirmYesBounds; }
+  get confirmNoBounds() { return this.confirmDialog.confirmNoBounds; }
+  get showMessage() { return this.messageDisplay.showMessage; }
+  get messageText() { return this.messageDisplay.messageText; }
+  get messageTimer() { return this.messageDisplay.messageTimer; }
+
+  // Legacy compatibility methods (if needed)
+  _bounds(x, y, w, h) {
+    return { x, y, width: w, height: h };
+  }
+
+  isPointInBounds(x, y, b) {
+    if (!b) return false;
+    return x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height;
+  }
+
+  drawText(ctx, text, x, y, font = "12px Arial", align = "left", style = "white") {
+    this.background.drawText(ctx, text, x, y, font, align, style);
+  }
+
+  _drawRoundedRect(ctx, x, y, w, h) {
+    this.background._drawRoundedRect(ctx, x, y, w, h);
+  }
+
+  drawBackground(ctx, x, y) {
+    this.background.drawBackground(ctx, x, y, this.panelWidth, this.panelHeight);
+  }
+
+  drawButton(ctx, x, y, factory) {
+    this.upgradeButton.draw(ctx, x, y, factory);
+  }
+
+  drawProductionButton(ctx, x, y, label, isProducing, isHovered, isDisabled = false) {
+    this.productionButtons.drawProductionButton(ctx, x, y, label, isProducing, isHovered, isDisabled);
+  }
+
+  drawCancelBadge(ctx, buttonX, buttonY, which) {
+    this.cancelBadges.drawCancelBadge(ctx, buttonX, buttonY, which, this.productionButtons.prodButtonWidth);
+  }
+
+  drawConfirmDialog(ctx, panelX, panelY) {
+    this.confirmDialog.draw(ctx, panelX, panelY, this.panelWidth);
+  }
+
+  drawMessage(ctx, panelX, panelY) {
+    this.messageDisplay.draw(ctx, panelX, panelY, this.panelWidth);
   }
 }

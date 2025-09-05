@@ -12,7 +12,7 @@ export class FactoryUI {
 
   createFactoryPanels() {
     return Object.fromEntries(
-      Object.entries(this.factoryManager.factories).map(([type, factory]) => 
+      Object.entries(this.factoryManager.factories).map(([type, factory]) =>
         [type, new IndividualFactoryPanel(factory, type)]
       )
     );
@@ -57,18 +57,22 @@ export class FactoryUI {
     });
   }
 
+  // <-- Replaced handleClick to pass factoryManager and accept active dialog state
   handleClick(mouseX, mouseY) {
+    // Pass factoryManager to panel click handling
     for (const [type, panel] of Object.entries(this.factoryPanels)) {
       const factory = this.factoryManager.factories[type];
-      if (factory.isHovered && panel.handleClick(mouseX, mouseY, this.currentOffsetX, this.currentOffsetY)) {
-        if (!factory.isMaxLevel()) {
-          factory.level = Math.min(factory.level + 1, factory.maxLevel);
-          factory.updateVisuals();
-        }
-        return true;
+      if (factory.isHovered || this.factoryManager.activeConfirmationDialog === type) {
+        const clickResult = panel.handleClick(
+          mouseX, mouseY, 
+          this.currentOffsetX, this.currentOffsetY,
+          factory, this.factoryManager // Pass manager reference
+        );
+        if (clickResult) return true;
       }
     }
 
+    // Handle upgrade all button
     if (this.factoryManager.showUpgradeAll && 
         this.upgradeAllButton.isPointInside(mouseX, mouseY, 0, 0)) {
       return this.upgradeAllButton.startUpgrade();

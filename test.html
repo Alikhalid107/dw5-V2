@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Popup Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /* background: url("https://picsum.photos/1200/800") no-repeat center/cover; */
+    }
+
+    /* Button to trigger popup */
+    .open-btn {
+      padding: 12px 24px;
+      background: #3c3cff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    /* Popup overlay */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: none; /* hidden by default */
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Popup box */
+    .popup {
+      width: 50%;
+      height: 25%;
+      /* max-width: 500px; */
+      background: #112233;
+      padding: 20px;
+      border-radius: 4px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.884);
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    }
+
+    .popup p {
+      margin-bottom: 0px;
+    }
+
+    /* Popup buttons */
+    .popup button {
+      padding: 15px 30px;
+      margin: 0 3px;
+      background: #3737c5 ;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 3px 3px 4px 4px; /* rounded corners on right */
+      font-size: 14px;
+      box-shadow: #010127   0px 4px 0px 0px;
+    }
+
+    .popup button:hover {
+      background: #3c3cff;
+    }
+  </style>
+</head>
+<body>
+
+  <button class="open-btn">Open Popup</button>
+
+  <!-- Overlay + Popup -->
+  <div class="overlay" id="popupOverlay">
+    <div class="popup">
+      <p>Really cancel?</p>
+      <button id="yesBtn">YES</button>
+      <button id="noBtn">NO</button>
+    </div>
+  </div>
+
+  <script>
+    const openBtn = document.querySelector(".open-btn");
+    const overlay = document.getElementById("popupOverlay");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+
+    // Show popup when button is clicked
+    openBtn.addEventListener("click", () => {
+      overlay.style.display = "flex";
+    });
+
+    // Close popup on YES or NO
+    yesBtn.addEventListener("click", () => {
+      overlay.style.display = "none";
+    });
+    noBtn.addEventListener("click", () => {
+      overlay.style.display = "none";
+    });
+  </script>
+
+</body>
+</html>
