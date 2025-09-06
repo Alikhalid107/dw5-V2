@@ -1,4 +1,4 @@
-import { GameObject } from "../../core/GameObject.js";
+import { GameObject } from "../../core/GameObject/GameObject.js";
 
 export class FactoryEffects {
   constructor(factory, factoryProperties = {}) {

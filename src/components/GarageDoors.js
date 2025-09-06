@@ -1,4 +1,4 @@
-import { GameObject } from "../core/GameObject";
+import { GameObject } from "../core/GameObject/GameObject";
 
 export class GarageDoors extends GameObject {
   constructor(x, y, width, height) {

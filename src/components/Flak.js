@@ -1,4 +1,4 @@
-import { GameObject } from "../core/GameObject.js";
+import { GameObject } from "../core/GameObject/GameObject.js";
 import { angleToFrame } from "../utils/animationUtils.js";
 
 export class Flak extends GameObject {
@@ -27,19 +27,23 @@ export class Flak extends GameObject {
   }
 
   setupSpriteImage() {
-    if (!this.image) return;
-    if (this.image.complete && this.image.naturalWidth > 0) this.initSprite();
-    else this.image.onload = () => this.initSprite();
+    // Use this.imageLoader.image instead of this.image
+    if (!this.imageLoader.image) return;
+    if (this.imageLoader.image.complete && this.imageLoader.image.naturalWidth > 0) this.initSprite();
+    else this.imageLoader.image.onload = () => this.initSprite();
   }
 
   initSprite() {
     if (this.ready) return;
-    this.frameWidth = this.image.width / this.cols;
-    this.frameHeight = this.image.height / this.rows;
+    // Use this.imageLoader.image instead of this.image
+    this.frameWidth = this.imageLoader.image.width / this.cols;
+    this.frameHeight = this.imageLoader.image.height / this.rows;
     this.width = this.frameWidth * this.scaleFactor;
     this.height = this.frameHeight * this.scaleFactor;
     this.ready = true;
-    this.loaded = true;
+    
+    // Don't set loaded directly - it's managed by the ImageLoader
+    // Instead, we'll use the ready flag to indicate the sprite is ready
   }
 
   setAngle(angle) {
@@ -86,8 +90,8 @@ export class Flak extends GameObject {
   }
 
   draw(ctx, offsetX = 0, offsetY = 0) {
-    // if sprite not ready, don't draw (removed debug rectangle)
-    if (!this.ready || !this.image) return;
+    // Use ready flag instead of loaded check
+    if (!this.ready || !this.imageLoader.image) return;
 
     this.updateRotation();
 
@@ -96,7 +100,7 @@ export class Flak extends GameObject {
     const srcX = Math.floor(this.currentFrame) * this.frameWidth;
 
     ctx.drawImage(
-      this.image,
+      this.imageLoader.image, // Use imageLoader.image
       srcX, 0,
       this.frameWidth, this.frameHeight,
       drawX, drawY,

@@ -1,4 +1,4 @@
-import { GameObject } from "../core/GameObject";
+import { GameObject } from "../core/GameObject/GameObject";
 export class FlagManager {
   constructor(garageX, garageY, garageWidth, garageHeight, options = {}) {
     this.garageX = garageX;
