@@ -4,7 +4,7 @@ import { FlakManager } from "../sections/FlakManager.js";
 import { WallSection } from "../sections/WallSection.js";
 import { FlagManager } from "../sections/FlagManager.js";
 import { FactoryManager } from "../sections/FactoryManager.js";
-import { GarageUI } from "../components/GarageUI.js";
+import { GarageUI } from "./GarageUI.js";
 
 export class CompositeBase {
   constructor(worldWidth, worldHeight) {

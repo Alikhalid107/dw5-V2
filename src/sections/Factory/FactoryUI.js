@@ -33,7 +33,10 @@ export class FactoryUI {
 
     Object.entries(this.factoryPanels).forEach(([type, panel]) => {
       const factory = this.factoryManager.factories[type];
-      if (factory.isHovered) panel.draw(ctx, offsetX, offsetY, factory);
+      // Always draw the panel if it has an active confirmation dialog
+      if (factory.isHovered || this.factoryManager.activeConfirmationDialog === type) {
+        panel.draw(ctx, offsetX, offsetY, factory);
+      }
     });
 
     if (this.factoryManager.showUpgradeAll) {
@@ -57,16 +60,16 @@ export class FactoryUI {
     });
   }
 
-  // <-- Replaced handleClick to pass factoryManager and accept active dialog state
   handleClick(mouseX, mouseY) {
     // Pass factoryManager to panel click handling
     for (const [type, panel] of Object.entries(this.factoryPanels)) {
       const factory = this.factoryManager.factories[type];
+      // Check if factory is hovered OR has active confirmation dialog
       if (factory.isHovered || this.factoryManager.activeConfirmationDialog === type) {
         const clickResult = panel.handleClick(
           mouseX, mouseY, 
           this.currentOffsetX, this.currentOffsetY,
-          factory, this.factoryManager // Pass manager reference
+          factory, this.factoryManager
         );
         if (clickResult) return true;
       }

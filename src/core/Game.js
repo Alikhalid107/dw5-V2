@@ -41,31 +41,31 @@ export class Game {
   }
 
   getDrawObjects() {
-  const baseObjects = this.bases.flatMap(base => base.getObjects());
-  const allObjects = [...this.grassObjects, ...baseObjects];
-  
-  // Remove duplicates using Set with object references
-  const uniqueObjects = [];
-  const seen = new Set();
-  
-  for (const obj of allObjects) {
-    if (!seen.has(obj)) {
-      seen.add(obj);
-      uniqueObjects.push(obj);
+    const baseObjects = this.bases.flatMap(base => base.getObjects());
+    const allObjects = [...this.grassObjects, ...baseObjects];
+    
+    // Remove duplicates using Set
+    const uniqueObjects = [];
+    const seen = new Set();
+    
+    for (const obj of allObjects) {
+      if (!seen.has(obj)) {
+        seen.add(obj);
+        uniqueObjects.push(obj);
+      }
     }
+    
+    return uniqueObjects;
   }
-  
 
-  return uniqueObjects;
-}
   getMouseCoordinates(event) {
     const rect = this.canvas.getBoundingClientRect();
     const renderInfo = this.camera.getRenderingInfo();
     
-    // Adjust mouse coordinates for black bars if present
     let mouseX = event.clientX - rect.left;
     let mouseY = event.clientY - rect.top;
     
+    // Adjust for black bars if present
     if (renderInfo.useBlackBars) {
       mouseX = (mouseX - renderInfo.offsetX) * (this.viewW / renderInfo.renderWidth);
       mouseY = (mouseY - renderInfo.offsetY) * (this.viewH / renderInfo.renderHeight);
@@ -98,7 +98,11 @@ export class Game {
       this.camera.updateViewSize(this.viewW, this.viewH);
     });
 
-    // Add zoom change detection
+    // Monitor zoom changes
+    this.setupZoomMonitoring();
+  }
+
+  setupZoomMonitoring() {
     let lastZoom = this.camera.currentZoom;
     const checkZoom = () => {
       const currentZoom = this.camera.detectZoomLevel();
@@ -134,6 +138,22 @@ export class Game {
       
       activeBase.compositeBase.drawUI(this.ctx, offsetX, offsetY);
     }
+    
+    // Always draw message displays
+    this.drawMessageDisplays(this.ctx);
+  }
+
+  drawMessageDisplays(ctx) {
+    this.bases.forEach(base => {
+      const factoryManager = base.compositeBase?.factoryManager;
+      if (factoryManager) {
+        Object.values(factoryManager.ui?.factoryPanels || {}).forEach(panel => {
+          if (panel.messageDisplay) {
+            panel.messageDisplay.draw(ctx);
+          }
+        });
+      }
+    });
   }
 
   gameLoop(currentTime) {
@@ -142,9 +162,8 @@ export class Game {
 
     this.updateGame(deltaTime);
 
-    // Use zoom-aware rendering
+    // Zoom-aware rendering
     drawWithZoomAware(this.ctx, this.camera, (ctx, renderInfo) => {
-      // Clear the render area (not the entire canvas if using black bars)
       ctx.clearRect(0, 0, renderInfo.renderWidth, renderInfo.renderHeight);
 
       const drawList = this.getDrawObjects();
@@ -178,8 +197,6 @@ export class Game {
   getAllFactoryLevels(baseIndex) { 
     return this.bases[baseIndex]?.compositeBase?.getAllFactoryLevels?.() || {}; 
   }
-
-  // New helper methods for zoom handling
   getCurrentZoom() { return this.camera.currentZoom; }
   isUsingBlackBars() { return this.camera.getRenderingInfo().useBlackBars; }
   getRenderInfo() { return this.camera.getRenderingInfo(); }

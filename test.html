@@ -3,109 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Popup Example</title>
+  <title>Production Aborted</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
       margin: 0;
       height: 100vh;
       display: flex;
-      justify-content: center;
+      justify-content: flex-start; /* left side, change to flex-end for right side */
       align-items: center;
-      /* background: url("https://picsum.photos/1200/800") no-repeat center/cover; */
+      background: #222;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
     }
 
-    /* Button to trigger popup */
-    .open-btn {
-      padding: 12px 24px;
-      background: #3c3cff;
+    button {
+      margin: 20px;
+      padding: 10px 20px;
+      background: #444;
       color: white;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      font-size: 16px;
+      font-weight: bold;
     }
 
-    /* Popup overlay */
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      display: none; /* hidden by default */
-      justify-content: center;
-      align-items: center;
-    }
-
-    /* Popup box */
-    .popup {
-      width: 50%;
-      height: 25%;
-      /* max-width: 500px; */
-      background: #112233;
-      padding: 20px;
-      border-radius: 4px;
-      text-align: center;
-      color: rgba(255, 255, 255, 0.884);
-      box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    }
-
-    .popup p {
-      margin-bottom: 0px;
-    }
-
-    /* Popup buttons */
-    .popup button {
-      padding: 15px 30px;
-      margin: 0 3px;
-      background: #3737c5 ;
-      border: none;
+    .banner {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 60px;
+      background: rgba(200, 0, 0, 0.521);
       color: white;
-      cursor: pointer;
-      border-radius: 3px 3px 4px 4px; /* rounded corners on right */
-      font-size: 14px;
-      box-shadow: #010127   0px 4px 0px 0px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      text-shadow: 2px 2px 5px black;
+      border-radius: 3px;
+      opacity: 0;
+      pointer-events: none;
     }
 
-    .popup button:hover {
-      background: #3c3cff;
+    /* Blink effect */
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 1; }
+      25%, 75% { opacity: 0; }
+    }
+
+    /* Show animation */
+    .show {
+      animation: blink 1.5s ease-in-out 1, fadeOut 0.5s ease-in-out 1 forwards 1.5s;
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; }
     }
   </style>
 </head>
 <body>
-
-  <button class="open-btn">Open Popup</button>
-
-  <!-- Overlay + Popup -->
-  <div class="overlay" id="popupOverlay">
-    <div class="popup">
-      <p>Really cancel?</p>
-      <button id="yesBtn">YES</button>
-      <button id="noBtn">NO</button>
-    </div>
-  </div>
+  <button id="abortBtn">Abort Production</button>
+  <div class="banner" id="banner">PRODUCTION ABORTED</div>
 
   <script>
-    const openBtn = document.querySelector(".open-btn");
-    const overlay = document.getElementById("popupOverlay");
-    const yesBtn = document.getElementById("yesBtn");
-    const noBtn = document.getElementById("noBtn");
+    const button = document.getElementById("abortBtn");
+    const banner = document.getElementById("banner");
 
-    // Show popup when button is clicked
-    openBtn.addEventListener("click", () => {
-      overlay.style.display = "flex";
-    });
-
-    // Close popup on YES or NO
-    yesBtn.addEventListener("click", () => {
-      overlay.style.display = "none";
-    });
-    noBtn.addEventListener("click", () => {
-      overlay.style.display = "none";
+    button.addEventListener("click", () => {
+      banner.classList.remove("show"); // reset if clicked multiple times
+      void banner.offsetWidth; // trigger reflow
+      banner.classList.add("show");
     });
   </script>
-
 </body>
 </html>

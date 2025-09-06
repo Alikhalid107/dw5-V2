@@ -12,7 +12,7 @@ export class IndividualFactoryPanel {
 
     const cfg = factory.panelConfig || {};
     this.panelWidth = cfg.panelWidth;
-    this.panelHeight = (cfg.panelHeight || 0) + 45; // preserve original extra height
+    this.panelHeight = (cfg.panelHeight || 0) + 45;
     this.panelOffsetX = cfg.panelOffsetX;
     this.panelOffsetY = cfg.panelOffsetY;
 
@@ -35,8 +35,9 @@ export class IndividualFactoryPanel {
 
   draw(ctx, offsetX = 0, offsetY = 0, factory = this.factory) {
     const pos = this.calculatePanelPosition(factory);
-    const x = pos.x - offsetX,
-      y = pos.y - offsetY;
+    const x = pos.x - offsetX;
+    const y = pos.y - offsetY;
+    
     if (!isFinite(x) || !isFinite(y)) return;
 
     // Draw background and factory info
@@ -57,30 +58,30 @@ export class IndividualFactoryPanel {
       this.cancelBadges.draw(ctx, oneX, fifteenX, by, this.productionButtons.prodButtonWidth);
     }
 
-    // Draw dialogs and messages
+    // Draw confirmation dialog
     this.confirmDialog.draw(ctx, x, y, this.panelWidth);
-    this.messageDisplay.draw(ctx, x, y, this.panelWidth);
   }
 
-  // ✅ Updated handleClick with confirmation persistence
   handleClick(mouseX, mouseY, offsetX = 0, offsetY = 0, factory = this.factory, factoryManager = null) {
-    const ax = mouseX - offsetX,
-      ay = mouseY - offsetY;
+    const pos = this.calculatePanelPosition(factory);
+    const panelX = pos.x - offsetX;
+    const panelY = pos.y - offsetY;
+    const relativeX = mouseX - offsetX;
+    const relativeY = mouseY - offsetY;
 
-    // If confirmation dialog is shown, handle its clicks
+    // Handle confirmation dialog clicks first
     if (this.confirmDialog?.showConfirmDialog) {
-      const result = this.confirmDialog.handleClick(ax, ay, factory);
+      const result = this.confirmDialog.handleClick(relativeX, relativeY, factory);
       if (result) {
-        // If dialog was clicked, tell factory manager to update state
         if (!this.confirmDialog.showConfirmDialog && factoryManager) {
           factoryManager.setConfirmationDialog(factory.type, false);
         }
-        return true; // stop further click handling
+        return true;
       }
     }
 
-    // Handle cancel badge click -> show dialog
-    if (this.cancelBadges.handleClick(ax, ay, this.factory)) {
+    // Handle cancel badge clicks
+    if (this.cancelBadges.handleClick(relativeX, relativeY, this.factory)) {
       this.confirmDialog.show();
       if (factoryManager) {
         factoryManager.setConfirmationDialog(factory.type, true);
@@ -88,13 +89,48 @@ export class IndividualFactoryPanel {
       return true;
     }
 
-    // Production buttons
-    if (this.productionButtons.handleClick(ax, ay, this.factory, (msg) => this.showMessageBriefly(msg))) {
+    // Handle production button clicks
+    if (this.productionButtons.handleClick(relativeX, relativeY, this.factory, (msg) => this.showMessageBriefly(msg))) {
       return true;
     }
 
-    // Upgrade button
-    return this.upgradeButton.handleClick(ax, ay, this.factory);
+    // Handle upgrade button clicks
+    const upgradeButtonX = panelX + 10;
+    const upgradeButtonY = panelY + 60;
+    const upgradeRelativeX = relativeX - upgradeButtonX;
+    const upgradeRelativeY = relativeY - upgradeButtonY;
+
+    // Try component's handleClick method
+    try {
+      const upgradeResult = this.upgradeButton.handleClick(upgradeRelativeX, upgradeRelativeY, factory);
+      if (upgradeResult) {
+        return true;
+      }
+    } catch (error) {
+      console.error("Error calling upgradeButton.handleClick:", error);
+    }
+
+    // Fallback: Direct upgrade if click is in button area
+    const buttonWidth = 80;
+    const buttonHeight = 30;
+    const isInButtonArea = upgradeRelativeX >= 0 && upgradeRelativeX <= buttonWidth && 
+                          upgradeRelativeY >= 0 && upgradeRelativeY <= buttonHeight;
+
+    if (isInButtonArea && factory.level < factory.maxLevel) {
+      factory.level++;
+      
+      // Update visuals if methods exist
+      if (typeof factory.updateVisuals === 'function') {
+        factory.updateVisuals();
+      }
+      if (typeof factory.updateSprite === 'function') {
+        factory.updateSprite();
+      }
+      
+      return true;
+    }
+
+    return false;
   }
 
   updateHoverState(mouseX, mouseY) {
@@ -106,7 +142,7 @@ export class IndividualFactoryPanel {
     this.messageDisplay.showBriefly(message, duration);
   }
 
-  // Compatibility getters for backward compatibility
+  // Compatibility getters
   get buttonBounds() { return this.upgradeButton.buttonBounds; }
   get isButtonHovered() { return this.upgradeButton.isButtonHovered; }
   get buttonWidth() { return this.upgradeButton.buttonWidth; }
@@ -127,7 +163,7 @@ export class IndividualFactoryPanel {
   get messageText() { return this.messageDisplay.messageText; }
   get messageTimer() { return this.messageDisplay.messageTimer; }
 
-  // Legacy compatibility methods (if needed)
+  // Legacy compatibility methods
   _bounds(x, y, w, h) {
     return { x, y, width: w, height: h };
   }
@@ -163,9 +199,5 @@ export class IndividualFactoryPanel {
 
   drawConfirmDialog(ctx, panelX, panelY) {
     this.confirmDialog.draw(ctx, panelX, panelY, this.panelWidth);
-  }
-
-  drawMessage(ctx, panelX, panelY) {
-    this.messageDisplay.draw(ctx, panelX, panelY, this.panelWidth);
   }
 }
