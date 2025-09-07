@@ -1,5 +1,5 @@
-import { BaseImage } from "../components/BaseImage.js";
-import { TreeExtension } from "../components/TreeExtension.js";
+import { BaseImage } from "../gameObjects/BaseImage.js";
+import { TreeExtension } from "../gameObjects/TreeExtension.js";
 
 export class BaseSection {
   constructor(x, y, width, height) {

@@ -1,7 +1,7 @@
-import { Factory } from "./Factory/Factory.js";
-import { FactoryUI } from "./Factory/FactoryUI.js";
-import { FactoryTypes } from "./Factory/FactoryTypes.js";
-import { ProductionTimerOverlay } from "./Factory/ProductionMenu/ProductionTimerOverlay.js";
+import { Factory } from "./Factory.js";
+import { FactoryUI } from "./FactoryUI.js";
+import { FactoryTypes } from "./FactoryTypes.js";
+import { ProductionTimerOverlay } from "../../ui/ProductionMenu/ProductionTimerOverlay.js";
 
 export class FactoryManager {
   constructor(garageX, garageY, garageWidth, garageHeight) {

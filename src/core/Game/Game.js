@@ -1,8 +1,6 @@
 import { worldConfig } from "../../config/worldConfig.js";
 import { setupCanvas, drawWithZoomAware } from "../canvasSetup/canvasSetup.js";
 import { CameraController } from "../CameraController/CameraController.js";
-import { clampCamera } from "../../config/worldConfig.js";
-
 import { GameInitializer } from "./GameInitializer.js";
 import { ObjectManager } from "./ObjectManager.js";
 import { MouseInputHandler } from "./MouseInputHandler.js";

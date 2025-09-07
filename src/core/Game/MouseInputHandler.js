@@ -1,3 +1,5 @@
+
+
 export class MouseInputHandler {
     constructor(canvas, camera, bases) {
         this.canvas = canvas;

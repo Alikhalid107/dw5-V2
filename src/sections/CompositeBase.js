@@ -1,10 +1,10 @@
-import { BaseSection } from "../sections/BaseSection.js";
-import { GarageSection } from "../sections/GarageSection.js";
-import { FlakManager } from "../sections/FlakManager.js";
-import { WallSection } from "../sections/WallSection.js";
-import { FlagManager } from "../sections/FlagManager.js";
-import { FactoryManager } from "../sections/FactoryManager.js";
-import { GarageUI } from "./GarageUI/GarageUI.js";
+import { BaseSection } from "./BaseSection.js";
+import { GarageSection } from "./GarageSection.js";
+import { FlakManager } from "./FlakManager.js";
+import { WallSection } from "./WallSection.js";
+import { FlagManager } from "./FlagManager.js";
+import { FactoryManager } from "./Factory/FactoryManager.js";
+import { GarageUI } from "../ui/GarageUI/GarageUI.js";
 
 export class CompositeBase {
   constructor(worldWidth, worldHeight) {

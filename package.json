@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
+    "dependency-cruiser": "^17.0.1",
     "vite": "^7.1.2"
   }
 }

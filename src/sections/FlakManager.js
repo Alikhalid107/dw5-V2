@@ -1,4 +1,4 @@
-import { Flak } from "../components/Flak.js";
+import { Flak } from "../gameObjects/Flak.js";
 
 export class FlakManager {
   constructor(garageX, garageY, garageWidth, garageHeight) {

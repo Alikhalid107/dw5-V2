@@ -1,9 +1,9 @@
-import { PanelBackground } from '../ProductionMenu/PanelBackground.js';
-import { UpgradeButton } from '../ProductionMenu/UpgradeButton.js';
-import { ProductionButtons } from '../ProductionMenu/ProductionButtons.js';
-import { CancelBadges } from '../ProductionMenu/CancelBadges.js';
-import { ConfirmationDialog } from '../ProductionMenu/ConfirmationDialog.js';
-import { MessageDisplay } from '../ProductionMenu/MessageDisplay.js';
+import { PanelBackground } from './ProductionMenu/PanelBackground.js';
+import { UpgradeButton } from './ProductionMenu/UpgradeButton.js';
+import { ProductionButtons } from './ProductionMenu/ProductionButtons.js';
+import { CancelBadges } from './ProductionMenu/CancelBadges.js';
+import { ConfirmationDialog } from './ProductionMenu/ConfirmationDialog.js';
+import { MessageDisplay } from './ProductionMenu/MessageDisplay.js';
 
 export class IndividualFactoryPanel {
   constructor(factory, factoryType) {

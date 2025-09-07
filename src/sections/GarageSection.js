@@ -1,5 +1,5 @@
-import { GarageStructure } from "../components/GarageStructure.js";
-import { GarageDoors } from "../components/GarageDoors.js";
+import { GarageStructure } from "../gameObjects/GarageStructure.js";
+import { GarageDoors } from "../gameObjects/GarageDoors.js";
 
 export class GarageSection {
   constructor(baseX, baseY, baseWidth, baseHeight) {

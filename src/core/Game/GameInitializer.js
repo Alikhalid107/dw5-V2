@@ -1,5 +1,5 @@
-import { Grass } from "../../components/Grass.js";
-import { Base } from "../../components/Base.js";
+import { Grass } from "../../gameObjects/Grass.js";
+import { Base } from "../../gameObjects/Base.js";
 
 export class GameInitializer {
     static setupGrassTiling(worldWidth, worldHeight) {

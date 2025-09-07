@@ -1,4 +1,4 @@
-import { detectBrowserZoom } from './ZoomDetector.js';
+import { detectBrowserZoom } from '../../utils/ZoomDetector.js';
 
 export class CanvasResizer {
     static resize(canvas, ctx) {

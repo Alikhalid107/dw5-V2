@@ -7,15 +7,3 @@ export const worldConfig = {
   grassTileSize: 400
 };
 
-// Camera clamping
-export function clampCamera(offsetX, offsetY, worldWidth, worldHeight, canvas) {
-  return {
-    x: Math.max(0, Math.min(offsetX, worldWidth - canvas.width)),
-    y: Math.max(0, Math.min(offsetY, worldHeight - canvas.height))
-  };
-}
-
-// Convert screen → world coordinates
-export function screenToWorld(x, y, offsetX, offsetY) {
-  return { x: x + offsetX, y: y + offsetY };
-}

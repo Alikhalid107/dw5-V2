@@ -1,4 +1,4 @@
-import { GameObject } from "../core/GameObject/GameObject.js";
+import { GameObject } from "../core/GameObjectSystem/GameObject.js";
 import { angleToFrame } from "../utils/animationUtils.js";
 
 export class Flak extends GameObject {
