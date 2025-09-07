@@ -27,7 +27,6 @@ export class ProductionButtons extends PanelBase {
       : "rgb(82,122,151)";
     ctx.fillStyle = color;
     ctx.fillRect(x, y, this.prodButtonWidth, this.prodButtonHeight);
-
     ctx.fillStyle = isDisabled ? "rgba(255,255,255,0.5)" : "white";
     ctx.font = "9px Arial";
     ctx.textAlign = "center";
@@ -36,7 +35,6 @@ export class ProductionButtons extends PanelBase {
       x + this.prodButtonWidth / 2,
       y + this.prodButtonHeight / 2 + 3
     );
-
     if (isHovered && !isDisabled) {
       ctx.fillStyle = "rgba(255,255,255,0.1)";
       ctx.fillRect(x, y, this.prodButtonWidth, this.prodButtonHeight);
@@ -68,7 +66,10 @@ export class ProductionButtons extends PanelBase {
       factory.isProducing,
       this.isOneHourHovered
     );
-    const canStart15 = factory.canStart15HourProduction();
+
+    // Check if the method exists before calling it
+    const canStart15 = factory.canStart15HourProduction ? factory.canStart15HourProduction() : !factory.isProducing;
+    
     this.drawProductionButton(
       ctx,
       fifteenX,
@@ -90,9 +91,12 @@ export class ProductionButtons extends PanelBase {
       }
       return true;
     }
-
+    
     if (this.isPointInBounds(mouseX, mouseY, this.fifteenHourButtonBounds)) {
-      if (factory.canStart15HourProduction()) {
+      // Check if method exists before calling it
+      const canStart15 = factory.canStart15HourProduction ? factory.canStart15HourProduction() : !factory.isProducing;
+      
+      if (canStart15) {
         factory.startProduction(15);
       } else {
         messageCallback(
@@ -101,7 +105,7 @@ export class ProductionButtons extends PanelBase {
       }
       return true;
     }
-
+    
     return false;
   }
 
