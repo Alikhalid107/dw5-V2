@@ -1,4 +1,4 @@
-import { CompositeBase } from "../sections/CompositeBase/CompositeBase.js";
+import { CompositeBase } from "../sections/CompositeBase.js";
 
 export class Base {
   constructor(worldWidth, worldHeight) {

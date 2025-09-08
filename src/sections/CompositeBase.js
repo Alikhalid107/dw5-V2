@@ -1,13 +1,12 @@
-import { BaseSection } from "../BaseSection.js";
-import { GarageSection } from "../GarageSection.js";
-import { FlakManager } from "../../managers/FlakManager.js";
-import { WallSection } from "../BaseWall/WallSection.js";
-import { FlagManager } from "../../managers/FlagManager.js";
-import { FactoryManager } from "../../managers/FactoryManager.js";
-import { GarageUI } from "../../ui/GarageUI/GarageUI.js";
-import { ObjectManager } from "./ObjectManager.js";
-import { InputHandler } from "./InputHandler.js";
-import { ProxyMethods } from "./ProxyMethods.js";
+import { BaseSection } from "./BaseSection.js";
+import { GarageSection } from "./GarageSection.js";
+import { FlakManager } from "./FlakManager.js";
+import { WallSection } from "./WallSection.js";
+import { FlagManager } from "../managers/FlagManager.js";
+import { FactoryManager } from "../managers/FactoryManager.js";
+import { GarageUI } from "../ui/GarageUI/GarageUI.js";
+import { BaseInputHandler } from "../utils/BaseInputHandler.js";
+import { BaseObjectUpdater } from "../utils/BaseObjectUpdater.js";
 
 export class CompositeBase {
   constructor(worldWidth, worldHeight) {
@@ -16,12 +15,12 @@ export class CompositeBase {
     this.baseWidth = 1500;
     this.baseHeight = 500;
     
-    this.objectManager = new ObjectManager();
-    this.inputHandler = new InputHandler();
-    this.proxyMethods = new ProxyMethods();
-    
     this.initializeSections();
     this.objects = this.createCompositeBase();
+    
+    // Utility helpers
+    this.inputHandler = new BaseInputHandler(this.factoryManager, this.garageUI);
+    this.objectUpdater = new BaseObjectUpdater(this.flakManager, this.factoryManager);
   }
 
   initializeSections() {
@@ -41,11 +40,6 @@ export class CompositeBase {
     this.wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight);
     this.flagManager = new FlagManager(gx, gy, gw, gh);
     this.factoryManager = new FactoryManager(gx, gy, gw, gh);
-    
-    // Link components
-    this.proxyMethods.setManagers(this.flakManager, this.wallSection);
-    this.inputHandler.setManagers(this.factoryManager, this.garageUI);
-    this.objectManager.setManagers(this.flakManager, this.factoryManager);
   }
 
   createCompositeBase() {
@@ -70,10 +64,12 @@ export class CompositeBase {
 
     if (this.flakManager?.update) {
       const buildCompleted = this.flakManager.update(deltaTime);
-      if (buildCompleted) this.objectManager.updateFlakObjects(this.objects);
+      if (buildCompleted) {
+        this.objectUpdater.updateFlakObjects(this.objects);
+      }
     }
 
-    this.objectManager.updateFactoryObjects(this.objects);
+    this.objectUpdater.updateFactoryObjects(this.objects);
   }
 
   handleMouseMove(mouseX, mouseY) {
@@ -89,22 +85,28 @@ export class CompositeBase {
     this.garageUI?.drawUI(ctx, offsetX, offsetY);
   }
 
-  // Proxy methods
-  getFlakCount() { return this.proxyMethods.getFlakCount(); }
-  isFlakBuilding() { return this.proxyMethods.isFlakBuilding(); }
-  buildFlak() { return this.proxyMethods.buildFlak(); }
-  getFlakBuildProgress() { return this.proxyMethods.getFlakBuildProgress(); }
-  getRemainingFlakBuildTime() { return this.proxyMethods.getRemainingFlakBuildTime(); }
-  canBuildFlak() { return this.proxyMethods.canBuildFlak(); }
-  getFlakCapacity() { return this.proxyMethods.getFlakCapacity(); }
-  setFlakScale(newScale) { 
-    this.proxyMethods.setFlakScale(newScale);
-    this.objectManager.updateFlakObjects(this.objects);
+  // ---------- Flak Management ----------
+  getFlakCount() { return this.flakManager?.getTotalFlakCount() || 2; }
+  isFlakBuilding() { return this.flakManager?.isBuilding() || false; }
+  buildFlak() { 
+    const result = this.flakManager?.startBuilding() || false;
+    if (result) this.objectUpdater.updateFlakObjects(this.objects);
+    return result;
   }
-  getTotalFlakCount() { return this.proxyMethods.getTotalFlakCount(); }
-  getAllFlaks() { return this.proxyMethods.getAllFlaks(); }
-  updateFlakRowConfig(rowIndex, newConfig) { this.proxyMethods.updateFlakRowConfig(rowIndex, newConfig); }
-  setWallOffsets(lx, ly, rx, ry) { this.proxyMethods.setWallOffsets(lx, ly, rx, ry); }
-  getLeftWall() { return this.proxyMethods.getLeftWall(); }
-  getRightWall() { return this.proxyMethods.getRightWall(); }
+  getFlakBuildProgress() { return this.flakManager?.getBuildProgress() || 0; }
+  getRemainingFlakBuildTime() { return this.flakManager?.getRemainingBuildTime() || 0; }
+  canBuildFlak() { return this.flakManager?.canBuild() || false; }
+  getFlakCapacity() { return this.flakManager?.getMaxFlakCapacity() || 50; }
+  setFlakScale(newScale) { 
+    this.flakManager?.setFlakScale(newScale);
+    this.objectUpdater.updateFlakObjects(this.objects);
+  }
+  getTotalFlakCount() { return this.flakManager?.getTotalFlakCount() || 0; }
+  getAllFlaks() { return this.flakManager?.getAllFlaks() || []; }
+  updateFlakRowConfig(rowIndex, newConfig) { this.flakManager?.updateFlakRowConfig(rowIndex, newConfig); }
+
+  // ---------- Wall Management ----------
+  setWallOffsets(lx, ly, rx, ry) { this.wallSection?.setWallOffsets(lx, ly, rx, ry); }
+  getLeftWall() { return this.wallSection?.getLeftWall(); }
+  getRightWall() { return this.wallSection?.getRightWall(); }
 }

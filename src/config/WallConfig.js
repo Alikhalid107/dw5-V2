@@ -1,19 +1,24 @@
-export class WallConfig {
-  constructor() {
-    this.wallWidth = 485;
-    this.wallHeight = 59;
-    
-    // Default offsets
-    this.leftWallOffsetX = 200;
-    this.leftWallOffsetY = 415;
-    this.rightWallOffsetX = -715;
-    this.rightWallOffsetY = 415;
-    
-    // Image paths
-    this.leftWallImage = 'simpleWallLeft.png';
-    this.rightWallImage = 'simpleWallRight.png';
-    
-    // Z-index
-    this.wallZIndex = 5;
-  }
-}
+export const WALL_CONFIG = {
+  DIMENSIONS: {
+    width: 485,
+    height: 59
+  },
+  
+  OFFSETS: {
+    left: {
+      x: 200,
+      y: 415
+    },
+    right: {
+      x: -715,
+      y: 415
+    }
+  },
+  
+  IMAGES: {
+    left: 'simpleWallLeft.png',
+    right: 'simpleWallRight.png'
+  },
+  
+  Z_INDEX: 5
+};

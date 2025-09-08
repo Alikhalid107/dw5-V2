@@ -1,4 +1,4 @@
-import { IndividualFactoryPanel } from "../ui/IndividualFactoryPanel.js";
+import { IndividualFactoryPanel } from "../ui/FactoryPanel/IndividualFactoryPanel.js";
 import { UpgradeAllButton } from "../ui/UpgradeAllButton.js";
 
 export class FactoryUICoordinator {

@@ -1,5 +1,5 @@
-export class InputHandler {
-  setManagers(factoryManager, garageUI) {
+export class BaseInputHandler {
+  constructor(factoryManager, garageUI) {
     this.factoryManager = factoryManager;
     this.garageUI = garageUI;
   }
@@ -10,7 +10,12 @@ export class InputHandler {
   }
 
   handleClick(mouseX, mouseY) {
-    if (this.factoryManager?.handleClick?.(mouseX, mouseY)) return true;
+    // Factory manager gets first priority for clicks
+    if (this.factoryManager?.handleClick?.(mouseX, mouseY)) {
+      return true;
+    }
+    
+    // Garage UI handles remaining clicks
     return this.garageUI?.handleClick(mouseX, mouseY) || false;
   }
 }
