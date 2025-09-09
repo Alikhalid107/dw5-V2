@@ -55,7 +55,9 @@ export class FactoryManager {
     Object.values(this.factories).forEach(f => f.isHovered = false);
 
     const anyFactoryHovered = Object.values(this.factories).some(factory => {
-      if (this.isPointInsideFactoryWithPanel(mouseX, mouseY, factory)) { 
+      // Use the consolidated positioning system
+      const panel = this.ui.factoryPanels[factory.type];
+      if (panel && panel.positioning.isPointInHoverArea(mouseX, mouseY, factory)) { 
         factory.isHovered = true; 
         return true; 
       }
@@ -74,29 +76,7 @@ export class FactoryManager {
     });
   }
 
-  isPointInsideFactoryWithPanel(mouseX, mouseY, factory) {
-    // Keep existing hover detection logic
-    if (factory.isPointInside(mouseX, mouseY)) return true;
-
-    const panelConfig = factory.panelConfig || {
-      hoverAreaX: -20,
-      hoverAreaY: -140,
-      hoverAreaWidth: 250,
-      hoverAreaHeight: 300
-    };
-
-    const hoverBounds = {
-      x: factory.x + panelConfig.hoverAreaX,
-      y: factory.y + panelConfig.hoverAreaY,
-      width: panelConfig.hoverAreaWidth,
-      height: panelConfig.hoverAreaHeight
-    };
-
-    return mouseX >= hoverBounds.x && 
-           mouseX <= hoverBounds.x + hoverBounds.width && 
-           mouseY >= hoverBounds.y && 
-           mouseY <= hoverBounds.y + hoverBounds.height;
-  }
+  // REMOVED: isPointInsideFactoryWithPanel - now handled by positioning system
 
   setConfirmationDialog(factoryType, show) {
     if (show) {
@@ -151,6 +131,14 @@ export class FactoryManager {
 
   drawUI(ctx, offsetX, offsetY) { 
     this.ui.drawUI(ctx, offsetX, offsetY);
+    
+    // Draw debug borders for all factories
+    Object.entries(this.ui.factoryPanels).forEach(([type, panel]) => {
+      const factory = this.factories[type];
+      if (factory) {
+        panel.positioning.drawDebugBorders(ctx, factory, offsetX, offsetY);
+      }
+    });
     
     Object.values(this.productionOverlays).forEach(overlay => {
       overlay.draw(ctx, offsetX, offsetY);

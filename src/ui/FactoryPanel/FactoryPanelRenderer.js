@@ -1,3 +1,5 @@
+import { FACTORY_PANEL_CONFIG } from '../../config/FactoryPanelConfig.js';
+
 export class FactoryPanelRenderer {
   constructor(components, positioning) {
     this.components = components;
@@ -38,22 +40,25 @@ export class FactoryPanelRenderer {
     const productionPos = this.positioning.getComponentPosition('productionButtons', panelX, panelY);
     this.components.productionButtons.draw(ctx, productionPos.x, productionPos.y, factory);
 
-    // Cancel badges (only if producing)
-    if (factory.isProducing) {
-      this.drawCancelBadges(ctx, productionPos.x, productionPos.y);
+    // Cancel badges (only if producing) - FIXED: Pass factory parameter
+    if (factory && factory.isProducing) {
+      this.drawCancelBadges(ctx, productionPos.x, productionPos.y, factory);
     }
   }
 
-  drawCancelBadges(ctx, productionX, productionY) {
+  drawCancelBadges(ctx, productionX, productionY, factory) {
     const oneX = productionX;
-    const fifteenX = oneX + this.components.productionButtons.prodButtonWidth + 10;
+    // Use the buttonSpacing from config instead of hardcoded 10
+    const buttonSpacing = FACTORY_PANEL_CONFIG.COMPONENT_SPACING.buttonSpacing;
+    const fifteenX = oneX + this.components.productionButtons.prodButtonWidth + buttonSpacing;
     
     this.components.cancelBadges.draw(
       ctx, 
       oneX, 
       fifteenX, 
       productionY, 
-      this.components.productionButtons.prodButtonWidth
+      this.components.productionButtons.prodButtonWidth,
+      factory // Pass the factory object
     );
   }
 

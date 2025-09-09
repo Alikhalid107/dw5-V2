@@ -16,7 +16,7 @@ export class GarageSection {
     const objects = [];
 
     // Garage
-    const garageX = baseX + (baseWidth - this.garageWidth) / 2;
+    const garageX = (baseX + (baseWidth - this.garageWidth) / 2);
     const garageY = baseY + baseHeight + this.garageOffsetY;
 
     const structure = new GarageStructure(garageX, garageY, this.garageWidth, this.garageHeight);

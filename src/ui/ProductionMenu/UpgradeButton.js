@@ -1,10 +1,11 @@
 import { PanelBase } from './PanelBase.js';
+import { FACTORY_PANEL_CONFIG } from '../../config/FactoryPanelConfig.js';
 
 export class UpgradeButton extends PanelBase {
   constructor() {
     super();
-    this.buttonWidth = 60;
-    this.buttonHeight = 30;
+    this.buttonWidth = FACTORY_PANEL_CONFIG.COMPONENT_SIZES.upgradeButtonWidth;
+    this.buttonHeight = FACTORY_PANEL_CONFIG.COMPONENT_SIZES.upgradeButtonHeight;
     this.buttonBounds = null;
     this.isButtonHovered = false;
   }

@@ -70,22 +70,25 @@ export class FlakPositioning {
     setTimeout(attempt, FLAK_CONFIG.POSITIONING.POSITIONING_RETRY_DELAY);
   }
 
-  calculateFlakPosition(side, rowIndex, currentFlakCount, flakWidth = 0) {
-    const row = FLAK_CONFIG.ROWS[rowIndex];
-    const baseY = this.garageY + this.garageHeight + row.rowOffsetY;
-    const { left, right } = this.getLeftRightCounts(rowIndex, currentFlakCount);
+calculateFlakPosition(side, rowIndex, currentFlakCount, flakWidth = 0) {
+  const row = FLAK_CONFIG.ROWS[rowIndex];
+  const baseY = this.garageY + this.garageHeight + row.rowOffsetY;
+  const { left, right } = this.getLeftRightCounts(rowIndex, currentFlakCount);
 
-    let getTargetX;
-    if (side === "left") {
-      const indexOnSide = left + 1;
-      getTargetX = () => this.garageX - row.rowOffsetX - indexOnSide * row.spacing;
-    } else {
-      const indexOnSide = right + 1;
-      getTargetX = () => this.garageX + this.garageWidth + row.rowOffsetX + indexOnSide * row.spacing - flakWidth;
-    }
-
-    return { baseY, getTargetX, zIndex: row.zIndex };
+  let getTargetX;
+  if (side === "left") {
+    const indexOnSide = left + 1;
+    getTargetX = () =>
+      this.garageX - row.rowOffsetX - indexOnSide * row.spacing;
+  } else {
+    const indexOnSide = right + 1;
+    getTargetX = () =>
+      this.garageX + this.garageWidth + row.rowOffsetX + (indexOnSide - 1) * row.spacing - flakWidth;
   }
+
+  return { baseY, getTargetX, zIndex: row.zIndex };
+}
+
 
   determineSideForNewFlak(rowIndex, currentFlakCount) {
     const flaksOnRow = this.getFlaksOnRow(rowIndex, currentFlakCount);

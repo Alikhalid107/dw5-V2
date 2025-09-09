@@ -9,17 +9,17 @@ export const FactoryTypes = {
     additionalWidth: 209, additionalHeight: 98, additionalZIndex: -98,
     // Panel Configuration
     panelConfig: {
-      // Panel size
+      // Panel size and position
       panelWidth: 250,
       panelHeight: 120,
-      // Panel position relative to factory
-      panelOffsetX: 0,    // Horizontal offset from factory center
-      panelOffsetY: -90, // Vertical offset from factory top
-      // Hover area (relative to factory position)
-      hoverAreaX: -20,    // Extend hover area left
-      hoverAreaY: -140,   // Extend hover area up
-      hoverAreaWidth: 250, // Total hover width
-      hoverAreaHeight: 260 // Total hover height
+      panelOffsetX: 0,     // Horizontal offset from factory center
+      panelOffsetY: -130,  // Vertical offset from factory top
+      
+      // Hover area (relative to factory position) - LARGER than panel
+      hoverAreaX: -0,     // Extend hover area left of factory   // red area move 
+      hoverAreaY: -120,    // Extend hover area above factory       // red area move
+      hoverAreaWidth: 200, // Wider than panel for easier interaction
+      hoverAreaHeight: 200 // Taller than panel for easier interaction
     },
     effects: {
       concreteMixerTruck: {
@@ -41,13 +41,14 @@ export const FactoryTypes = {
     // Panel Configuration
     panelConfig: {
       panelWidth: 250,
-      panelHeight: 100,
-      panelOffsetX: 50,   // Move panel left from center
-      panelOffsetY: -100,  // Position above factory
-      hoverAreaX: -30,     // Extend hover area
-      hoverAreaY: -150,
-      hoverAreaWidth: 240,
-      hoverAreaHeight: 280
+      panelHeight: 110,
+      panelOffsetX: 140,   // Move panel left from center (avoid smoke)
+      panelOffsetY: 140,  // Position well above factory
+      
+      hoverAreaX: 150,     // Extended hover area
+      hoverAreaY: -190,
+      hoverAreaWidth: 100,
+      hoverAreaHeight: 100
     },
     effects: {
       smoke: {
@@ -73,14 +74,15 @@ export const FactoryTypes = {
     additionalWidth: 162, additionalHeight: 91, additionalZIndex: -98,
     // Panel Configuration
     panelConfig: {
-      panelWidth: 250,
+      panelWidth: 240,
       panelHeight: 110,
-      panelOffsetX: 20,    // Move panel right
-      panelOffsetY: -120,
-      hoverAreaX: -10,
-      hoverAreaY: -130,
-      hoverAreaWidth: 200,
-      hoverAreaHeight: 240
+      panelOffsetX: 30,    // Move panel right
+      panelOffsetY: -130,
+      
+      hoverAreaX: -20,     // Reasonable hover area
+      hoverAreaY: -180,
+      hoverAreaWidth: -1,
+      hoverAreaHeight: -1
     }
   },
 
@@ -96,12 +98,13 @@ export const FactoryTypes = {
     panelConfig: {
       panelWidth: 250,
       panelHeight: 130,
-      panelOffsetX: 50,    // Move panel right due to oil pumps on left
-      panelOffsetY: -90,
-      hoverAreaX: -40,
-      hoverAreaY: -160,
-      hoverAreaWidth: 280,
-      hoverAreaHeight: 290
+      panelOffsetX: 80,    // Move panel well to the right (avoid oil pumps)
+      panelOffsetY: -120,
+      
+      hoverAreaX: -60,     // Large hover area to include oil pumps
+      hoverAreaY: -170,
+      hoverAreaWidth: -1, // Very wide to cover pumps and factory
+      hoverAreaHeight: -1
     },
     effects: {
       oilPumps: [
