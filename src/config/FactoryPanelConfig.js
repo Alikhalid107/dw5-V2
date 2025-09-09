@@ -1,6 +1,6 @@
 export const FACTORY_PANEL_CONFIG = {
   LAYOUT: {
-    defaultPanelWidth: 190,
+    defaultPanelWidth: 100,
     defaultPanelHeight: 100,
     defaultPanelOffsetX: 0,
     defaultPanelOffsetY: -60
@@ -16,7 +16,7 @@ export const FACTORY_PANEL_CONFIG = {
   COMPONENT_SIZES: {
     upgradeButtonWidth: 60,
     upgradeButtonHeight: 40,
-    productionButtonsWidth: 130,
+    productionButtonsWidth: 125,
     productionButtonsHeight: 40,
     factoryInfoWidth: 60,
     factoryInfoHeight: 40
@@ -34,7 +34,7 @@ export const FACTORY_PANEL_CONFIG = {
   },
 
   DEBUG: {
-    enabled: true,
+    enabled: false,
     colors: {
       hoverArea: 'rgba(255, 0, 0, 0.8)',
       panelArea: 'rgba(0, 0, 255, 0.8)',

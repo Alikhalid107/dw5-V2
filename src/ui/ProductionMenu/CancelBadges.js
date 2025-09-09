@@ -11,9 +11,9 @@ export class CancelBadges extends PanelBase {
     
     // Calculate icon size based on production button size
     this.iconSize = Math.min(
-      FACTORY_PANEL_CONFIG.COMPONENT_SIZES.productionButtonsHeight * 1, 
-      50 // Maximum size of 32px
-    );
+      FACTORY_PANEL_CONFIG.COMPONENT_SIZES.productionButtonsHeight * 100, 
+      50  
+      );
   }
 
   draw(ctx, oneHourButtonX, fifteenHourButtonX, buttonY, prodButtonWidth, factory) {
@@ -79,8 +79,8 @@ export class CancelBadges extends PanelBase {
     const buttonHeight = FACTORY_PANEL_CONFIG.COMPONENT_SIZES.productionButtonsHeight;
     
     // Center the icon within the production button
-    const iconX = buttonX + (prodButtonWidth - this.iconSize) / 2;
-    const iconY = buttonY + (buttonHeight - this.iconSize) / 2;
+    const iconX = buttonX + (prodButtonWidth - this.iconSize) / 2 ;
+    const iconY = buttonY + (buttonHeight - this.iconSize) / 2 ;
     
     // Create bounds for click detection (same as icon position)
     const bounds = this._bounds(
@@ -93,15 +93,7 @@ export class CancelBadges extends PanelBase {
     if (which === "oneHour") this.oneHourCancelBounds = bounds;
     else this.fifteenHourCancelBounds = bounds;
 
-    // Draw semi-transparent background for better visibility
-    const bgPadding = 2;
-    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-    ctx.fillRect(
-      iconX - bgPadding, 
-      iconY - bgPadding, 
-      this.iconSize + (bgPadding * 2), 
-      this.iconSize + (bgPadding * 2)
-    );
+  
 
     // Draw the cross mark icon if IconManager is loaded
     if (this.iconManager.isLoaded()) {
@@ -113,18 +105,7 @@ export class CancelBadges extends PanelBase {
         this.iconSize,
         this.iconSize
       );
-    } else {
-      // Fallback: Draw text-based cross if icon isn't loaded yet
-      ctx.fillStyle = "white";
-      ctx.font = `bold ${Math.floor(this.iconSize * 0.6)}px Arial`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(
-        "✕",
-        iconX + this.iconSize / 2,
-        iconY + this.iconSize / 2
-      );
-    }
+    } 
   }
 
   handleClick(mouseX, mouseY, factory) {

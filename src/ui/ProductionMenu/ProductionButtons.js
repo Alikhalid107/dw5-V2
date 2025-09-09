@@ -5,191 +5,176 @@ import { FACTORY_PANEL_CONFIG } from "../../config/FactoryPanelConfig.js";
 export class ProductionButtons extends PanelBase {
   constructor() {
     super();
-    this.prodButtonWidth = FACTORY_PANEL_CONFIG.COMPONENT_SIZES.productionButtonsWidth / 2 - FACTORY_PANEL_CONFIG.COMPONENT_SPACING.buttonSpacing;
-    this.prodButtonHeight= FACTORY_PANEL_CONFIG.COMPONENT_SIZES.productionButtonsHeight;
-    this.oneHourButtonBounds = null;
-    this.fifteenHourButtonBounds = null;
-    this.isOneHourHovered = false;
-    this.isFifteenHourHovered = false;
     this.iconManager = new IconManager();
-
-    // Factory type to icon mapping
-    this.factoryIcons = {
-      concrete: "CONCRETE_MIXER",
-      steel: "STEEL_FURNACE",
-      carbon: "CARBON_PLANT",
-      oil: "OIL_REFINERY",
-    };
-
-    // Factory type to text color mapping
-    this.factoryTextColors = {
-      concrete: "#fcfc8bff",  // Yellow/Gold
-      carbon: "#32CD32",    // Green
-      steel: "#DC143C",     // Red
-      oil: "#9932CC"        // Purple
-    };
-
-    // Default text color for unknown factory types
-    this.defaultTextColor = "red";
+    this.buttons = this.initializeButtons();
+    this.factoryConfig = this.initializeFactoryConfig();
   }
 
-  getFactoryTextColor(factoryType, isDisabled = false) {
-    // if (isDisabled) {
-    //   return "rgba(255,255,255,0.5)";
-    // }
+  initializeButtons() {
+    const { productionButtonsWidth, productionButtonsHeight } = FACTORY_PANEL_CONFIG.COMPONENT_SIZES;
+    const { buttonSpacing } = FACTORY_PANEL_CONFIG.COMPONENT_SPACING;
     
-    return this.factoryTextColors[factoryType] || this.defaultTextColor;
+    const buttonWidth = productionButtonsWidth / 2 - buttonSpacing;
+    const buttonHeight = productionButtonsHeight;
+
+    return {
+      oneHour: {
+        width: buttonWidth,
+        height: buttonHeight,
+        label: "1h",
+        hours: 1,
+        bounds: null,
+        hovered: false
+      },
+      fifteenHour: {
+        width: buttonWidth,
+        height: buttonHeight,
+        label: "15h",
+        hours: 15,
+        bounds: null,
+        hovered: false
+      }
+    };
   }
 
-  drawProductionButton(
-    ctx,
-    x,
-    y,
-    label,
-    isProducing,
-    isHovered,
-    isDisabled = false,
-    factoryType = null
-  ) {
-    const color = isDisabled
-      ? "rgba(100,100,100,0.5)"
-      : isProducing ? "#5A757E" : "#5A757E";
-
-    // Draw button background
-    ctx.fillStyle = color;
-    ctx.fillRect(x, y, this.prodButtonWidth, this.prodButtonHeight);
-
-    // Draw factory-specific icon if available and loaded
-    if (factoryType && this.iconManager.isLoaded()) {
-      const iconName = this.factoryIcons[factoryType];
-      if (iconName) {
-        // Position icon on the left side of button
-        const iconSize = 40;
-        const iconX = x + 3;
-        const iconY = y + (this.prodButtonHeight - iconSize) / 2;
-        this.iconManager.drawIcon(
-          ctx,
-          iconName,
-          iconX,
-          iconY,
-          iconSize,
-          iconSize
-        );
+  initializeFactoryConfig() {
+    return {
+      icons: {
+        concrete: "CONCRETE_MIXER",
+        steel: "STEEL_FURNACE",
+        carbon: "CARBON_PLANT",
+        oil: "OIL_REFINERY"
+      },
+      colors: {
+        concrete: "#fcfc8bff",
+        carbon: "#32CD32",
+        steel: "#DC143C",
+        oil: "#9932CC",
+        default: "red"
       }
-    }
+    };
+  }
 
-    // Draw label text with factory-specific color and black outline
+  getFactoryColor(factoryType) {
+    return this.factoryConfig.colors[factoryType] || this.factoryConfig.colors.default;
+  }
+
+  drawButton(ctx, x, y, button, factory, isDisabled = false) {
+    const { width, height, label } = button;
+    
+    // Draw background
+    ctx.fillStyle = "rgba(115, 145, 167, 0.7)";
+    ctx.fillRect(x, y, width, height);
+
+    // Draw icon if available
+    this.drawFactoryIcon(ctx, x, y, width, height, factory.type);
+
+    // Draw text with outline
+    this.drawButtonText(ctx, x, y, width, height, label, factory.type);
+
+    // Draw hover effect
+    if (button.hovered && !isDisabled) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.fillRect(x, y, width, height);
+    }
+  }
+
+  drawFactoryIcon(ctx, x, y, width, height, factoryType) {
+    if (!factoryType || !this.iconManager.isLoaded()) return;
+
+    const iconName = this.factoryConfig.icons[factoryType];
+    if (!iconName) return;
+
+    const iconSize = 48;
+    const iconX = x + (width - iconSize) / 2;
+    const iconY = y + (height - iconSize) / 2;
+    
+    this.iconManager.drawIcon(ctx, iconName, iconX, iconY, iconSize, iconSize);
+  }
+
+  drawButtonText(ctx, x, y, width, height, text, factoryType) {
     ctx.font = "20px Tahoma";
     ctx.fontWeight = "600";
     ctx.textAlign = "center";
-    const textX = factoryType && this.iconManager.isLoaded() ? x + 22 : x + 5;
-    const textY = y + this.prodButtonHeight / 2 + 3;
     
-    // Draw black outline (stroke)
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 4; // 3px outline - you can change this to 2 for thinner outline
-    ctx.strokeText(label, textX, textY);
-    
-    // Draw the main text (fill)
-    ctx.fillStyle = this.getFactoryTextColor(factoryType, isDisabled);
-    ctx.fillText(label, textX, textY);
+    const textX = x + width / 2;
+    const textY = y + height / 2 + 5;
 
-    // Draw hover overlay
-    if (isHovered && !isDisabled) {
-      ctx.fillStyle = "rgba(255,255,255,0.1)";
-      ctx.fillRect(x, y, this.prodButtonWidth, this.prodButtonHeight);
-    }
+    // Black outline
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 4;
+    ctx.strokeText(text, textX, textY);
+
+    // Main text
+    ctx.fillStyle = this.getFactoryColor(factoryType);
+    ctx.fillText(text, textX, textY);
   }
 
   draw(ctx, x, y, factory) {
-    const oneX = x;
-    // Use the buttonSpacing from config instead of hardcoded value
-    const buttonSpacing = FACTORY_PANEL_CONFIG.COMPONENT_SPACING.buttonSpacing;
-    const fifteenX = oneX + this.prodButtonWidth + buttonSpacing;
+    const spacing = FACTORY_PANEL_CONFIG.COMPONENT_SPACING.buttonSpacing;
+    const { oneHour, fifteenHour } = this.buttons;
 
-    this.oneHourButtonBounds = this._bounds(
-      oneX,
-      y,
-      this.prodButtonWidth,
-      this.prodButtonHeight
-    );
-    this.fifteenHourButtonBounds = this._bounds(
-      fifteenX,
-      y,
-      this.prodButtonWidth,
-      this.prodButtonHeight
-    );
+    // Calculate positions
+    const oneHourX = x;
+    const fifteenHourX = oneHourX + oneHour.width + spacing;
 
-    // Draw 1hr button with factory-specific icon and text color
-    this.drawProductionButton(
-      ctx,
-      oneX,
-      y,
-      "1h",
-      factory.isProducing,
-      this.isOneHourHovered,
-      false,
-      factory.type
-    );
+    // Update bounds
+    oneHour.bounds = this._bounds(oneHourX, y, oneHour.width, oneHour.height);
+    fifteenHour.bounds = this._bounds(fifteenHourX, y, fifteenHour.width, fifteenHour.height);
 
-    // Check if the method exists before calling it
-    const canStart15 = factory.canStart15HourProduction
+    // Draw buttons
+    this.drawButton(ctx, oneHourX, y, oneHour, factory);
+    
+    const canStart15Hour = this.canStartProduction(factory, 15);
+    this.drawButton(ctx, fifteenHourX, y, fifteenHour, factory, !canStart15Hour);
+  }
+
+  canStartProduction(factory, hours) {
+    if (hours === 1) return true;
+    
+    return factory.canStart15HourProduction 
       ? factory.canStart15HourProduction()
       : !factory.isProducing;
-
-    // Draw 15hr button with factory-specific icon and text color
-    this.drawProductionButton(
-      ctx,
-      fifteenX,
-      y,
-      "15h",
-      factory.isProducing,
-      this.isFifteenHourHovered,
-      !canStart15,
-      factory.type
-    );
   }
 
   handleClick(mouseX, mouseY, factory, messageCallback) {
-    if (this.isPointInBounds(mouseX, mouseY, this.oneHourButtonBounds)) {
-      if (!factory.isProducing) {
-        factory.startProduction(1);
-      } else {
-        const wasCapped = factory.startProduction(1);
-        if (wasCapped) messageCallback("Capped at 15 hours");
-      }
-      return true;
+    const { oneHour, fifteenHour } = this.buttons;
+
+    // Handle 1-hour button
+    if (this.isPointInBounds(mouseX, mouseY, oneHour.bounds)) {
+      return this.handleProductionStart(factory, oneHour.hours, messageCallback);
     }
 
-    if (this.isPointInBounds(mouseX, mouseY, this.fifteenHourButtonBounds)) {
-      // Check if method exists before calling it
-      const canStart15 = factory.canStart15HourProduction
-        ? factory.canStart15HourProduction()
-        : !factory.isProducing;
-
-      if (canStart15) {
-        factory.startProduction(15);
+    // Handle 15-hour button
+    if (this.isPointInBounds(mouseX, mouseY, fifteenHour.bounds)) {
+      if (this.canStartProduction(factory, fifteenHour.hours)) {
+        factory.startProduction(fifteenHour.hours);
+        return true;
       } else {
-        messageCallback(
-          "Cannot start 15hr production while active (max limit is 15 hours)"
-        );
+        messageCallback("Cannot start 15hr production while active (max limit is 15 hours)");
+        return true;
       }
-      return true;
     }
 
     return false;
   }
 
+  handleProductionStart(factory, hours, messageCallback) {
+    if (!factory.isProducing) {
+      factory.startProduction(hours);
+    } else {
+      const wasCapped = factory.startProduction(hours);
+      if (wasCapped) {
+        messageCallback("Capped at 15 hours");
+      }
+    }
+    return true;
+  }
+
   updateHoverState(mouseX, mouseY) {
-    this.isOneHourHovered = this.isPointInBounds(
-      mouseX,
-      mouseY,
-      this.oneHourButtonBounds
-    );
-    this.isFifteenHourHovered = this.isPointInBounds(
-      mouseX,
-      mouseY,
-      this.fifteenHourButtonBounds
-    );
+    const { oneHour, fifteenHour } = this.buttons;
+    
+    oneHour.hovered = this.isPointInBounds(mouseX, mouseY, oneHour.bounds);
+    fifteenHour.hovered = this.isPointInBounds(mouseX, mouseY, fifteenHour.bounds);
   }
 }

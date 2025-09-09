@@ -4,6 +4,10 @@ export const UI_ICONS_CONFIG = {
   COLS: 9,
   ROWS: 1,
   
+  // Frame dimensions - each icon in the sprite sheet
+  FRAME_WIDTH: 90,
+  FRAME_HEIGHT: 100,
+  
   // Define what each frame represents (adjust based on your actual image)
   FRAME_DEFINITIONS: {
     CONCRETE_MIXER: 0,      // Frame 0 - Concrete mixer truck (leftmost)

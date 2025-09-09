@@ -7,7 +7,9 @@ export class IconManager {
       UI_ICONS_CONFIG.SPRITE_PATH,
       UI_ICONS_CONFIG.TOTAL_FRAMES,
       UI_ICONS_CONFIG.COLS,
-      UI_ICONS_CONFIG.ROWS
+      UI_ICONS_CONFIG.ROWS,
+      UI_ICONS_CONFIG.FRAME_WIDTH,   // 90px width
+      UI_ICONS_CONFIG.FRAME_HEIGHT   // 100px height
     );
   }
 
