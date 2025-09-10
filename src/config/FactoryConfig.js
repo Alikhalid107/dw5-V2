@@ -1,4 +1,4 @@
-export const FactoryTypes = {
+export const FactoryConfig = {
   concrete: {
     name: "Concrete Factory",
     image: "concreteFactory.png",

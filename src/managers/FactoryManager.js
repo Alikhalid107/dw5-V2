@@ -1,13 +1,13 @@
 import { Factory } from "../sections/Factory/Factory.js";
 import { FactoryUICoordinator } from "./FactoryUICoordinator.js";
-import { FactoryTypes } from "../config/FactoryConfig.js";
+import { FactoryConfig } from "../config/FactoryConfig.js";
 import { ProductionTimerOverlay } from "../ui/ProductionMenu/ProductionTimerOverlay.js";
 
 export class FactoryManager {
   constructor(garageX, garageY, garageWidth, garageHeight) {
     Object.assign(this, { 
       garageX, garageY, garageWidth, garageHeight, 
-      factoryProperties: FactoryTypes, 
+      factoryProperties: FactoryConfig, 
       showGrid: false, 
       showUpgradeAll: false,
       activeConfirmationDialog: null
