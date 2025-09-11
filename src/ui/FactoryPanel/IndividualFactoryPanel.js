@@ -1,5 +1,5 @@
 import { PanelBackground } from '../ProductionMenu/PanelBackground.js';
-import { UpgradeButton } from '../UpgradeButton.js';
+import { UpgradeButton } from '../UpgradeMenu/UpgradeButton.js';
 import { ProductionButtons } from '../ProductionMenu/ProductionButtons.js';
 import { CancelBadges } from '../ProductionMenu/CancelBadges.js';
 import { ConfirmationDialog } from '../ProductionMenu/ConfirmationDialog.js';

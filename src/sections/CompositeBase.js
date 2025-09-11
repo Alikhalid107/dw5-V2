@@ -4,7 +4,9 @@ import { FlakManager } from "./FlakManager.js";
 import { WallSection } from "./WallSection.js";
 import { FlagManager } from "../managers/FlagManager.js";
 import { FactoryManager } from "../managers/FactoryManager.js";
-import { GarageUI } from "../ui/GarageUI/GarageUI.js";
+import { UniversalPanelUI } from "../ui/UniversalPanel/UniversalPanelUI.js";
+import { PanelConfigs } from "../ui/UniversalPanel/PanelConfigs.js";
+import { PanelTexts } from "../ui/UniversalPanel/PanelTexts.js";
 import { BaseInputHandler } from "../utils/BaseInputHandler.js";
 import { BaseObjectUpdater } from "../utils/BaseObjectUpdater.js";
 
@@ -18,8 +20,8 @@ export class CompositeBase {
     this.initializeSections();
     this.objects = this.createCompositeBase();
     
-    // Utility helpers
-    this.inputHandler = new BaseInputHandler(this.factoryManager, this.garageUI);
+    // Utility helpers - updated to include both panels
+    this.inputHandler = new BaseInputHandler(this.factoryManager, this.garageUI, this.radarUI);
     this.objectUpdater = new BaseObjectUpdater(this.flakManager, this.factoryManager);
   }
 
@@ -36,7 +38,24 @@ export class CompositeBase {
     const gh = this.garageSection.getGarageHeight();
 
     this.flakManager = new FlakManager(gx, gy, gw, gh);
-    this.garageUI = new GarageUI(this.flakManager, gx, gy, gw, gh);
+    
+    // Create universal panels using configs
+    this.garageUI = new UniversalPanelUI(
+      'garage', 
+      this.flakManager, 
+      gx, gy, gw, gh, 
+      PanelConfigs.garage, 
+      PanelTexts.garage
+    );
+    
+    this.radarUI = new UniversalPanelUI(
+      'radar', 
+      null, // No manager needed for radar
+      gx, gy, gw, gh, 
+      PanelConfigs.radar, 
+      PanelTexts.radar
+    );
+    
     this.wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight);
     this.flagManager = new FlagManager(gx, gy, gw, gh);
     this.factoryManager = new FactoryManager(gx, gy, gw, gh);
@@ -60,6 +79,7 @@ export class CompositeBase {
   update(deltaTime) {
     this.flagManager?.update(deltaTime);
     this.garageUI?.update(deltaTime);
+    this.radarUI?.update(deltaTime);
     this.factoryManager?.update(deltaTime);
 
     if (this.flakManager?.update) {
@@ -83,7 +103,20 @@ export class CompositeBase {
   drawUI(ctx, offsetX, offsetY) {
     this.factoryManager?.drawUI?.(ctx, offsetX, offsetY);
     this.garageUI?.drawUI(ctx, offsetX, offsetY);
+    this.radarUI?.drawUI(ctx, offsetX, offsetY);
   }
+
+  // Panel management methods
+  setGaragePosition(offsetX, offsetY) {
+    this.garageUI?.setOffset(offsetX, offsetY);
+  }
+
+  setRadarPosition(offsetX, offsetY) {
+    this.radarUI?.setOffset(offsetX, offsetY);
+  }
+
+  getGarageUI() { return this.garageUI; }
+  getRadarUI() { return this.radarUI; }
 
   // ---------- Flak Management ----------
   getFlakCount() { return this.flakManager?.getTotalFlakCount() || 2; }

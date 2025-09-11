@@ -1,14 +1,12 @@
 // UpgradeButton.js - Main orchestrator class (refactored)
-import { PanelBase } from './ProductionMenu/PanelBase.js';
-import { FACTORY_PANEL_CONFIG } from '../config/FactoryPanelConfig.js';
-import { FactoryConfig } from '../config/FactoryConfig.js';
-import { IconManager } from '../utils/IconManager.js';
-import { SpriteFrameUtility } from '../utils/SpriteFrameUtility.js';
-import { UpgradeButtonState } from './UpgradeButton/UpgradeButtonState.js';
-import { FactorySpriteManager } from './UpgradeButton/FactorySpriteManager.js';
-import { UpgradeButtonStyles } from './UpgradeButton/UpgradeButtonStyles.js';
-import { UpgradeButtonRenderer } from './UpgradeButton/UpgradeButtonRenderer.js';
-import { UpgradeButtonController } from './UpgradeButton/UpgradeButtonController.js';
+import { PanelBase } from '../ProductionMenu/PanelBase.js';
+import { FACTORY_PANEL_CONFIG } from '../../config/FactoryPanelConfig.js';
+import { IconManager } from '../../utils/IconManager.js';
+import { UpgradeButtonState } from './UpgradeButtonState.js';
+import { FactorySpriteManager } from './FactorySpriteManager.js';
+import { UpgradeButtonStyles } from './UpgradeButtonStyles.js';
+import { UpgradeButtonRenderer } from './UpgradeButtonRenderer.js';
+import { UpgradeButtonController } from './UpgradeButtonController.js';
 
 export class UpgradeButton extends PanelBase {
   constructor() {
