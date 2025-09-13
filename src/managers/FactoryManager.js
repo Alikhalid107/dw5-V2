@@ -1,7 +1,7 @@
-import { Factory } from "../sections/Factory/Factory.js";
-import { FactoryUICoordinator } from "./FactoryUICoordinator.js";
 import { FactoryConfig } from "../config/FactoryConfig.js";
 import { ProductionTimerOverlay } from "../ui/ProductionMenu/ProductionTimerOverlay.js";
+import { Factory } from "../sections/Factory/Factory.js";
+import { FactoryUICoordinator } from "./FactoryUICoordinator.js";
 
 export class FactoryManager {
   constructor(garageX, garageY, garageWidth, garageHeight) {
@@ -19,17 +19,19 @@ export class FactoryManager {
   }
 
   createFactories() {
-    return Object.keys(this.factoryProperties).reduce((acc, type) => {
-      acc[type] = new Factory(type, this.factoryProperties[type], this.garageX, this.garageY);
-      return acc;
-    }, {});
+    return Object.fromEntries(
+      Object.keys(this.factoryProperties).map(type => [
+        type, new Factory(type, this.factoryProperties[type], this.garageX, this.garageY)
+      ])
+    );
   }
 
   createProductionOverlays() {
-    return Object.keys(this.factories).reduce((acc, type) => {
-      acc[type] = new ProductionTimerOverlay(this.factories[type]);
-      return acc;
-    }, {});
+    return Object.fromEntries(
+      Object.keys(this.factories).map(type => [
+        type, new ProductionTimerOverlay(this.factories[type])
+      ])
+    );
   }
 
   update(deltaTime) {
@@ -38,26 +40,23 @@ export class FactoryManager {
   }
 
   handleMouseMove(mouseX, mouseY) {
-    // Keep existing mouse move logic exactly the same
+    // Handle confirmation dialog state
     if (this.activeConfirmationDialog) {
       this.showGrid = true;
       const factory = this.factories[this.activeConfirmationDialog];
       if (factory) {
         factory.isHovered = true;
-        const panel = this.ui.factoryPanels[this.activeConfirmationDialog];
-        if (panel) {
-          panel.updateHoverState(mouseX, mouseY);
-        }
+        this.ui.factoryPanels[this.activeConfirmationDialog]?.updateHoverState?.(mouseX, mouseY);
       }
       return;
     }
 
+    // Reset hover states and check for new hovers
     Object.values(this.factories).forEach(f => f.isHovered = false);
 
     const anyFactoryHovered = Object.values(this.factories).some(factory => {
-      // Use the consolidated positioning system
       const panel = this.ui.factoryPanels[factory.type];
-      if (panel && panel.positioning.isPointInHoverArea(mouseX, mouseY, factory)) { 
+      if (panel?.positioning?.isPointInHoverArea(mouseX, mouseY, factory)) { 
         factory.isHovered = true; 
         return true; 
       }
@@ -65,95 +64,67 @@ export class FactoryManager {
     });
 
     const overUpgradeAll = this.ui?.upgradeAllButton?.isPointInsideWorld?.(mouseX, mouseY) || false;
+    
     this.showGrid = anyFactoryHovered || overUpgradeAll;
     this.showUpgradeAll = overUpgradeAll;
     
+    // Update panel hover states
     Object.entries(this.ui.factoryPanels).forEach(([type, panel]) => {
-      const factory = this.factories[type];
-      if (factory.isHovered) {
-        panel.updateHoverState(mouseX, mouseY);
+      if (this.factories[type].isHovered) {
+        panel.updateHoverState?.(mouseX, mouseY);
       }
     });
   }
 
-  // REMOVED: isPointInsideFactoryWithPanel - now handled by positioning system
-
   setConfirmationDialog(factoryType, show) {
-    if (show) {
-      this.activeConfirmationDialog = factoryType;
-      this.showGrid = true;
-      const factory = this.factories[factoryType];
-      if (factory) {
-        factory.isHovered = true;
-      }
-    } else {
-      this.activeConfirmationDialog = null;
-      const factory = this.factories[factoryType];
-      if (factory) {
-        factory.isHovered = false;
-      }
-    }
+    this.activeConfirmationDialog = show ? factoryType : null;
+    this.showGrid = show;
+    const factory = this.factories[factoryType];
+    if (factory) factory.isHovered = show;
   }
 
-  // Keep all existing proxy methods
+  // Factory management methods
   getFactoryLevel(factoryType) { return this.factories[factoryType]?.level || 0; }
   getAllFactoryLevels() { 
-    return Object.keys(this.factories).reduce((acc, type) => { 
-      acc[type] = this.factories[type].level; 
-      return acc; 
-    }, {}); 
+    return Object.fromEntries(Object.keys(this.factories).map(type => [type, this.factories[type].level])); 
   }
   setFactoryZIndex(factoryType, zIndex) { this.factories[factoryType]?.setZIndex(zIndex); }
   getFactoryZIndex(factoryType) { return this.factories[factoryType]?.zIndex || 7; }
   setAllFactoryZIndexes(zIndexMap) { 
-    Object.keys(zIndexMap).forEach(type => { 
-      if (this.factories[type]) this.setFactoryZIndex(type, zIndexMap[type]); 
-    }); 
+    Object.entries(zIndexMap).forEach(([type, zIndex]) => this.factories[type]?.setZIndex(zIndex)); 
   }
 
   // Production methods
-  startFactoryProduction(factoryType, hours) {
-    return this.factories[factoryType]?.startProduction(hours) || false;
-  }
-  cancelFactoryProduction(factoryType) {
-    this.factories[factoryType]?.cancelProduction();
-  }
-  isFactoryProducing(factoryType) {
-    return this.factories[factoryType]?.isProducing || false;
-  }
-  getFactoryProductionTime(factoryType) {
-    return this.factories[factoryType]?.getFormattedProductionTime() || "";
-  }
+  startFactoryProduction(factoryType, hours) { return this.factories[factoryType]?.startProduction(hours) || false; }
+  cancelFactoryProduction(factoryType) { this.factories[factoryType]?.cancelProduction(); }
+  isFactoryProducing(factoryType) { return this.factories[factoryType]?.isProducing || false; }
+  getFactoryProductionTime(factoryType) { return this.factories[factoryType]?.getFormattedProductionTime() || ""; }
 
-  getObjects() { 
-    return Object.values(this.factories).flatMap(factory => factory.getObjects()); 
-  }
+  // Rendering methods
+  getObjects() { return Object.values(this.factories).flatMap(factory => factory.getObjects()); }
 
   drawUI(ctx, offsetX, offsetY) { 
     this.ui.drawUI(ctx, offsetX, offsetY);
     
-    // Draw debug borders for all factories
+    // Draw debug borders and production overlays
     Object.entries(this.ui.factoryPanels).forEach(([type, panel]) => {
       const factory = this.factories[type];
-      if (factory) {
+      if (factory && panel.positioning) {
         panel.positioning.drawDebugBorders(ctx, factory, offsetX, offsetY);
       }
     });
     
-    Object.values(this.productionOverlays).forEach(overlay => {
-      overlay.draw(ctx, offsetX, offsetY);
-    });
+    Object.values(this.productionOverlays).forEach(overlay => overlay.draw(ctx, offsetX, offsetY));
 
+    // Draw confirmation dialog if active
     if (this.activeConfirmationDialog) {
       const factory = this.factories[this.activeConfirmationDialog];
       const panel = this.ui.factoryPanels[this.activeConfirmationDialog];
-      if (factory && panel && panel.confirmationDialog) {
+      if (factory && panel?.confirmationDialog) {
         panel.confirmationDialog.draw(ctx, offsetX, offsetY, panel.width);
       }
     }
   }
   
-  handleClick(mouseX, mouseY) { 
-    return this.ui.handleClick(mouseX, mouseY); 
-  }
+  handleClick(mouseX, mouseY) { return this.ui.handleClick(mouseX, mouseY); }
 }

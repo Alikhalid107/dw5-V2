@@ -1,37 +1,79 @@
+import { UPGRADE_BUTTON_CONFIG } from "../../config/UpgradeButtonConfig";
 export class UpgradeButtonStyles {
-  constructor() {
-    this.backgroundColors = {
-      upgrading: "rgba(255, 165, 0, 0.8)",
-      maxLevel: "rgba(115, 145, 167, 0.7)",
-      default: "rgba(115, 145, 167, 0.7)",
-      hovered: "rgba(180, 210, 235, 0.9)"
-    };
-
-    this.glowColors = {
-      'concrete': 'rgba(252, 252, 139, 0.8)',
-      'steel': 'rgba(220, 20, 60, 0.8)',
-      'carbon': 'rgba(50, 205, 50, 0.8)',
-      'oil': 'rgba(153, 50, 204, 0.8)',
-      'default': 'rgba(255, 255, 255, 0.8)'
-    };
+  constructor(config = UPGRADE_BUTTON_CONFIG) {
+    this.config = config;
   }
 
   getBackgroundColor(factory, isHovered) {
-    if (factory.upgrading) return this.backgroundColors.upgrading;
-    if (factory.isMaxLevel()) return this.backgroundColors.maxLevel;
-    if (isHovered) return this.backgroundColors.hovered;
-    return this.backgroundColors.default;
+    const { STYLING } = this.config;
+    
+    if (factory.upgrading) return STYLING.upgradingBackgroundColor;
+    if (factory.isMaxLevel()) return STYLING.maxLevelBackgroundColor;
+    if (isHovered) return STYLING.hoverBackgroundColor;
+    return STYLING.backgroundColor;
   }
 
   getFactoryGlowColor(factoryType) {
-    return this.glowColors[factoryType] || this.glowColors.default;
+    const { FACTORY_COLORS } = this.config;
+    return FACTORY_COLORS[factoryType] || FACTORY_COLORS.default;
   }
 
   shouldShowGlow(factory, isHovered) {
+    if (!this.config.EFFECTS.glowEnabled) return false;
     return isHovered && !factory.upgrading && !factory.isMaxLevel();
   }
 
-  getScaleFactor(factory, isHovered, baseScale = 0.6) {
-    return this.shouldShowGlow(factory, isHovered) ? baseScale * 1.15 : baseScale;
+  getScaleFactor(factory, isHovered, baseScale) {
+    const { STYLING } = this.config;
+    const scale = baseScale || STYLING.baseScaleFactor;
+    return this.shouldShowGlow(factory, isHovered) ? scale * STYLING.hoverScaleFactor : scale;
+  }
+
+  getButtonGlowSettings() {
+    const { EFFECTS } = this.config;
+    return {
+      color: EFFECTS.buttonGlowColor,
+      blur: EFFECTS.buttonGlowBlur
+    };
+  }
+
+  getSpriteGlowSettings() {
+    const { EFFECTS } = this.config;
+    return {
+      blur: EFFECTS.spriteGlowBlur
+    };
+  }
+
+  getHoverOverlayColor() {
+    return this.config.EFFECTS.hoverOverlayColor;
+  }
+
+  getProgressBarSettings() {
+    const { EFFECTS } = this.config;
+    return {
+      backgroundColor: EFFECTS.progressBackgroundColor,
+      height: EFFECTS.progressHeight
+    };
+  }
+
+  getCheckmarkSettings() {
+    const { EFFECTS, DIMENSIONS } = this.config;
+    return {
+      glowColor: EFFECTS.checkmarkGlowColor,
+      glowBlur: EFFECTS.checkmarkGlowBlur,
+      baseSize: Math.min(DIMENSIONS.width, DIMENSIONS.height) * 1.3,
+      hoverScale: 1.1
+    };
+  }
+
+  getFallbackTextSettings(isHovered) {
+    const { STYLING } = this.config;
+    return {
+      text: STYLING.fallbackText,
+      fontSize: STYLING.fallbackTextSize * (isHovered ? STYLING.hoverFontScale : 1),
+      textColor: isHovered ? STYLING.hoverTextColor : STYLING.textColor,
+      outlineColor: STYLING.textOutlineColor,
+      outlineWidth: isHovered ? STYLING.hoverTextOutlineWidth : STYLING.textOutlineWidth
+    };
   }
 }

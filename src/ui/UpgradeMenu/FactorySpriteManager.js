@@ -1,20 +1,17 @@
-// FactorySpriteManager.js - Handles factory sprite loading and management
-import { SpriteFrameUtility } from '../../utils/SpriteFrameUtility.js';
+import { UPGRADE_BUTTON_CONFIG } from "../../config/UpgradeButtonConfig";
+import { SpriteFrameUtility } from "../../utils/SpriteFrameUtility";
 export class FactorySpriteManager {
-  constructor() {
+  constructor(config = UPGRADE_BUTTON_CONFIG) {
+    this.config = config;
     this.factorySprites = {};
-    this.spritePaths = {
-      'concrete': 'concreteFactory.png',
-      'steel': 'steelFactory.png',
-      'carbon': 'carbonFactory.png',
-      'oil': 'oilFactory.png'
-    };
+    this.spritePaths = config.SPRITES.spritePaths;
+    this.spriteFrames = config.SPRITES.spriteFrames;
     this.loadSprites();
   }
 
   loadSprites() {
     for (const [type, path] of Object.entries(this.spritePaths)) {
-      this.factorySprites[type] = new SpriteFrameUtility(path, 10);
+      this.factorySprites[type] = new SpriteFrameUtility(path, this.spriteFrames);
     }
   }
 

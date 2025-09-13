@@ -1,22 +1,32 @@
+// =============================================================================
+// UPDATED INDIVIDUAL FACTORY PANEL - Uses unified config system
+// =============================================================================
+
+import {UNIVERSAL_PANEL_CONFIG} from "../../config/UniversalPanelConfig.js";
+import { ConfigurationMerger } from '../../universal/ConfigurationMerger.js';
+import { UniversalPositionCalculator } from '../../universal/UniversalPositionCalculator.js';
+import {UniversalPanelRenderer } from "../../universal/UniversalPanelRenderer.js";
 import { PanelBackground } from '../ProductionMenu/PanelBackground.js';
 import { UpgradeButton } from '../UpgradeMenu/UpgradeButton.js';
 import { ProductionButtons } from '../ProductionMenu/ProductionButtons.js';
 import { CancelBadges } from '../ProductionMenu/CancelBadges.js';
 import { ConfirmationDialog } from '../ProductionMenu/ConfirmationDialog.js';
 import { MessageDisplay } from '../ProductionMenu/MessageDisplay.js';
-import { FactoryPanelPositioning } from '../../utils/FactoryPanelPositioning.js';
-import { FactoryPanelEventHandler } from './FactoryPanelEventHandler.js';
-import { FactoryPanelRenderer } from './FactoryPanelRenderer.js';
 
 export class IndividualFactoryPanel {
   constructor(factory, factoryType) {
     this.factory = factory;
     this.factoryType = factoryType;
-
-    // Initialize positioning system
-    this.positioning = new FactoryPanelPositioning(factory.panelConfig);
-
-    // Initialize UI components
+    
+    // Use unified configuration system
+    this.config = ConfigurationMerger.getFactoryPanelConfig(factoryType);
+    
+    // Store panel dimensions for compatibility
+    this.panelWidth = this.config.panelWidth;
+    this.panelHeight = this.config.panelHeight;
+    this.debugMode = UNIVERSAL_PANEL_CONFIG.DEBUG.enabled;
+    
+    // Initialize components (keeping existing ones)
     this.components = {
       background: new PanelBackground(),
       upgradeButton: new UpgradeButton(),
@@ -25,82 +35,290 @@ export class IndividualFactoryPanel {
       confirmDialog: new ConfirmationDialog(),
       messageDisplay: new MessageDisplay()
     };
-
-    // Initialize systems
-    this.eventHandler = new FactoryPanelEventHandler(this.components, this.positioning);
-    this.renderer = new FactoryPanelRenderer(this.components, this.positioning);
+    
+    // Calculate component positions using unified system
+    this.calculateComponentPositions();
+    
+    // Setup event handlers
+    this.setupEventHandlers();
   }
 
-  // ---------- Main Interface ----------
+  // =============================================================================
+  // POSITIONING SYSTEM - Now uses unified calculators
+  // =============================================================================
+  calculateComponentPositions() {
+    this.componentPositions = UniversalPositionCalculator.calculateComponentPositions(
+      this.config, 
+      UNIVERSAL_PANEL_CONFIG.COMPONENTS
+    );
+  }
+
+  calculatePanelPosition(factory) {
+    return UniversalPositionCalculator.calculatePanelPosition(factory, this.config);
+  }
+
+  calculateHoverArea(factory) {
+    return UniversalPositionCalculator.calculateHoverArea(factory, this.config);
+  }
+
+  getScreenPosition(factory, offsetX = 0, offsetY = 0) {
+    const pos = this.calculatePanelPosition(factory);
+    const x = pos.x - offsetX;
+    const y = pos.y - offsetY;
+    return { x, y, isValid: isFinite(x) && isFinite(y) };
+  }
+
+  getComponentPosition(componentName, panelX, panelY) {
+    const componentPos = this.componentPositions[componentName];
+    if (!componentPos) return { x: panelX, y: panelY };
+    return {
+      x: panelX + componentPos.x,
+      y: panelY + componentPos.y
+    };
+  }
+
+  isPointInHoverArea(mouseX, mouseY, factory) {
+    const hoverArea = this.calculateHoverArea(factory);
+    return mouseX >= hoverArea.x && mouseX <= hoverArea.x + hoverArea.width && 
+           mouseY >= hoverArea.y && mouseY <= hoverArea.y + hoverArea.height;
+  }
+
+  // =============================================================================
+  // EVENT HANDLING SYSTEM - Kept the same as your working version
+  // =============================================================================
+  setupEventHandlers() {
+    this.clickHandlers = {
+      confirmDialog: (relativeX, relativeY, factory, factoryManager) => {
+        if (this.components.confirmDialog?.showConfirmDialog) {
+          const result = this.components.confirmDialog.handleClick(relativeX, relativeY, factory);
+          if (result && !this.components.confirmDialog.showConfirmDialog && factoryManager) {
+            factoryManager.setConfirmationDialog(factory.type, false);
+          }
+          return result;
+        }
+        return false;
+      },
+
+      cancelBadges: (relativeX, relativeY, factory, factoryManager) => {
+        const result = this.components.cancelBadges.handleClick(relativeX, relativeY, factory);
+        if (result) {
+          this.components.confirmDialog.show();
+          if (factoryManager) {
+            factoryManager.setConfirmationDialog(factory.type, true);
+          }
+        }
+        return result;
+      },
+
+      productionButtons: (relativeX, relativeY, factory) => {
+        return this.components.productionButtons.handleClick(relativeX, relativeY, factory, (msg) => {
+          this.components.messageDisplay.showBriefly(msg, 3000);
+        });
+      },
+
+      upgradeButton: (relativeX, relativeY, factory, factoryManager, panelX, panelY) => {
+        return this.handleUpgradeClick(relativeX, relativeY, factory, panelX, panelY);
+      }
+    };
+  }
+
+  handleUpgradeClick(relativeX, relativeY, factory, panelX, panelY) {
+    const upgradePos = this.getComponentPosition('upgradeButton', 0, 0);
+    const upgradeRelativeX = relativeX - (panelX + upgradePos.x);
+    const upgradeRelativeY = relativeY - (panelY + upgradePos.y);
+
+    // Try component's handleClick method first
+    try {
+      const result = this.components.upgradeButton.handleClick(upgradeRelativeX, upgradeRelativeY, factory);
+      if (result) return true;
+    } catch (error) {
+      console.error("Error calling upgradeButton.handleClick:", error);
+    }
+
+    // Fallback: Direct upgrade if click is in button area
+    const buttonConfig = UNIVERSAL_PANEL_CONFIG.COMPONENTS.sizes;
+    const buttonBounds = { 
+      x: 0, y: 0, 
+      width: buttonConfig.upgradeButtonWidth, 
+      height: buttonConfig.upgradeButtonHeight 
+    };
+    
+    const isInButtonArea = upgradeRelativeX >= buttonBounds.x && 
+                          upgradeRelativeX <= buttonBounds.x + buttonBounds.width && 
+                          upgradeRelativeY >= buttonBounds.y && 
+                          upgradeRelativeY <= buttonBounds.y + buttonBounds.height;
+
+    if (isInButtonArea && factory.level < factory.maxLevel) {
+      factory.level++;
+      factory.updateVisuals?.();
+      factory.updateSprite?.();
+      return true;
+    }
+
+    return false;
+  }
+
+  // =============================================================================
+  // RENDERING SYSTEM - Enhanced with unified renderer
+  // =============================================================================
   draw(ctx, offsetX = 0, offsetY = 0, factory = this.factory) {
-    this.renderer.draw(ctx, factory, offsetX, offsetY);
+    const screenPos = this.getScreenPosition(factory, offsetX, offsetY);
+    if (!screenPos.isValid) return;
+
+    const { x: panelX, y: panelY } = screenPos;
+
+    // Draw using unified background renderer
+    UniversalPanelRenderer.drawPanelBackground(
+      ctx, panelX, panelY, this.panelWidth, this.panelHeight, this.config
+    );
+
+    // Draw factory info on background
+    this.components.background.drawFactoryInfo(ctx, panelX, panelY, factory);
+
+    // Draw main components
+    this.drawMainComponents(ctx, panelX, panelY, factory);
+    
+    // Draw overlay components
+    this.drawOverlayComponents(ctx, panelX, panelY, factory);
   }
 
+  drawMainComponents(ctx, panelX, panelY, factory) {
+    // Upgrade button
+    const upgradePos = this.getComponentPosition('upgradeButton', panelX, panelY);
+    this.components.upgradeButton.draw(ctx, upgradePos.x, upgradePos.y, factory);
+
+    // Production buttons
+    const productionPos = this.getComponentPosition('productionButtons', panelX, panelY);
+    this.components.productionButtons.draw(ctx, productionPos.x, productionPos.y, factory);
+
+    // Cancel badges (only if producing)
+    if (factory?.isProducing) {
+      this.drawCancelBadges(ctx, productionPos.x, productionPos.y, factory);
+    }
+  }
+
+  drawCancelBadges(ctx, productionX, productionY, factory) {
+    const buttonSpacing = UNIVERSAL_PANEL_CONFIG.COMPONENTS.spacing.buttonSpacing;
+    const productionButtonWidth = UNIVERSAL_PANEL_CONFIG.COMPONENTS.sizes.productionButtonWidth;
+    const fifteenX = productionX + productionButtonWidth + buttonSpacing;
+    
+    this.components.cancelBadges.draw(ctx, productionX, fifteenX, productionY, productionButtonWidth, factory);
+  }
+
+  drawOverlayComponents(ctx, panelX, panelY, factory) {
+    // Confirmation dialog (appears on top)
+    this.components.confirmDialog.draw(ctx, panelX, panelY, this.panelWidth);
+    
+    // Message display (appears on top)
+    this.components.messageDisplay.draw(ctx, panelX, panelY);
+  }
+
+  // =============================================================================
+  // PUBLIC API - Main interface methods
+  // =============================================================================
   handleClick(mouseX, mouseY, offsetX = 0, offsetY = 0, factory = this.factory, factoryManager = null) {
-    return this.eventHandler.handleClick(mouseX, mouseY, offsetX, offsetY, factory, factoryManager);
+    const relativeX = mouseX - offsetX;
+    const relativeY = mouseY - offsetY;
+    const screenPos = this.getScreenPosition(factory, offsetX, offsetY);
+    
+    if (!screenPos.isValid) return false;
+
+    // Process clicks in priority order
+    const clickOrder = ['confirmDialog', 'cancelBadges', 'productionButtons', 'upgradeButton'];
+    
+    for (const handlerName of clickOrder) {
+      const handler = this.clickHandlers[handlerName];
+      if (handler) {
+        const result = handler(relativeX, relativeY, factory, factoryManager, screenPos.x, screenPos.y);
+        if (result) return true;
+      }
+    }
+
+    return false;
   }
 
   updateHoverState(mouseX, mouseY) {
-    this.eventHandler.updateHoverState(mouseX, mouseY);
+    this.components.upgradeButton.updateHoverState?.(mouseX, mouseY);
+    this.components.productionButtons.updateHoverState?.(mouseX, mouseY);
   }
 
   showMessageBriefly(message, duration = 3000) {
     this.components.messageDisplay.showBriefly(message, duration);
   }
 
-  // ---------- Component Access (for external systems) ----------
+  // =============================================================================
+  // DEBUG VISUALIZATION - Enhanced with unified renderer
+  // =============================================================================
+  drawDebugBorders(ctx, factory, offsetX = 0, offsetY = 0) {
+    if (!this.debugMode) return;
+    
+    const panelPos = this.getScreenPosition(factory, offsetX, offsetY);
+    const hoverArea = this.calculateHoverArea(factory);
+    const targetPos = {
+      x: factory.x - offsetX,
+      y: factory.y - offsetY,
+      width: factory.width,
+      height: factory.height
+    };
+
+    const hoverPos = {
+      x: hoverArea.x - offsetX,
+      y: hoverArea.y - offsetY,
+      width: hoverArea.width,
+      height: hoverArea.height
+    };
+
+    // Use unified debug renderer
+    UniversalPanelRenderer.drawDebugBorders(ctx, panelPos, hoverPos, targetPos);
+  }
+
+  // =============================================================================
+  // COMPONENT ACCESS & LEGACY COMPATIBILITY
+  // =============================================================================
   getComponent(componentName) {
     return this.components[componentName];
   }
 
-  getPositioning() {
-    return this.positioning;
+  // Expose positioning object for FactoryManager compatibility
+  get positioning() {
+    return {
+      isPointInHoverArea: (mouseX, mouseY, factory) => this.isPointInHoverArea(mouseX, mouseY, factory),
+      drawDebugBorders: (ctx, factory, offsetX, offsetY) => this.drawDebugBorders(ctx, factory, offsetX, offsetY)
+    };
   }
 
-  // ---------- Legacy Compatibility (Deprecated - use getComponent() instead) ----------
+  // Legacy properties for backward compatibility
   get buttonBounds() { return this.components.upgradeButton.buttonBounds; }
   get isButtonHovered() { return this.components.upgradeButton.isButtonHovered; }
-  get buttonWidth() { return this.components.upgradeButton.buttonWidth; }
-  get buttonHeight() { return this.components.upgradeButton.buttonHeight; }
-  get prodButtonWidth() { return this.components.productionButtons.prodButtonWidth; }
-  get prodButtonHeight() { return this.components.productionButtons.prodButtonHeight; }
-  get oneHourButtonBounds() { return this.components.productionButtons.oneHourButtonBounds; }
-  get fifteenHourButtonBounds() { return this.components.productionButtons.fifteenHourButtonBounds; }
-  get isOneHourHovered() { return this.components.productionButtons.isOneHourHovered; }
-  get isFifteenHourHovered() { return this.components.productionButtons.isFifteenHourHovered; }
-  get cancelButtonSize() { return this.components.cancelBadges.cancelButtonSize; }
-  get oneHourCancelBounds() { return this.components.cancelBadges.oneHourCancelBounds; }
-  get fifteenHourCancelBounds() { return this.components.cancelBadges.fifteenHourCancelBounds; }
   get showConfirmDialog() { return this.components.confirmDialog.showConfirmDialog; }
-  get confirmYesBounds() { return this.components.confirmDialog.confirmYesBounds; }
-  get confirmNoBounds() { return this.components.confirmDialog.confirmNoBounds; }
-  get showMessage() { return this.components.messageDisplay.showMessage; }
-  get messageText() { return this.components.messageDisplay.messageText; }
-  get messageTimer() { return this.components.messageDisplay.messageTimer; }
+  get confirmationDialog() { return this.components.confirmDialog; }
+  get width() { return this.panelWidth; }
 
-  // Legacy methods (Deprecated - use component methods directly)
-  calculatePanelPosition(factory) { return this.positioning.calculatePanelPosition(factory); }
-  _bounds(x, y, w, h) { return this.positioning.createBounds(x, y, w, h); }
-  isPointInBounds(x, y, b) { return this.positioning.isPointInBounds(x, y, b); }
-  drawText(ctx, text, x, y, font, align, style) { 
-    this.components.background.drawText(ctx, text, x, y, font, align, style); 
+  // =============================================================================
+  // CONFIGURATION UPDATE METHODS - New features
+  // =============================================================================
+  updateConfiguration(customConfig) {
+    this.config = ConfigurationMerger.getFactoryPanelConfig(this.factoryType, customConfig);
+    this.panelWidth = this.config.panelWidth;
+    this.panelHeight = this.config.panelHeight;
+    this.calculateComponentPositions();
   }
-  _drawRoundedRect(ctx, x, y, w, h) { 
-    this.components.background._drawRoundedRect(ctx, x, y, w, h); 
+
+  // Method to override specific config values
+  setCustomOffset(offsetX, offsetY) {
+    this.config.panelOffsetX = offsetX;
+    this.config.panelOffsetY = offsetY;
   }
-  drawBackground(ctx, x, y) { 
-    this.components.background.drawBackground(ctx, x, y, this.positioning.panelWidth, this.positioning.panelHeight); 
+
+  setCustomHoverArea(x, y, width, height) {
+    this.config.hoverAreaX = x;
+    this.config.hoverAreaY = y;
+    this.config.hoverAreaWidth = width;
+    this.config.hoverAreaHeight = height;
   }
-  drawButton(ctx, x, y, factory) { 
-    this.components.upgradeButton.draw(ctx, x, y, factory); 
-  }
-  drawProductionButton(ctx, x, y, label, isProducing, isHovered, isDisabled) { 
-    this.components.productionButtons.drawProductionButton(ctx, x, y, label, isProducing, isHovered, isDisabled); 
-  }
-  drawCancelBadge(ctx, buttonX, buttonY, which) { 
-    this.components.cancelBadges.drawCancelBadge(ctx, buttonX, buttonY, which, this.positioning.prodButtonWidth); 
-  }
-  drawConfirmDialog(ctx, panelX, panelY) { 
-    this.components.confirmDialog.draw(ctx, panelX, panelY, this.positioning.panelWidth); 
+
+  // Enable/disable debug mode
+  setDebugMode(enabled) {
+    this.debugMode = enabled;
   }
 }

@@ -10,7 +10,7 @@ export const FactoryConfig = {
     // Panel Configuration
     panelConfig: {
       // Panel size and position
-      panelWidth: 120,
+      panelWidth: 170,
       panelHeight: 100,
       panelOffsetX: 0,     // Horizontal offset from factory center
       panelOffsetY: -20,  // Vertical offset from factory top

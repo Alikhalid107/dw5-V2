@@ -1,6 +1,6 @@
 import { PanelBase } from "./PanelBase.js";
 import { IconManager } from "../../utils/IconManager.js";
-import { FACTORY_PANEL_CONFIG } from "../../config/FactoryPanelConfig.js";
+import { PRODUCTION_BUTTONS_CONFIG } from "../../config/ProductionButtonConfig.js";
 import { ProductionButton } from "./ProductionButton/ProductionButton.js";
 import { ButtonRenderer } from "./ProductionButton/ButtonRenderer.js";
 import { FactoryStyleConfig } from "./ProductionButton/FactoryStyleConfig.js";
@@ -12,34 +12,22 @@ export class ProductionButtons extends PanelBase {
     super();
     this.iconManager = new IconManager();
     this.factoryStyles = new FactoryStyleConfig();
-    this.renderer = new ButtonRenderer(this.iconManager, this.factoryStyles);
-    this.controller = new ProductionController();
-    this.layout = new ButtonLayout(FACTORY_PANEL_CONFIG.COMPONENT_SPACING);
+    
+    // FIXED: Pass the correct config to each component
+    this.renderer = new ButtonRenderer(this.iconManager, this.factoryStyles, PRODUCTION_BUTTONS_CONFIG);
+    this.controller = new ProductionController(PRODUCTION_BUTTONS_CONFIG);
+    this.layout = new ButtonLayout(PRODUCTION_BUTTONS_CONFIG); // FIXED: Use PRODUCTION_BUTTONS_CONFIG instead of FACTORY_PANEL_CONFIG.COMPONENT_SPACING
     
     this.buttons = this.initializeButtons();
   }
 
   initializeButtons() {
-    const { productionButtonsWidth, productionButtonsHeight } = FACTORY_PANEL_CONFIG.COMPONENT_SIZES;
-    const { buttonSpacing } = FACTORY_PANEL_CONFIG.COMPONENT_SPACING;
+    // FIXED: Use PRODUCTION_BUTTONS_CONFIG instead of calculating from FACTORY_PANEL_CONFIG
+    return PRODUCTION_BUTTONS_CONFIG.buttons.map(buttonConfig => 
+      new ProductionButton(buttonConfig, PRODUCTION_BUTTONS_CONFIG)
+    );
     
-    const buttonWidth = productionButtonsWidth / 2 - buttonSpacing;
-    const buttonHeight = productionButtonsHeight;
-
-    return [
-      new ProductionButton({
-        width: buttonWidth,
-        height: buttonHeight,
-        label: "1h",
-        hours: 1
-      }),
-      new ProductionButton({
-        width: buttonWidth,
-        height: buttonHeight,
-        label: "15h",
-        hours: 15
-      })
-    ];
+    
   }
 
   draw(ctx, x, y, factory) {
@@ -67,3 +55,5 @@ export class ProductionButtons extends PanelBase {
     });
   }
 }
+
+

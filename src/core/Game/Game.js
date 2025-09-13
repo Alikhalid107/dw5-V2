@@ -9,7 +9,7 @@ import { ZoomMonitor } from "./ZoomMonitor.js";
 import { GameLoopManager } from "./GameLoopManager.js";
 
 export class Game {
-    constructor(canvas, baseCount = 2) {
+    constructor(canvas, baseCount = 1) {
         this.canvas = canvas;
         this.ctx = setupCanvas(canvas);
         this.viewW = canvas._cssWidth || window.innerWidth;

@@ -1,5 +1,9 @@
+import { UNIVERSAL_PANEL_CONFIG } from '../../config/UniversalPanelConfig';
+
 export class PanelBase {
-  constructor() {}
+  constructor(config = UNIVERSAL_PANEL_CONFIG) {
+    this.config = config;
+  }
 
   _bounds(x, y, w, h) {
     return { x, y, width: w, height: h };
@@ -15,12 +19,15 @@ export class PanelBase {
     text,
     x,
     y,
-    font = "12px Arial",
+    font = null,
     align = "left",
-    style = "white"
+    style = null
   ) {
-    ctx.fillStyle = style;
-    ctx.font = font;
+    const defaultFont = font || this.config.COMPONENTS.text.defaultFont;
+    const defaultStyle = style || this.config.COMPONENTS.text.colors.primary;
+    
+    ctx.fillStyle = defaultStyle;
+    ctx.font = defaultFont;
     ctx.textAlign = align;
     ctx.fillText(text, x, y);
   }

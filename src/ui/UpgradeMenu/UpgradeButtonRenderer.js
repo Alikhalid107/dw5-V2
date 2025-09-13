@@ -1,10 +1,12 @@
-// UpgradeButtonRenderer.js - Handles all rendering operations
-import { FactoryConfig } from '../../config/FactoryConfig.js';
+import { UPGRADE_BUTTON_CONFIG } from "../../config/UpgradeButtonConfig";
+import { FactoryConfig } from "../../config/FactoryConfig.js";
+
 export class UpgradeButtonRenderer {
-  constructor(iconManager, spriteManager, styles) {
+  constructor(iconManager, spriteManager, styles, config = UPGRADE_BUTTON_CONFIG) {
     this.iconManager = iconManager;
     this.spriteManager = spriteManager;
     this.styles = styles;
+    this.config = config;
   }
 
   draw(ctx, state, factory) {
@@ -18,13 +20,16 @@ export class UpgradeButtonRenderer {
   }
 
   drawBackground(ctx, state, factory) {
+    if (!this.config.EFFECTS.shadowEnabled) return;
+    
     const { x, y, width, height } = state.bounds;
     const bgColor = this.styles.getBackgroundColor(factory, state.isHovered);
     
     // Add glow effect on hover
     if (this.styles.shouldShowGlow(factory, state.isHovered)) {
-      ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
-      ctx.shadowBlur = 12;
+      const glowSettings = this.styles.getButtonGlowSettings();
+      ctx.shadowColor = glowSettings.color;
+      ctx.shadowBlur = glowSettings.blur;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
     }
@@ -54,7 +59,8 @@ export class UpgradeButtonRenderer {
     // Add glow for hovered sprite
     if (this.styles.shouldShowGlow(factory, state.isHovered)) {
       ctx.shadowColor = this.styles.getFactoryGlowColor(factoryType);
-      ctx.shadowBlur = 8;
+      const glowSettings = this.styles.getSpriteGlowSettings();
+      ctx.shadowBlur = glowSettings.blur;
     }
 
     ctx.imageSmoothingEnabled = true;
@@ -85,14 +91,14 @@ export class UpgradeButtonRenderer {
     if (!factory.isMaxLevel() || !this.iconManager.isLoaded()) return;
 
     const { x, y, width, height } = state.bounds;
-    const baseCheckSize = Math.min(width, height) * 1.3;
-    const checkSize = state.isHovered ? baseCheckSize * 1.1 : baseCheckSize;
+    const checkSettings = this.styles.getCheckmarkSettings();
+    const checkSize = state.isHovered ? checkSettings.baseSize * checkSettings.hoverScale : checkSettings.baseSize;
     const checkX = x + (width - checkSize) / 2;
     const checkY = y + (height - checkSize) / 2;
     
     if (state.isHovered) {
-      ctx.shadowColor = "rgba(0, 255, 0, 0.6)";
-      ctx.shadowBlur = 6;
+      ctx.shadowColor = checkSettings.glowColor;
+      ctx.shadowBlur = checkSettings.glowBlur;
     }
     
     this.iconManager.drawCheckMark(ctx, checkX, checkY, checkSize);
@@ -100,29 +106,29 @@ export class UpgradeButtonRenderer {
   }
 
   drawUpgradeProgress(ctx, state, factory) {
-    if (!factory.upgrading) return;
+    if (!factory.upgrading || !this.config.EFFECTS.progressBarEnabled) return;
 
     const { x, y, width, height } = state.bounds;
     const progress = factory.getUpgradeProgress();
+    const progressSettings = this.styles.getProgressBarSettings();
     
-    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.fillRect(x, y + height - 3, width * progress, 3);
+    ctx.fillStyle = progressSettings.backgroundColor;
+    ctx.fillRect(x, y + height - progressSettings.height, width * progress, progressSettings.height);
   }
 
   drawHoverOverlay(ctx, state, factory) {
-    if (!state.isHovered || factory.upgrading) return;
+    if (!state.isHovered || factory.upgrading || !this.config.EFFECTS.hoverOverlayEnabled) return;
 
     const { x, y, width, height } = state.bounds;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+    ctx.fillStyle = this.styles.getHoverOverlayColor();
     ctx.fillRect(x, y, width, height);
   }
 
   drawFallbackText(ctx, state, factory) {
     const { x, y, width, height } = state.bounds;
-    const baseFontSize = 16;
-    const fontSize = state.isHovered ? baseFontSize * 1.1 : baseFontSize;
+    const textSettings = this.styles.getFallbackTextSettings(state.isHovered);
     
-    ctx.font = `${fontSize}px Arial`;
+    ctx.font = `${textSettings.fontSize}px Arial`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     
@@ -130,20 +136,20 @@ export class UpgradeButtonRenderer {
     const textY = y + height / 2;
     
     // Text outline
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = state.isHovered ? 3 : 2;
-    ctx.strokeText("UP", textX, textY);
+    ctx.strokeStyle = textSettings.outlineColor;
+    ctx.lineWidth = textSettings.outlineWidth;
+    ctx.strokeText(textSettings.text, textX, textY);
     
     // Main text
     if (this.styles.shouldShowGlow(factory, state.isHovered)) {
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = textSettings.textColor;
       ctx.shadowColor = "rgba(255, 255, 255, 0.6)";
       ctx.shadowBlur = 4;
     } else {
-      ctx.fillStyle = "#cccccc";
+      ctx.fillStyle = textSettings.textColor;
     }
     
-    ctx.fillText("UP", textX, textY);
+    ctx.fillText(textSettings.text, textX, textY);
     this.resetShadow(ctx);
   }
 

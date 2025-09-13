@@ -19,10 +19,13 @@ export class FactoryUICoordinator {
   }
 
   createUpgradeAllButton() {
+    const { garageX, garageY, garageWidth } = this.factoryManager;
     const offsetX = -280, offsetY = 100;
-    const buttonX = this.factoryManager.garageX + this.factoryManager.garageWidth / 2 + offsetX;
-    const buttonY = this.factoryManager.garageY + offsetY;
-    return new UpgradeAllButton(this.factoryManager, buttonX, buttonY);
+    return new UpgradeAllButton(
+      this.factoryManager, 
+      garageX + garageWidth / 2 + offsetX, 
+      garageY + offsetY
+    );
   }
 
   drawUI(ctx, offsetX, offsetY) {
@@ -31,7 +34,7 @@ export class FactoryUICoordinator {
     this.currentOffsetX = offsetX;
     this.currentOffsetY = offsetY;
 
-    // Draw factory panels
+    // Draw visible factory panels
     Object.entries(this.factoryPanels).forEach(([type, panel]) => {
       const factory = this.factoryManager.factories[type];
       if (factory.isHovered || this.factoryManager.activeConfirmationDialog === type) {
@@ -66,12 +69,9 @@ export class FactoryUICoordinator {
     for (const [type, panel] of Object.entries(this.factoryPanels)) {
       const factory = this.factoryManager.factories[type];
       if (factory.isHovered || this.factoryManager.activeConfirmationDialog === type) {
-        const clickResult = panel.handleClick(
-          mouseX, mouseY, 
-          this.currentOffsetX, this.currentOffsetY,
-          factory, this.factoryManager
-        );
-        if (clickResult) return true;
+        if (panel.handleClick(mouseX, mouseY, this.currentOffsetX, this.currentOffsetY, factory, this.factoryManager)) {
+          return true;
+        }
       }
     }
 

@@ -1,14 +1,20 @@
-// UpgradeButtonState.js - Manages button state
+import { UPGRADE_BUTTON_CONFIG } from "../../config/UpgradeButtonConfig";
 export class UpgradeButtonState {
-  constructor(width, height) {
-    this.width = width;
-    this.height = height;
+  constructor(config = UPGRADE_BUTTON_CONFIG) {
+    this.config = config;
+    this.width = config.DIMENSIONS.width;
+    this.height = config.DIMENSIONS.height;
     this.bounds = null;
     this.isHovered = false;
   }
 
   setBounds(x, y) {
-    this.bounds = { x, y, width: this.width, height: this.height };
+    this.bounds = { 
+      x, 
+      y, 
+      width: this.width, 
+      height: this.height 
+    };
   }
 
   setHovered(isHovered) {

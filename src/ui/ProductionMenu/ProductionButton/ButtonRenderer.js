@@ -1,27 +1,37 @@
+import { PRODUCTION_BUTTONS_CONFIG } from "../../../config/ProductionButtonConfig";
 export class ButtonRenderer {
-  constructor(iconManager, factoryStyleConfig) {
+  constructor(iconManager, factoryStyleConfig, config = PRODUCTION_BUTTONS_CONFIG) {
     this.iconManager = iconManager;
     this.factoryStyles = factoryStyleConfig;
+    this.config = config;
   }
 
   draw(ctx, x, y, button, factory, isDisabled = false) {
-    this.drawBackground(ctx, x, y, button, isDisabled);
+    this.drawBackground(ctx, x, y, button, factory, isDisabled);
     this.drawFactoryIcon(ctx, x, y, button, factory.type, isDisabled);
     this.drawButtonText(ctx, x, y, button, factory.type, isDisabled);
     this.drawHoverOverlay(ctx, x, y, button, isDisabled);
   }
 
-  drawBackground(ctx, x, y, button, isDisabled) {
+  drawBackground(ctx, x, y, button, factory, isDisabled) {
     const { width, height, hovered } = button;
+    const { styling, effects } = this.config;
     
-    if (hovered && !isDisabled) {
-      ctx.fillStyle = "rgba(180, 210, 235, 0.9)";
-      ctx.shadowColor = "rgba(255, 255, 255, 0.8)";
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
+    if (isDisabled) {
+      ctx.fillStyle = styling.disabledBackgroundColor;
+    } else if (factory && factory.isProducing) {
+      ctx.fillStyle = styling.producingBackgroundColor;
+    } else if (hovered) {
+      ctx.fillStyle = styling.hoverBackgroundColor;
+      
+      if (effects.hover.shadowEnabled) {
+        ctx.shadowColor = effects.hover.glowColor;
+        ctx.shadowBlur = effects.hover.glowBlur;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+      }
     } else {
-      ctx.fillStyle = "rgba(115, 145, 167, 0.7)";
+      ctx.fillStyle = styling.backgroundColor;
     }
     
     ctx.fillRect(x, y, width, height);
@@ -35,14 +45,16 @@ export class ButtonRenderer {
     if (!iconName) return;
 
     const { width, height, hovered } = button;
-    const baseIconSize = 48;
-    const iconSize = hovered && !isDisabled ? baseIconSize * 1.2 : baseIconSize;
+    const { styling, effects } = this.config;
+    
+    const baseIconSize = styling.iconSize;
+    const iconSize = hovered && !isDisabled ? baseIconSize * styling.hoverIconScale : baseIconSize;
     const iconX = x + (width - iconSize) / 2;
     const iconY = y + (height - iconSize) / 2;
     
-    if (hovered && !isDisabled) {
+    if (hovered && !isDisabled && effects.hover.shadowEnabled) {
       ctx.shadowColor = this.factoryStyles.getColor(factoryType);
-      ctx.shadowBlur = 8;
+      ctx.shadowBlur = effects.hover.shadowBlur;
     }
     
     this.iconManager.drawIcon(ctx, iconName, iconX, iconY, iconSize, iconSize);
@@ -51,37 +63,50 @@ export class ButtonRenderer {
 
   drawButtonText(ctx, x, y, button, factoryType, isDisabled) {
     const { width, height, label, hovered } = button;
-    const baseFontSize = 20;
-    const fontSize = hovered && !isDisabled ? baseFontSize * 1 : baseFontSize;
+    const { styling, effects } = this.config;
     
-    ctx.font = `${fontSize}px Tahoma`;
+    const baseFontSize = parseInt(styling.font.split('px')[0]);
+    const fontSize = hovered && !isDisabled ? baseFontSize * styling.hoverFontScale : baseFontSize;
+    const fontFamily = styling.font.split(' ').slice(1).join(' ');
+    
+    ctx.font = `${fontSize}px ${fontFamily}`;
     ctx.textAlign = "center";
     
     const textX = x + width / 2;
     const textY = y + height / 2 + 5;
 
     // Draw outline
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 5;
+    ctx.strokeStyle = styling.outlineColor;
+    ctx.lineWidth = styling.outlineWidth;
     ctx.strokeText(label, textX, textY);
 
     // Draw main text
-    const baseColor = this.factoryStyles.getColor(factoryType);
-    if (hovered && !isDisabled) {
-      ctx.fillStyle = this.factoryStyles.brightenColor(baseColor, 0.3);
-      ctx.shadowColor = baseColor;
-      ctx.shadowBlur = 4;
+    let textColor;
+    if (isDisabled) {
+      textColor = styling.disabledTextColor;
     } else {
-      ctx.fillStyle = baseColor;
+      const baseColor = this.factoryStyles.getColor(factoryType);
+      if (hovered) {
+        textColor = this.factoryStyles.brightenColor(baseColor, effects.brightenFactor);
+        if (effects.hover.shadowEnabled) {
+          ctx.shadowColor = baseColor;
+          ctx.shadowBlur = 4;
+        }
+      } else {
+        textColor = baseColor;
+      }
     }
     
+    ctx.fillStyle = textColor;
     ctx.fillText(label, textX, textY);
     this.resetShadow(ctx);
   }
 
   drawHoverOverlay(ctx, x, y, button, isDisabled) {
-    if (button.hovered && !isDisabled) {
-      ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+    const { effects } = this.config;
+    
+    if (button.hovered && !isDisabled && effects.hover.overlayEnabled) {
+      ctx.fillStyle = effects.hover.overlayColor;
       ctx.fillRect(x, y, button.width, button.height);
     }
   }
@@ -90,4 +115,5 @@ export class ButtonRenderer {
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
   }
+
 }

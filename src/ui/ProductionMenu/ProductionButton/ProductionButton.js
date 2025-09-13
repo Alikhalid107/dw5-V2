@@ -1,11 +1,16 @@
+import { PRODUCTION_BUTTONS_CONFIG } from "../../../config/ProductionButtonConfig";
+
 export class ProductionButton {
-  constructor(config) {
-    this.width = config.width;
-    this.height = config.height;
-    this.label = config.label;
-    this.hours = config.hours;
+  constructor(buttonConfig, globalConfig = PRODUCTION_BUTTONS_CONFIG) {
+
+
+    this.width = buttonConfig.width;
+    this.height = buttonConfig.height;
+    this.label = buttonConfig.label;
+    this.hours = buttonConfig.hours;
     this.bounds = null;
     this.hovered = false;
+    this.config = globalConfig;
   }
 
   setBounds(x, y) {

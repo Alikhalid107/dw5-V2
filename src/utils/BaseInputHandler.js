@@ -1,38 +1,21 @@
-// BaseInputHandler.js - Updated to handle RadarUI
+// BaseInputHandler.js 
 export class BaseInputHandler {
-  constructor(factoryManager, garageUI, radarUI = null) {
+  constructor(factoryManager, garageUI,) {
     this.factoryManager = factoryManager;
     this.garageUI = garageUI;
-    this.radarUI = radarUI; // Add radarUI parameter
   }
 
-  handleMouseMove(mouseX, mouseY) {
-    // Handle factory UI mouse move
-    this.factoryManager?.handleMouseMove?.(mouseX, mouseY);
-    
-    // Handle garage UI mouse move
-    this.garageUI?.handleMouseMove(mouseX, mouseY);
-    
-    // Handle radar UI mouse move
-    this.radarUI?.handleMouseMove(mouseX, mouseY);
-  }
+ handleMouseMove(mouseX, mouseY) {
+  this.factoryManager.handleMouseMove(mouseX, mouseY);
+  
+  // Updated method call for unified GarageUI
+  this.garageUI.handleMouseMove(mouseX, mouseY);
+  // Optional: you can use showPanel if needed for other logic
+}
 
-  handleClick(mouseX, mouseY) {
-    // Try factory UI first
-    if (this.factoryManager?.handleClick?.(mouseX, mouseY)) {
-      return true;
-    }
-    
-    // Try garage UI
-    if (this.garageUI?.handleClick(mouseX, mouseY)) {
-      return true;
-    }
-    
-    // Try radar UI
-    if (this.radarUI?.handleClick(mouseX, mouseY)) {
-      return true;
-    }
-    
-    return false;
-  }
+  // To this:
+handleClick(mouseX, mouseY) {
+  return this.garageUI.handleClick(mouseX, mouseY) || this.factoryManager.handleClick(mouseX, mouseY);
+}
+// (handleClick stays the same)
 }

@@ -1,5 +1,9 @@
-// UpgradeButtonController.js - Handles interaction logic
+import { UPGRADE_BUTTON_CONFIG } from "../../config/UpgradeButtonConfig";
 export class UpgradeButtonController {
+  constructor(config = UPGRADE_BUTTON_CONFIG) {
+    this.config = config;
+  }
+
   canUpgrade(factory) {
     return !factory.upgrading && !factory.isMaxLevel();
   }

@@ -1,5 +1,10 @@
-// ProductionController.js - Handles business logic
+// ProductionController.js - Updated with config support
+import { PRODUCTION_BUTTONS_CONFIG } from "../../../config/ProductionButtonConfig";
 export class ProductionController {
+  constructor(config = PRODUCTION_BUTTONS_CONFIG) {
+    this.config = config;
+  }
+
   canStartProduction(factory, hours) {
     if (hours === 1) return true;
     

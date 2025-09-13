@@ -1,18 +1,19 @@
 import { PanelBase } from './PanelBase.js';
 import { IconManager } from '../../utils/IconManager.js';
-import { FACTORY_PANEL_CONFIG } from '../../config/FactoryPanelConfig.js';
+import { UNIVERSAL_PANEL_CONFIG } from '../../config/UniversalPanelConfig.js';
 
 export class CancelBadges extends PanelBase {
-  constructor() {
+  constructor(config = UNIVERSAL_PANEL_CONFIG) {
     super();
+    this.config = config;
     this.iconManager = new IconManager();
     this.oneHourCancelBounds = null;
     this.fifteenHourCancelBounds = null;
     
-    // Calculate icon size based on production button size
+    // Calculate icon size based on production button size and config
     this.iconSize = Math.min(
-      FACTORY_PANEL_CONFIG.COMPONENT_SIZES.productionButtonsHeight * 1.5, 
-      100  
+      this.config.COMPONENTS.sizes.productionButtonHeight * this.config.CANCEL_BADGE.iconSizeMultiplier, 
+      this.config.CANCEL_BADGE.maxIconSize  
     );
   }
 
@@ -82,7 +83,7 @@ export class CancelBadges extends PanelBase {
   }
 
   drawCancelBadge(ctx, buttonX, buttonY, which, prodButtonWidth) {
-    const buttonHeight = FACTORY_PANEL_CONFIG.COMPONENT_SIZES.productionButtonsHeight;
+    const buttonHeight = this.config.COMPONENTS.sizes.productionButtonHeight;
     
     // Position the cancel icon in the center of the button
     const iconX = buttonX + (prodButtonWidth - this.iconSize) / 2;
@@ -97,7 +98,6 @@ export class CancelBadges extends PanelBase {
       this.fifteenHourCancelBounds = bounds;
     }
 
-   
     // Draw the cross mark icon if IconManager is loaded
     if (this.iconManager.isLoaded()) {
       this.iconManager.drawIcon(
@@ -114,6 +114,16 @@ export class CancelBadges extends PanelBase {
     }
   }
 
+  drawFallbackX(ctx, x, y, size) {
+    ctx.strokeStyle = this.config.CANCEL_BADGE.fallbackStroke.color;
+    ctx.lineWidth = this.config.CANCEL_BADGE.fallbackStroke.width;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + size, y + size);
+    ctx.moveTo(x + size, y);
+    ctx.lineTo(x, y + size);
+    ctx.stroke();
+  }
 
   handleClick(mouseX, mouseY, factory) {
     // Only handle clicks if the factory is producing
@@ -128,7 +138,5 @@ export class CancelBadges extends PanelBase {
     if (this.fifteenHourCancelBounds && this.isPointInBounds(mouseX, mouseY, this.fifteenHourCancelBounds)) {
       return true; // Return true to trigger cancel dialog
     }
-
-    return false;
   }
 }

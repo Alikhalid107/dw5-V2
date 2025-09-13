@@ -1,25 +1,28 @@
 import { PanelBase } from './PanelBase.js';
+import { UNIVERSAL_PANEL_CONFIG } from '../../config/UniversalPanelConfig.js';
 
 export class ConfirmationDialog extends PanelBase {
-  constructor() {
+  constructor(config = UNIVERSAL_PANEL_CONFIG.CONFIRMATION_DIALOG) {
     super();
+    this.config = config;
     this.showConfirmDialog = false;
     this.confirmYesBounds = null;
     this.confirmNoBounds = null;
     this.dialogBounds = null;
   }
 
-  _roundedRect(ctx, x, y, w, h, r = 8) {
+  _roundedRect(ctx, x, y, w, h, r = null) {
+    const radius = r || this.config.modal.cornerRadius;
     ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.lineTo(x + w - r, y);
-    ctx.arcTo(x + w, y, x + w, y + r, r);
-    ctx.lineTo(x + w, y + h - r);
-    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-    ctx.lineTo(x + r, y + h);
-    ctx.arcTo(x, y + h, x, y + h - r, r);
-    ctx.lineTo(x, y + r);
-    ctx.arcTo(x, y, x + r, y, r);
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + w - radius, y);
+    ctx.arcTo(x + w, y, x + w, y + radius, radius);
+    ctx.lineTo(x + w, y + h - radius);
+    ctx.arcTo(x + w, y + h, x + w - radius, y + h, radius);
+    ctx.lineTo(x + radius, y + h);
+    ctx.arcTo(x, y + h, x, y + h - radius, radius);
+    ctx.lineTo(x, y + radius);
+    ctx.arcTo(x, y, x + radius, y, radius);
     ctx.closePath();
   }
 
@@ -28,32 +31,38 @@ export class ConfirmationDialog extends PanelBase {
 
     // Draw overlay
     ctx.save();
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.fillStyle = this.config.modal.overlayColor;
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-    // Calculate modal dimensions and position
-    const w = Math.min(500, Math.max(320, panelWidth * 0.5));
-    const h = Math.max(140, Math.round(w * 0.25));
+    // Calculate modal dimensions and position using config
+    const w = Math.min(
+      this.config.modal.maxWidth, 
+      Math.max(this.config.modal.minWidth, panelWidth * 0.5)
+    );
+    const h = Math.max(
+      this.config.modal.minHeight, 
+      Math.round(w * this.config.modal.heightRatio)
+    );
     const dx = Math.round((ctx.canvas.width - w) / 2);
     const dy = Math.round((ctx.canvas.height - h) / 2);
 
     this.dialogBounds = this._bounds(dx, dy, w, h);
 
     // Draw popup with shadow
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 15;
-    this._roundedRect(ctx, dx, dy, w, h, 4);
-    ctx.fillStyle = '#112233';
+    ctx.shadowColor = this.config.modal.shadowColor;
+    ctx.shadowBlur = this.config.modal.shadowBlur;
+    this._roundedRect(ctx, dx, dy, w, h);
+    ctx.fillStyle = this.config.modal.backgroundColor;
     ctx.fill();
 
     // Draw title
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.884)';
-    ctx.font = '300 16px Arial';
+    ctx.fillStyle = this.config.title.color;
+    ctx.font = this.config.title.font;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('Really cancel?', dx + w / 2, dy + 40);
+    ctx.fillText(this.config.title.text, dx + w / 2, dy + this.config.title.offsetY);
 
     // Draw buttons
     this._drawButtons(ctx, dx, dy, w, h);
@@ -61,43 +70,41 @@ export class ConfirmationDialog extends PanelBase {
   }
 
   _drawButtons(ctx, dx, dy, w, h) {
-    const buttonWidth = 60;
-    const buttonHeight = 48;
-    const buttonGap = 6;
+    const { width: buttonWidth, height: buttonHeight, gap: buttonGap, bottomMargin } = this.config.buttons;
     const totalButtonsWidth = (buttonWidth * 2) + buttonGap;
     const buttonStartX = dx + (w - totalButtonsWidth) / 2;
-    const buttonY = dy + h - buttonHeight - 20;
+    const buttonY = dy + h - buttonHeight - bottomMargin;
 
     // YES button
     const yesX = buttonStartX;
     this.confirmYesBounds = this._bounds(yesX, buttonY, buttonWidth, buttonHeight);
-    this._drawButton(ctx, yesX, buttonY, buttonWidth, buttonHeight, 'YES');
+    this._drawButton(ctx, yesX, buttonY, buttonWidth, buttonHeight, this.config.buttons.labels.yes);
 
     // NO button
     const noX = buttonStartX + buttonWidth + buttonGap;
     this.confirmNoBounds = this._bounds(noX, buttonY, buttonWidth, buttonHeight);
-    this._drawButton(ctx, noX, buttonY, buttonWidth, buttonHeight, 'NO');
+    this._drawButton(ctx, noX, buttonY, buttonWidth, buttonHeight, this.config.buttons.labels.no);
   }
 
   _drawButton(ctx, x, y, width, height, text) {
     // Button with shadow
     ctx.save();
-    ctx.shadowColor = '#010127';
-    ctx.shadowOffsetY = 4;
+    ctx.shadowColor = this.config.buttons.shadowColor;
+    ctx.shadowOffsetY = this.config.buttons.shadowOffsetY;
     
-    this._roundedRect(ctx, x, y, width, height, 3);
-    ctx.fillStyle = '#3737c5';
+    this._roundedRect(ctx, x, y, width, height, this.config.buttons.cornerRadius);
+    ctx.fillStyle = this.config.buttons.backgroundColor;
     ctx.fill();
 
     // Bottom shadow
-    ctx.fillStyle = 'rgba(1, 1, 39, 0.12)';
-    ctx.fillRect(x, y + height, width, 4);
+    ctx.fillStyle = `rgba(1, 1, 39, ${this.config.buttons.shadowOpacity})`;
+    ctx.fillRect(x, y + height, width, this.config.buttons.shadowHeight);
 
     // Button text
     ctx.shadowColor = 'transparent';
     ctx.shadowOffsetY = 0;
-    ctx.fillStyle = 'white';
-    ctx.font = '14px Arial';
+    ctx.fillStyle = this.config.buttons.textColor;
+    ctx.font = this.config.buttons.textFont;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(text, x + width / 2, y + height / 2);
