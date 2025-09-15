@@ -114,4 +114,14 @@ export const UPGRADE_BUTTON_CONFIG = {
       EXPLOSION: 8
     }
   },
+
+  // DEBUG - From UNIVERSAL_PANEL_CONFIG.DEBUG
+  DEBUG: {
+    enabled: false,
+    colors: {
+      buttonArea: 'rgba(255, 0, 0, 0.3)',
+      hoverArea: 'rgba(0, 255, 0, 0.3)',
+      boundsArea: 'rgba(0, 0, 255, 0.3)'
+    }
+  }
 };

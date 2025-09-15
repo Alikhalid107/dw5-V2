@@ -1,4 +1,4 @@
-import { UNIVERSAL_PANEL_CONFIG } from '../../config/UniversalPanelConfig';
+import { UNIVERSAL_PANEL_CONFIG } from "../../config/UniversalPanelConfig";
 
 export class PanelBase {
   constructor(config = UNIVERSAL_PANEL_CONFIG) {
@@ -14,18 +14,10 @@ export class PanelBase {
     return x >= b.x && x <= b.x + b.width && y >= b.y && y <= b.y + b.height;
   }
 
-  drawText(
-    ctx,
-    text,
-    x,
-    y,
-    font = null,
-    align = "left",
-    style = null
-  ) {
+  drawText(ctx, text, x, y, font = null, align = "left", style = null) {
     const defaultFont = font || this.config.COMPONENTS.text.defaultFont;
     const defaultStyle = style || this.config.COMPONENTS.text.colors.primary;
-    
+
     ctx.fillStyle = defaultStyle;
     ctx.font = defaultFont;
     ctx.textAlign = align;

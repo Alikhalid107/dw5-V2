@@ -1,4 +1,3 @@
-import { PanelBase } from "./PanelBase.js";
 import { IconManager } from "../../utils/IconManager.js";
 import { PRODUCTION_BUTTONS_CONFIG } from "../../config/ProductionButtonConfig.js";
 import { ProductionButton } from "./ProductionButton/ProductionButton.js";
@@ -7,9 +6,9 @@ import { FactoryStyleConfig } from "./ProductionButton/FactoryStyleConfig.js";
 import { ProductionController } from "./ProductionButton/ProductionController.js";
 import { ButtonLayout } from "./ProductionButton/ButtonLayout.js";
 
-export class ProductionButtons extends PanelBase {
+export class ProductionButtons  {
   constructor() {
-    super();
+  
     this.iconManager = new IconManager();
     this.factoryStyles = new FactoryStyleConfig();
     

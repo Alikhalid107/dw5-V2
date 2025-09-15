@@ -31,15 +31,26 @@ export class ConfigurationMerger {
     return this.merge(UNIVERSAL_PANEL_CONFIG.LAYOUT, factoryConfig.panelConfig);
   }
 
-  static getGarageUIConfig(customConfig = {}) {
-    return this.merge(GARAGE_UI_CONFIG, customConfig);
-  }
+static getGarageUIConfig(customConfig = {}) {
+  return this.merge(
+    { grid: UNIVERSAL_PANEL_CONFIG.GRID, ...UNIVERSAL_PANEL_CONFIG.LAYOUT, ...GARAGE_UI_CONFIG }, 
+    customConfig
+  );
+}
 
-  static getUpgradeButtonConfig(customConfig = {}) {
-    return this.merge(UPGRADE_BUTTON_CONFIG, customConfig);
-  }
+static getUpgradeButtonConfig(customConfig = {}) {
+  return this.merge(
+    { grid: UNIVERSAL_PANEL_CONFIG.GRID, ...UNIVERSAL_PANEL_CONFIG.LAYOUT, ...UPGRADE_BUTTON_CONFIG }, 
+    customConfig
+  );
+}
 
-  static getProductionButtonsConfig(customConfig = {}) {
-    return this.merge(PRODUCTION_BUTTONS_CONFIG, customConfig);
-  }
+static getProductionButtonsConfig(customConfig = {}) {
+  return this.merge(
+    { grid: UNIVERSAL_PANEL_CONFIG.GRID, ...UNIVERSAL_PANEL_CONFIG.LAYOUT, ...PRODUCTION_BUTTONS_CONFIG }, 
+    customConfig
+  );
+}
+
+
 }

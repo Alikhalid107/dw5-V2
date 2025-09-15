@@ -1,16 +1,6 @@
 export const UNIVERSAL_PANEL_CONFIG = {
   // Default panel dimensions and positioning
   LAYOUT: {
-    defaultPanelWidth: 0,
-    defaultPanelHeight: 100,
-    defaultPanelOffsetX: 0,
-    defaultPanelOffsetY: -200,
-    
-    // Hover area configuration (relative to target object)
-    defaultHoverAreaX: 0,
-    defaultHoverAreaY: 0,
-    defaultHoverAreaWidth: 180,
-    defaultHoverAreaHeight: 50,
     
     // Panel background styling
     backgroundGradient: {
@@ -18,8 +8,6 @@ export const UNIVERSAL_PANEL_CONFIG = {
       end: 'rgba(21, 59, 70, 0.90)'
     },
     
-    // Panel background expansion
-    expandedPanelWidthOffset: 70 // Additional space for buttons
   },
 
   // Grid-based panel configuration (for garage UI, upgrade grids, etc.)
@@ -31,10 +19,9 @@ export const UNIVERSAL_PANEL_CONFIG = {
     defaultSpacing: 2,
     defaultPadding: 70,
     
-    
     // Box styling
     boxColors: {
-      available: 'rgba(115, 145, 167, 0.6)',
+      available: 'rgba(115, 145, 167, 0.7)',
       building: 'rgba(255, 165, 0, 0.8)',
       completed: 'rgba(34, 139, 34, 0.8)',
       disabled: 'rgba(115, 145, 167, 0.6)',

@@ -1,41 +1,70 @@
-// UpgradeButton.js - Main orchestrator class (refactored)
-import { PanelBase } from '../ProductionMenu/PanelBase.js';
+// UpgradeButton.js - Direct usage of UniversalPanelRenderer
 import { IconManager } from '../../utils/IconManager.js';
-import { UpgradeButtonState } from './UpgradeButtonState.js';
 import { FactorySpriteManager } from './FactorySpriteManager.js';
-import { UpgradeButtonStyles } from './UpgradeButtonStyles.js';
-import { UpgradeButtonRenderer } from './UpgradeButtonRenderer.js';
-import { UpgradeButtonController } from './UpgradeButtonController.js';
+import { UniversalColorCalculator } from "../universalSystem/UniversalColorCalculator.js";
+import { UniversalBoxState } from "../universalSystem/UniversalBoxState.js";
+import { UniversalBoxController } from "../universalSystem/UniversalBoxController.js";
+import { UniversalPanelRenderer } from "../../universal/UniversalPanelRenderer.js"; // Direct import
+
 import { UPGRADE_BUTTON_CONFIG } from '../../config/UpgradeButtonConfig.js';
 
-export class UpgradeButton extends PanelBase {
+export class UpgradeButton {
   constructor(config = UPGRADE_BUTTON_CONFIG) {
-    super();
-    
     this.config = config;
     
-    // Initialize state with config
-    this.state = new UpgradeButtonState(config);
+    // Initialize universal components
+    this.state = new UniversalBoxState(config);
+    this.colorCalculator = new UniversalColorCalculator(config);
+    this.controller = new UniversalBoxController(config);
     
-    // Initialize components with config
+    // Initialize dependencies (no more renderer wrapper)
     this.iconManager = new IconManager();
     this.spriteManager = new FactorySpriteManager(config);
-    this.styles = new UpgradeButtonStyles(config);
-    this.renderer = new UpgradeButtonRenderer(this.iconManager, this.spriteManager, this.styles, config);
-    this.controller = new UpgradeButtonController(config);
   }
 
   draw(ctx, x, y, factory) {
     this.state.setBounds(x, y);
-    this.renderer.draw(ctx, this.state, factory);
+    
+    // Create context with all dependencies
+    const context = {
+      factory: factory,
+      isHovered: this.state.isHovered,
+      iconManager: this.iconManager,
+      spriteManager: this.spriteManager,
+      colorCalculator: this.colorCalculator
+    };
+    
+    // Use UniversalPanelRenderer directly - no wrapper needed
+    UniversalPanelRenderer.drawUniversalBox(ctx, this.state, 'upgrade', context);
   }
 
   handleClick(mouseX, mouseY, factory) {
-    return this.controller.handleClick(mouseX, mouseY, this.state, factory);
+    return this.controller.handleClick(mouseX, mouseY, this.state, 
+      { factory: factory }, 'upgrade');
   }
 
   updateHoverState(mouseX, mouseY) {
-    this.controller.updateHoverState(mouseX, mouseY, this.state);
+    return this.controller.updateHoverState(mouseX, mouseY, this.state);
+  }
+
+  // Direct access to specific rendering methods if needed
+  drawUpgradeContent(ctx, x, y, factory) {
+    this.state.setBounds(x, y);
+    const context = { 
+      factory, 
+      spriteManager: this.spriteManager,
+      isHovered: this.state.isHovered 
+    };
+    UniversalPanelRenderer.drawUpgradeContent(ctx, this.state, context);
+  }
+
+  // Utility methods - direct calls to UniversalPanelRenderer
+  calculateSpriteDimensions(sprite, factoryType, scaleFactor) {
+    return UniversalPanelRenderer.calculateSpriteDimensions(sprite, factoryType, scaleFactor);
+  }
+
+  resetShadow(ctx) {
+    UniversalPanelRenderer.resetShadow(ctx);
   }
 
   // Legacy compatibility methods
@@ -43,7 +72,7 @@ export class UpgradeButton extends PanelBase {
     return this.state.bounds;
   }
 
-  get isButtonHovered() {
-    return this.state.isHovered;
+  get styles() {
+    return this.colorCalculator;
   }
 }
