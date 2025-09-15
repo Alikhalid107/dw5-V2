@@ -1,5 +1,5 @@
+// src/universal/UniversalPanelRenderer.js
 import { UNIVERSAL_PANEL_CONFIG } from "../config/UniversalPanelConfig.js";
-import { GARAGE_UI_CONFIG } from "../config/GarageUIConfig.js";
 import { UPGRADE_BUTTON_CONFIG } from "../config/UpgradeButtonConfig.js";
 import { FactoryConfig } from "../config/FactoryConfig.js";
 import { PanelBase } from "../ui/ProductionMenu/PanelBase.js";
@@ -8,22 +8,23 @@ import { PanelBase } from "../ui/ProductionMenu/PanelBase.js";
  * Unified Universal Panel Renderer
  * Handles ALL rendering for panels, boxes, backgrounds, and content
  * Supports: Factory Panels, Garage Panels, Grid Boxes, Upgrade Buttons, Production Elements
+ * Goal: Centralize rendering logic to maximize reuse and minimize duplication.
  */
 export class UniversalPanelRenderer {
-  
+
   // =============================================================================
   // PANEL BACKGROUND RENDERING
   // =============================================================================
   static drawPanelBackground(ctx, x, y, width, height, config = UNIVERSAL_PANEL_CONFIG.LAYOUT) {
     if (!isFinite(x) || !isFinite(y)) return;
-    
+
     // Handle expanded width if needed (for factory panels with buttons)
     const finalWidth = width + (config.expandedPanelWidthOffset || 0);
-    
+
     const gradient = ctx.createLinearGradient(x, y, x, y + height);
     gradient.addColorStop(0, config.backgroundGradient.start);
     gradient.addColorStop(1, config.backgroundGradient.end);
-    
+
     ctx.fillStyle = gradient;
     ctx.fillRect(x, y, finalWidth, height);
   }
@@ -33,9 +34,9 @@ export class UniversalPanelRenderer {
   // =============================================================================
   static drawFactoryInfo(ctx, x, y, factory, config = UNIVERSAL_PANEL_CONFIG) {
     if (!factory) return;
-    
+
     const { positioning, text } = config.COMPONENTS;
-    
+
     // Factory name
     this.drawText(
       ctx,
@@ -44,14 +45,14 @@ export class UniversalPanelRenderer {
       y + positioning.factoryInfoOffsetY1,
       text.factoryNameFont
     );
-    
+
     // Factory status
     const statusText = factory.upgrading
       ? `Upgrading... ${factory.getRemainingUpgradeTime()}s`
       : factory.isMaxLevel()
-      ? `Level ${factory.level} (MAX)`
-      : `Level ${factory.level} → ${factory.level + 1}`;
-      
+        ? `Level ${factory.level} (MAX)`
+        : `Level ${factory.level} → ${factory.level + 1}`;
+
     this.drawText(
       ctx,
       statusText,
@@ -69,29 +70,26 @@ export class UniversalPanelRenderer {
   static drawUniversalBox(ctx, state, renderType, context) {
     const { bounds } = state;
     if (!bounds) return;
-
-    // Draw background
+    // Draw background using centralized logic
     this.drawBoxBackground(ctx, state, renderType, context);
-
-    // Draw content based on type
+    // Draw content based on type using specific methods
     switch (renderType) {
       case 'upgrade':
         this.drawUpgradeContent(ctx, state, context);
         break;
       case 'garage':
+        // Use the dedicated garage content method to avoid duplication
         this.drawGarageContent(ctx, state, context);
         break;
       case 'production':
         this.drawProductionContent(ctx, state, context);
         break;
-      case 'grid':
-        this.drawGridContent(ctx, state, context);
-        break;
+      // Removed 'grid' case. If needed, it should not duplicate 'garage' logic.
+      // If a distinct grid type is needed, create a new specific method.
       default:
         this.drawDefaultContent(ctx, state, context);
     }
-
-    // Draw overlays
+    // Draw overlays (e.g., checkmark for max level upgrade)
     this.drawOverlays(ctx, state, renderType, context);
   }
 
@@ -100,18 +98,19 @@ export class UniversalPanelRenderer {
   // =============================================================================
   static drawBoxBackground(ctx, state, renderType, context) {
     const { x, y, width, height } = state.bounds;
+    // Delegate color calculation to centralized helper
     const bgColor = this.getBackgroundColor(renderType, context);
 
     ctx.fillStyle = bgColor;
     ctx.fillRect(x, y, width, height);
 
-    // Add hover effect if needed
+    // Add hover effect if conditions are met, using centralized logic
     if (state.isHovered && this.shouldShowHover(renderType, context)) {
       ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.GRID.hoverEffect;
       ctx.fillRect(x, y, width, height);
     }
 
-    // Add border if specified
+    // Add border if specified in context
     if (context.showBorder) {
       ctx.strokeStyle = context.borderColor || UNIVERSAL_PANEL_CONFIG.GRID.borderColor;
       ctx.lineWidth = context.borderWidth || 1;
@@ -122,20 +121,22 @@ export class UniversalPanelRenderer {
   // =============================================================================
   // CONTENT RENDERING METHODS
   // =============================================================================
-  
+
   // Upgrade Button Content
   static drawUpgradeContent(ctx, state, context) {
-    const { factory, spriteManager, iconManager } = context;
-    if (!spriteManager) return;
+    const { factory, spriteManager } = context; // iconManager handled in overlay
+    if (!spriteManager) return; // Guard clause
 
     const factoryType = factory.type || 'concrete';
     const sprite = spriteManager.getSprite(factoryType);
-    
+
     const { x, y, width, height } = state.bounds;
+    // Delegate scale calculation to helper
     const scaleFactor = this.getScaleFactor(factory, state.isHovered, factory.scaleFactor);
+    // Delegate dimension calculation to helper
     const dimensions = this.calculateSpriteDimensions(sprite, factoryType, scaleFactor);
-    
-    // Center the sprite
+
+    // Center the sprite within the box bounds
     const spriteX = x + (width - dimensions.width) / 2;
     const spriteY = y + (height - dimensions.height) / 2;
 
@@ -143,169 +144,117 @@ export class UniversalPanelRenderer {
     sprite.drawFrame(ctx, 0, spriteX, spriteY, dimensions.width, dimensions.height);
   }
 
-  // Garage Content
- static drawGarageContent(ctx, state, context) {
-  const { canBuild, flakManager } = context;
-  const { x, y, width, height } = state.bounds;
-  
-  // Handle all garage content rendering including the "+" and "MAX CAP" logic
-  if (canBuild) {
-    const centerX = x + width / 2;
-    const centerY = y + height / 2;
-    
-    ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
-    ctx.textAlign = 'center';
-    
-    if (flakManager?.canBuild()) {
-      // Can build - show "+"
-      ctx.font = '18px Arial';
-      ctx.fillText('+', centerX, centerY + 6);
-    } else {
-      // Max capacity - show message
-      ctx.font = '10px Arial';
-      ctx.fillText('MAX', centerX, centerY - 4);
-      ctx.fillText('CAP', centerX, centerY + 8);
-    }
-  }
-}
-
-  // Production Content
-  static drawProductionContent(ctx, state, context) {
-    const { factory } = context;
+  // Garage Content (Handles '+' and 'MAX CAP' logic)
+  static drawGarageContent(ctx, state, context) {
+    const { canBuild, flakManager } = context;
     const { x, y, width, height } = state.bounds;
-    
-    if (factory?.isProducing) {
-      // Draw production indicator
-      ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.EFFECTS.progress.fillColor;
-      ctx.fillRect(x + 2, y + height - 4, (width - 4) * factory.productionProgress, 2);
-    }
-  }
-
-  // Grid Content (for garage grids)
-  static drawGridContent(ctx, state, context) {
-    const { content, isHovered } = context;
-    const { x, y, width, height } = state.bounds;
-    const config = UNIVERSAL_PANEL_CONFIG.GRID;
-
-    // Draw content text
-    if (content?.text && content.text.length > 0) {
-      ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
-      ctx.font = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.defaultFont;
-      ctx.textAlign = 'center';
-
-      const centerX = x + width / 2;
-      content.text.forEach((line, index) => {
-        const textY = y + GARAGE_UI_CONFIG.content.textOffsetY[index];
-        ctx.fillText(line, centerX, textY);
-      });
-    }
-
-    // Draw progress bar if needed
-    if (content?.progress !== undefined) {
-      const progressConfig = UNIVERSAL_PANEL_CONFIG.EFFECTS.progress;
-      const progressBarWidth = width - 10;
-      const progressX = x + 5;
-      const progressY = y + height - GARAGE_UI_CONFIG.content.progressBarOffset;
-
-      ctx.fillStyle = progressConfig.backgroundColor;
-      ctx.fillRect(progressX, progressY, progressBarWidth, progressConfig.height);
-
-      ctx.fillStyle = progressConfig.fillColor;
-      ctx.fillRect(progressX, progressY, progressBarWidth * content.progress, progressConfig.height);
-    }
-
-    // Simple content for garage boxes
-    if (context.canBuild && context.flakManager) {
+    // Only draw content if the box is buildable
+    if (canBuild) {
       const centerX = x + width / 2;
       const centerY = y + height / 2;
-      
-      if (context.flakManager.canBuild()) {
+      ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
+      ctx.textAlign = 'center';
+      // Determine what text/icon to show based on FlakManager state
+      if (flakManager?.canBuild()) {
         // Can build - show "+"
         ctx.font = '18px Arial';
-        ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
-        ctx.textAlign = 'center';
         ctx.fillText('+', centerX, centerY + 6);
       } else {
         // Max capacity - show message
         ctx.font = '10px Arial';
-        ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
-        ctx.textAlign = 'center';
         ctx.fillText('MAX', centerX, centerY - 4);
         ctx.fillText('CAP', centerX, centerY + 8);
       }
     }
   }
 
-  // Default Content
+  // Production Content
+  static drawProductionContent(ctx, state, context) {
+    const { factory } = context;
+    const { x, y, width, height } = state.bounds;
+
+    // Draw a progress bar if the factory is producing
+    if (factory?.isProducing) {
+      ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.EFFECTS.progress.fillColor;
+      // Position bar near the bottom of the box
+      ctx.fillRect(x + 2, y + height - 4, (width - 4) * factory.productionProgress, 2);
+    }
+  }
+
+  // Default Content (Placeholder for future types)
   static drawDefaultContent(ctx, state, context) {
-    // Placeholder for future content types
     const { x, y, width, height } = state.bounds;
     if (context.text) {
-      this.drawText(ctx, context.text, x + width/2, y + height/2, "12px Arial", "center");
+      this.drawText(ctx, context.text, x + width / 2, y + height / 2, "12px Arial", "center");
     }
   }
 
   // =============================================================================
-  // OVERLAY RENDERING
+  // OVERLAY RENDERING (e.g., Checkmarks, Glows)
   // =============================================================================
   static drawOverlays(ctx, state, renderType, context) {
+    // Example: Draw a checkmark overlay for max level upgrade buttons
     if (renderType === 'upgrade' && context.factory?.isMaxLevel() && context.iconManager) {
       this.drawMaxLevelOverlay(ctx, state, context.iconManager);
     }
+    // Add other overlays here if needed for different box types
   }
 
   static drawMaxLevelOverlay(ctx, state, iconManager) {
-    if (!iconManager?.isLoaded()) return;
+    if (!iconManager?.isLoaded()) return; // Guard clause
 
     const { x, y, width, height } = state.bounds;
+    // Get overlay settings (size, glow)
     const checkSettings = this.getCheckmarkSettings();
     const checkSize = state.isHovered ? checkSettings.baseSize * checkSettings.hoverScale : checkSettings.baseSize;
     const checkX = x + (width - checkSize) / 2;
     const checkY = y + (height - checkSize) / 2;
-    
+
+    // Apply hover glow effect
     if (state.isHovered) {
       ctx.shadowColor = checkSettings.glowColor;
       ctx.shadowBlur = checkSettings.glowBlur;
     }
-    
+
+    // Draw the checkmark icon
     iconManager.drawCheckMark(ctx, checkX, checkY, checkSize);
+    // Reset shadow to avoid affecting other drawings
     this.resetShadow(ctx);
   }
 
   // =============================================================================
-  // COMPLETE PANEL RENDERING - One method to rule them all
+  // COMPLETE PANEL RENDERING - High-level panel composition
   // =============================================================================
   static drawCompletePanel(ctx, x, y, width, height, options = {}) {
     const {
       backgroundConfig = UNIVERSAL_PANEL_CONFIG.LAYOUT,
       factory = null,
-      gridContent = null,
+      // gridContent = null, // Removed problematic reference
       isHovered = false,
       showFactoryInfo = false,
       panelType = 'default'
     } = options;
 
-    // Draw background
+    // 1. Draw the main panel background
     this.drawPanelBackground(ctx, x, y, width, height, backgroundConfig);
 
-    // Draw factory info if provided
+    // 2. Draw specific panel content (e.g., factory info)
     if (showFactoryInfo && factory) {
       this.drawFactoryInfo(ctx, x, y, factory);
     }
 
-    // Draw grid content if provided
-    if (gridContent) {
-      const state = { bounds: { x, y, width, height }, isHovered };
-      const context = { content: gridContent, ...options };
-      this.drawGridContent(ctx, state, context);
-    }
+    // 3. Future: Add hooks or parameters here for drawing grid content
+    // or other panel-specific elements if needed, but avoid direct calls
+    // to potentially removed/duplicated methods like drawGridContent.
+    // The current structure relies on the caller to draw universal boxes/components separately.
   }
 
   // =============================================================================
-  // HELPER METHODS
+  // HELPER METHODS - Centralized logic for colors, scales, etc.
   // =============================================================================
-  
+
   static getBackgroundColor(renderType, context) {
+    // Delegate to specific color helpers based on box type
     switch (renderType) {
       case 'garage':
         return this.getGarageColor(context.canBuild, context.flakManager);
@@ -318,23 +267,18 @@ export class UniversalPanelRenderer {
     }
   }
 
-static getGarageColor(canBuild, flakManager) {
-  // Default background for non-buildable boxes
-  if (!canBuild) {
-    return UNIVERSAL_PANEL_CONFIG.LAYOUT.backgroundGradient.start; // or .end, match your gradient preference
+  // Corrected Garage Color Helper (uses specific box colors, not panel gradient)
+  static getGarageColor(canBuild, flakManager) {
+    const colors = UNIVERSAL_PANEL_CONFIG.GRID.boxColors;
+    if (!canBuild) return colors.disabled; // Specific disabled color
+    if (flakManager?.isBuilding()) return colors.building; // Specific building color
+    if (!flakManager?.canBuild()) return colors.maxCapacity; // Specific max capacity color
+    return colors.available; // Specific available color
   }
-  
-  // Buildable box logic
-  if (flakManager?.canBuild()) {
-    return UNIVERSAL_PANEL_CONFIG.GRID.boxColors.available;
-  } else {
-    // Max capacity reached - dark red
-    return '#4a1717';
-  }
-}
+
   static getUpgradeColor(factory, isHovered) {
     const { STYLING } = UPGRADE_BUTTON_CONFIG;
-    
+    // Determine color based on factory state
     if (factory.upgrading) return STYLING.upgradingBackgroundColor;
     if (factory.isMaxLevel()) return STYLING.maxLevelBackgroundColor;
     if (isHovered) return STYLING.hoverBackgroundColor;
@@ -342,41 +286,49 @@ static getGarageColor(canBuild, flakManager) {
   }
 
   static getProductionColor(factory, isHovered) {
-    if (factory?.isProducing) return '#2a4a2a';
-    if (isHovered) return '#3a3a4a';
-    return '#2a2a3a';
+     // Determine color based on factory state and hover
+    if (factory?.isProducing) return '#2a4a2a'; // Dark greenish for producing
+    if (isHovered) return '#3a3a4a'; // Dark grayish for hover
+    return '#2a2a3a'; // Dark base color
   }
 
   static shouldShowHover(renderType, context) {
+    // Define specific conditions for showing hover effects
     switch (renderType) {
       case 'garage':
+        // Only show hover if it's buildable and the manager allows building
         return context.canBuild && context.flakManager?.canBuild();
       case 'upgrade':
+        // Don't show hover on upgrading or max level buttons
         return !context.factory?.upgrading && !context.factory?.isMaxLevel();
       default:
+        // Show hover by default for other types
         return true;
     }
   }
 
   static getScaleFactor(factory, isHovered, baseScale) {
     const { STYLING } = UPGRADE_BUTTON_CONFIG;
+    // Calculate scale factor, applying hover effect
     const scale = baseScale || STYLING.baseScaleFactor;
     return isHovered ? scale * STYLING.hoverScaleFactor : scale;
   }
 
   static calculateSpriteDimensions(sprite, factoryType, scaleFactor) {
     let origWidth, origHeight;
+    // Try to get dimensions from FactoryConfig first
     const cfg = FactoryConfig?.[factoryType];
-    
+
     if (cfg?.width && cfg?.height) {
       origWidth = cfg.width;
       origHeight = cfg.height;
     } else {
+      // Fallback to sprite's frame size
       const frameSize = sprite.getFrameSize();
       origWidth = frameSize.width;
       origHeight = frameSize.height;
     }
-
+    // Apply the calculated scale factor
     return {
       width: origWidth * scaleFactor,
       height: origHeight * scaleFactor
@@ -385,6 +337,7 @@ static getGarageColor(canBuild, flakManager) {
 
   static getCheckmarkSettings() {
     const { EFFECTS, DIMENSIONS } = UPGRADE_BUTTON_CONFIG;
+    // Centralize settings for the max level checkmark overlay
     return {
       glowColor: EFFECTS.checkmarkGlowColor,
       glowBlur: EFFECTS.checkmarkGlowBlur,
@@ -394,10 +347,10 @@ static getGarageColor(canBuild, flakManager) {
   }
 
   // =============================================================================
-  // TEXT RENDERING - Uses PanelBase for consistency
+  // TEXT RENDERING - Uses PanelBase for consistency across the app
   // =============================================================================
   static drawText(ctx, text, x, y, font, align = "left", fillStyle = "#ffffff") {
-    // Use PanelBase for consistent text rendering across the application
+    // Delegate text drawing to PanelBase to ensure consistent styling
     const panelBase = new PanelBase();
     panelBase.drawText(ctx, text, x, y, font, align, fillStyle);
   }
@@ -409,32 +362,32 @@ static getGarageColor(canBuild, flakManager) {
     if (!config.enabled) return;
 
     ctx.save();
-    
+
     // Hover area (red border)
     ctx.strokeStyle = config.colors.hoverArea;
     ctx.lineWidth = 2;
     ctx.setLineDash(config.lineStyles.hoverArea);
     ctx.strokeRect(hoverPos.x, hoverPos.y, hoverPos.width, hoverPos.height);
-    
+
     // Panel area (blue border)
     ctx.strokeStyle = config.colors.panelArea;
     ctx.lineWidth = 3;
     ctx.setLineDash(config.lineStyles.panelArea);
     ctx.strokeRect(panelPos.x, panelPos.y, panelPos.width, panelPos.height);
-    
+
     // Target area (green border)
     ctx.strokeStyle = config.colors.targetArea;
     ctx.lineWidth = 2;
     ctx.setLineDash(config.lineStyles.targetArea);
     ctx.strokeRect(targetPos.x, targetPos.y, targetPos.width, targetPos.height);
-    
-    // Labels
+
+    // Labels for debug areas
     ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
     ctx.font = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.titleFont;
     ctx.fillText('HOVER', hoverPos.x + 5, hoverPos.y + 15);
     ctx.fillText('PANEL', panelPos.x + 5, panelPos.y + 15);
     ctx.fillText('TARGET', targetPos.x + 5, targetPos.y + 15);
-    
+
     ctx.restore();
   }
 
@@ -442,15 +395,9 @@ static getGarageColor(canBuild, flakManager) {
   // UTILITY METHODS
   // =============================================================================
   static resetShadow(ctx) {
+    // Utility to cleanly reset canvas shadow properties
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
-  }
-
-  // Legacy compatibility methods
-  static drawGridBox(ctx, x, y, width, height, content, isHovered, config) {
-    const state = { bounds: { x, y, width, height }, isHovered };
-    const context = { content, isHovered };
-    this.drawGridContent(ctx, state, context);
   }
 }
 
@@ -458,7 +405,7 @@ static getGarageColor(canBuild, flakManager) {
 // CONVENIENCE EXPORTS FOR BACKWARD COMPATIBILITY
 // =============================================================================
 
-// Export specific renderer functions for components that expect them
+// Export bound methods for components that might still expect them directly
 export const PanelRenderer = {
   drawBackground: UniversalPanelRenderer.drawPanelBackground.bind(UniversalPanelRenderer),
   drawFactoryInfo: UniversalPanelRenderer.drawFactoryInfo.bind(UniversalPanelRenderer),
