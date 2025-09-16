@@ -10,10 +10,10 @@ export const PRODUCTION_BUTTONS_CONFIG = {
   ],
   
   styling: {
-    backgroundColor: 'rgba(115, 145, 167, 0.7)',
-    hoverBackgroundColor: 'rgba(180, 210, 235, 0.9)',
-    disabledBackgroundColor: 'rgba(169, 169, 169, 0.5)',
-    producingBackgroundColor: 'rgba(255, 165, 0, 0.8)',
+    backgroundColor: 'rgba(146, 168, 185, 0.5)',
+    hoverBackgroundColor: 'rgba(146, 168, 185, 0.5)',
+    disabledBackgroundColor: 'rgba(146, 168, 185, 0.5)',
+    producingBackgroundColor: 'rgba(146, 168, 185, 0.5)',
     
     textColor: 'white',
     disabledTextColor: '#888888',

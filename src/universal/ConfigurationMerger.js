@@ -1,7 +1,6 @@
 import { UNIVERSAL_PANEL_CONFIG } from "../config/UniversalPanelConfig.js";
 import { FactoryConfig } from "../config/FactoryConfig.js";
 import { GARAGE_UI_CONFIG } from "../config/GarageUIConfig.js";
-import { UPGRADE_BUTTON_CONFIG } from "../config/UpgradeButtonConfig.js";
 import { PRODUCTION_BUTTONS_CONFIG } from "../config/ProductionButtonConfig.js";
 
 export class ConfigurationMerger {
@@ -25,29 +24,26 @@ export class ConfigurationMerger {
     const factoryConfig = FactoryConfig[factoryType];
     if (!factoryConfig) {
       console.warn(`No config found for factory type: ${factoryType}`);
-      return UNIVERSAL_PANEL_CONFIG.LAYOUT;
+      return UNIVERSAL_PANEL_CONFIG.PANEL_BACKGROUND;
     }
     
-    return this.merge(UNIVERSAL_PANEL_CONFIG.LAYOUT, factoryConfig.panelConfig);
+    return this.merge(UNIVERSAL_PANEL_CONFIG.PANEL_BACKGROUND, factoryConfig.panelConfig);
   }
 
 static getGarageUIConfig(customConfig = {}) {
   return this.merge(
-    { grid: UNIVERSAL_PANEL_CONFIG.GRID, ...UNIVERSAL_PANEL_CONFIG.LAYOUT, ...GARAGE_UI_CONFIG }, 
-    customConfig
-  );
-}
-
-static getUpgradeButtonConfig(customConfig = {}) {
-  return this.merge(
-    { grid: UNIVERSAL_PANEL_CONFIG.GRID, ...UNIVERSAL_PANEL_CONFIG.LAYOUT, ...UPGRADE_BUTTON_CONFIG }, 
+    {
+      ...UNIVERSAL_PANEL_CONFIG.PANEL_BACKGROUND,
+      grid: this.merge(UNIVERSAL_PANEL_CONFIG.grid, GARAGE_UI_CONFIG.grid),
+      panel: GARAGE_UI_CONFIG.panel
+    },
     customConfig
   );
 }
 
 static getProductionButtonsConfig(customConfig = {}) {
   return this.merge(
-    { grid: UNIVERSAL_PANEL_CONFIG.GRID, ...UNIVERSAL_PANEL_CONFIG.LAYOUT, ...PRODUCTION_BUTTONS_CONFIG }, 
+    { grid: UNIVERSAL_PANEL_CONFIG.grid, ...UNIVERSAL_PANEL_CONFIG.PANEL_BACKGROUND, ...PRODUCTION_BUTTONS_CONFIG }, 
     customConfig
   );
 }

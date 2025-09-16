@@ -1,7 +1,11 @@
 import { UniversalPositionCalculator } from "./UniversalPositionCalculator.js";
 import { UniversalBoxState } from "./UniversalBoxState.js";
+import { UniversalBoxController } from "./UniversalBoxController.js";
 import { UniversalPanelRenderer } from "../../universal/UniversalPanelRenderer.js";
 
+/**
+ * Universal box component for UI grids.
+ */
 export class UniversalBox {
   constructor(parentUI, row, col, index, config = {}) {
     this.parentUI = parentUI;
@@ -9,14 +13,16 @@ export class UniversalBox {
     this.col = col;
     this.index = index;
     this.config = config;
-    this.canBuild = config.buildableBoxIndex !== undefined ? 
-                   (index === config.buildableBoxIndex) : false;
-    // Use UniversalBoxState for bounds and hover state
+    this.canBuild = config.buildableBoxIndex !== undefined ? (index === config.buildableBoxIndex) : false;
+    
     this.state = new UniversalBoxState({
       boxWidth: config.boxWidth,
-      boxHeight: config.boxHeight
+      boxHeight: config.boxHeight,
+      DIMENSIONS: { width: config.boxWidth, height: config.boxHeight }
     });
-    this.worldBounds = null; // Still needed for world click detection
+    
+    this.controller = new UniversalBoxController(config);
+    this._currentOffsets = { offsetX: 0, offsetY: 0 };
   }
 
   calculatePosition(panelX, panelY) {
@@ -27,60 +33,59 @@ export class UniversalBox {
 
   draw(ctx, panelX, panelY) {
     const pos = this.calculatePosition(panelX, panelY);
-    const { boxWidth, boxHeight } = this.parentUI.gridConfig;
-    
-    // Set bounds using UniversalBoxState
     this.state.setBounds(pos.x, pos.y);
-    
-    // Store world coordinates for click detection (as before)
-    this.worldBounds = {
-      x: pos.x + (this.parentUI.currentOffsetX || 0),
-      y: pos.y + (this.parentUI.currentOffsetY || 0),
-      width: boxWidth,
-      height: boxHeight
+    this._currentOffsets = {
+      offsetX: this.parentUI.currentOffsetX || 0,
+      offsetY: this.parentUI.currentOffsetY || 0
     };
 
-    // Prepare context for UniversalPanelRenderer
     const context = {
       canBuild: this.canBuild,
-      flakManager: this.parentUI.flakManager
-      // Add other context if needed by renderer helpers
+      flakManager: this.parentUI.flakManager,
+      showBorder: false,
+      boxIndex: this.index,
+      gridConfig: this.parentUI.gridConfig
     };
-
-    // Delegate ALL rendering to UniversalPanelRenderer
+    
     UniversalPanelRenderer.drawUniversalBox(ctx, this.state, 'garage', context);
   }
 
   updateHoverState(mouseX, mouseY) {
-    // Use UniversalBoxState for hover updates
-    if (!this.canBuild || !this.worldBounds) {
-      // Ensure state reflects this
-      this.state.isHovered = false;
-      return;
-    }
-    // Update state's hover based on world coordinates
     const wasHovered = this.state.isHovered;
-    this.state.isHovered = this.isPointInBounds(mouseX, mouseY);
+    this.state.isHovered = this.canBuild && this.state.bounds && this._isPointInWorldBounds(mouseX, mouseY);
     return wasHovered !== this.state.isHovered;
   }
 
   handleClick(mouseX, mouseY) {
-    // Logic can remain largely the same, but use state for consistency if needed
-    if (!this.canBuild || !this.worldBounds || !this.parentUI.flakManager?.canBuild()) {
+    if (!this.canBuild || !this.state.bounds || !this._isPointInWorldBounds(mouseX, mouseY)) {
       return false;
     }
-    if (this.isPointInBounds(mouseX, mouseY)) {
-      return this.parentUI.flakManager.startBuilding();
-    }
-    return false;
+    const flakManager = this.parentUI.flakManager;
+    return flakManager?.canBuild() ? flakManager.startBuilding() : false;
+  }
+
+  get isHovered() { return this.state.isHovered; }
+  set isHovered(value) { this.state.isHovered = value; }
+
+  get worldBounds() {
+    if (!this.state.bounds) return null;
+    return {
+      x: this.state.bounds.x + this._currentOffsets.offsetX,
+      y: this.state.bounds.y + this._currentOffsets.offsetY,
+      width: this.state.bounds.width,
+      height: this.state.bounds.height
+    };
   }
 
   isPointInBounds(mouseX, mouseY) {
-    // This still needs to check world bounds for mouse interaction
-    if (!this.worldBounds) return false;
-    return mouseX >= this.worldBounds.x && 
-           mouseX <= this.worldBounds.x + this.worldBounds.width &&
-           mouseY >= this.worldBounds.y && 
-           mouseY <= this.worldBounds.y + this.worldBounds.height;
+    return this._isPointInWorldBounds(mouseX, mouseY);
+  }
+
+  _isPointInWorldBounds(mouseX, mouseY) {
+    if (!this.state.bounds) return false;
+    const worldX = this.state.bounds.x + this._currentOffsets.offsetX;
+    const worldY = this.state.bounds.y + this._currentOffsets.offsetY;
+    return mouseX >= worldX && mouseX <= worldX + this.state.bounds.width &&
+           mouseY >= worldY && mouseY <= worldY + this.state.bounds.height;
   }
 }

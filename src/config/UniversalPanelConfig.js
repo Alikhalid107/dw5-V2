@@ -1,30 +1,31 @@
 export const UNIVERSAL_PANEL_CONFIG = {
   // Default panel dimensions and positioning
-  LAYOUT: {
-    
-    // Panel background styling
-    backgroundGradient: {
-      start: 'rgba(21, 59, 70, 0.90)',
-      end: 'rgba(21, 59, 70, 0.90)'
-    },
-    
+ PANEL_BACKGROUND:{
+      color: 'rgba(6, 50, 77, 0.75)',
   },
 
   // Grid-based panel configuration (for garage UI, upgrade grids, etc.)
-  GRID: {
-    defaultRows: 8,
-    defaultCols: 4,
-    defaultBoxWidth: 60,
-    defaultBoxHeight: 40,
-    defaultSpacing: 2,
-    defaultPadding: 70,
-    
+  grid: {
+    boxWidth: 60,
+    boxHeight: 40,
+    spacing: 2,
+
+    alignment: {
+      horizontal: 'left',     // 'left', 'center', 'right'
+      vertical: 'top',        // 'top', 'center', 'bottom'
+      paddingLeft: 2,        // Custom left padding
+      paddingTop: 70,         // Custom top padding  
+      paddingRight: 0,        // Custom right padding
+      paddingBottom: 0,        // Custom bottom padding
+    },
+  
+  
     // Box styling
     boxColors: {
-      available: 'rgba(115, 145, 167, 0.7)',
+      available: 'rgba(146, 168, 185, 0.5)',
       building: 'rgba(255, 165, 0, 0.8)',
       completed: 'rgba(34, 139, 34, 0.8)',
-      disabled: 'rgba(115, 145, 167, 0.6)',
+      disabled: 'rgba(146, 168, 185, 0.5)',
       maxCapacity: 'rgba(34, 139, 34, 0.8)'
     },
     
@@ -34,7 +35,7 @@ export const UNIVERSAL_PANEL_CONFIG = {
   // Component spacing and sizing (for factory panels, button layouts, etc.)
   COMPONENTS: {
     spacing: {
-      panelPadding: 2,
+      panelPadding: 12,
       componentSpacing: 2,
       buttonSpacing: 2,
       componentPadding: 2
@@ -139,8 +140,8 @@ export const UNIVERSAL_PANEL_CONFIG = {
       textColor: 'white',
       textAlign: 'center',
       backgroundGradient: {
-        start: 'rgba(87, 138, 173, 0.7)',
-        end: 'rgba(87, 138, 173, 0.7)'
+        start: 'rgba(87, 139, 173, 0.5)',
+        end: 'rgba(87, 138, 173, 0.5)'
       }
     }
   },

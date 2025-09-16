@@ -1,4 +1,5 @@
-import { UniversalBox } from "./UniversalBox";
+import { UniversalBox } from "./UniversalBox.js";
+
 export class UniversalBoxsesFactory {
   static createBoxes(parentUI, gridConfig) {
     const boxes = [];
