@@ -23,8 +23,8 @@ export class UniversalPositionCalculator {
 
   static calculateBoxPosition(panelX, panelY, row, col, gridConfig) {
     const {
-      boxWidth = 50, boxHeight = 50, spacing = 5,
-      alignment = { horizontal: 'left', vertical: 'top', paddingLeft: 70, paddingTop: 70 }
+      boxWidth = 60, boxHeight = 40, spacing = 2,
+      alignment = { horizontal: 'left', vertical: 'top', paddingLeft: 0, paddingTop: 0 }
     } = gridConfig;
 
     const x = panelX + (alignment.paddingLeft || 0) + col * ((boxWidth || 0) + (spacing || 0)); // Added defaults

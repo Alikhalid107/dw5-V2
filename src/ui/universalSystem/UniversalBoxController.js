@@ -4,16 +4,28 @@ export class UniversalBoxController {
   }
 
   handleClick(mouseX, mouseY, state, context, actionType = 'default') {
-    if (!state.isPointInside(mouseX, mouseY)) return false;
+    // DON'T use state.isPointInside(mouseX, mouseY) here — UniversalBox already validated world bounds.
+    if (!state || !state.bounds) return false;
 
     switch (actionType) {
-      case 'upgrade': return !context.factory.upgrading && !context.factory.isMaxLevel();
-      case 'build': return context.flakManager.canBuild() ? context.flakManager.startBuilding() : false;
-      default: return true;
+      case 'upgrade':
+        return !context.factory?.upgrading && !context.factory?.isMaxLevel();
+
+      case 'build':
+        if (context.boxIndex === 0) {
+          return context.flakManager?.canBuild()
+            ? context.flakManager.startBuilding()
+            : false;
+        }
+        return false; // other boxes: later handling
+
+      default:
+        return true;
     }
   }
 
   updateHoverState(mouseX, mouseY, state) {
+    // If you want controller to handle hover, use world-aware test (see note below).
     return state.updateHoverState(mouseX, mouseY);
   }
 }

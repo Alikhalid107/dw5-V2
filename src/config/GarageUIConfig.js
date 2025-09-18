@@ -14,7 +14,7 @@ export const GARAGE_UI_CONFIG = {
     panelHoverEnabled: true,
     
     // Content configuration
-    buildableBoxIndex: 0, // Only first box is buildable
+    buildableBoxIndex: true, // Only first box is buildable
     showProgressBar: true,
     showBuildingText: true,
     showMaxCapacityText: true

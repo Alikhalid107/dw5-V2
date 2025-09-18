@@ -1,7 +1,7 @@
 export class UniversalBoxState {
   constructor(config) {
-    this.width = config.DIMENSIONS?.width || config.boxWidth || config.width || 50;
-    this.height = config.DIMENSIONS?.height || config.boxHeight || config.height || 50;
+    this.width =  config.boxWidth ;
+    this.height =  config.boxHeight  ;
     this.bounds = null;
     this.isHovered = false;
     this.config = config;

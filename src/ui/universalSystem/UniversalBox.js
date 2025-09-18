@@ -13,7 +13,8 @@ export class UniversalBox {
     this.col = col;
     this.index = index;
     this.config = config;
-    this.canBuild = config.buildableBoxIndex !== undefined ? (index === config.buildableBoxIndex) : false;
+    this.canBuild = config.buildableBoxIndex !== undefined ? true : false;
+
     
     this.state = new UniversalBoxState({
       boxWidth: config.boxWidth,
@@ -56,13 +57,18 @@ export class UniversalBox {
     return wasHovered !== this.state.isHovered;
   }
 
-  handleClick(mouseX, mouseY) {
-    if (!this.canBuild || !this.state.bounds || !this._isPointInWorldBounds(mouseX, mouseY)) {
-      return false;
-    }
-    const flakManager = this.parentUI.flakManager;
-    return flakManager?.canBuild() ? flakManager.startBuilding() : false;
+handleClick(mouseX, mouseY) {
+  if (!this.canBuild || !this.state.bounds || !this._isPointInWorldBounds(mouseX, mouseY)) {
+    return false;
   }
+
+  return this.controller.handleClick(mouseX, mouseY, this.state, {
+    flakManager: this.parentUI.flakManager,
+    boxIndex: this.index,
+    gridConfig: this.parentUI.gridConfig
+  }, 'build');
+}
+
 
   get isHovered() { return this.state.isHovered; }
   set isHovered(value) { this.state.isHovered = value; }

@@ -5,15 +5,15 @@ import { FactoryConfig } from "../config/FactoryConfig.js";
 import { PanelBase } from "../ui/ProductionMenu/PanelBase.js";
 
 export class UniversalPanelRenderer {
+
   static drawPanelBackground(ctx, x, y, width, height, config = UNIVERSAL_PANEL_CONFIG.PANEL_BACKGROUND) {
   if (!isFinite(x) || !isFinite(y)) return;
 
-  const finalWidth = width + (config.expandedPanelWidthOffset || 0);
+  ;
 
   ctx.fillStyle = config.color; // just use solid color
-  ctx.fillRect(x, y, finalWidth, height);
-}
-
+  ctx.fillRect(x, y, width, height);
+  }
 
   static drawFactoryInfo(ctx, x, y, factory, config = UNIVERSAL_PANEL_CONFIG) {
     if (!factory) return;
@@ -62,23 +62,36 @@ export class UniversalPanelRenderer {
   }
 
   static drawBoxBackground(ctx, state, renderType, context) {
-    const { x, y, width, height } = state.bounds;
-    const bgColor = this.getBackgroundColor(renderType, context);
+  const { x, y, width, height } = state.bounds;
+  const bgColor = this.getBackgroundColor(renderType, context);
 
-    ctx.fillStyle = bgColor;
-    ctx.fillRect(x, y, width, height);
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(x, y, width, height);
 
-    if (state.isHovered && this.shouldShowHover(renderType, context)) {
-      ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.grid.hoverEffect;
-      ctx.fillRect(x, y, width, height);
-    }
+  // Decide hover overlay visibility:
+  const isHovered = !!state.isHovered;
+  let hoverAllowed = false;
 
-    if (context.showBorder) {
-      ctx.strokeStyle = context.borderColor || UNIVERSAL_PANEL_CONFIG.grid.borderColor;
-      ctx.lineWidth = context.borderWidth || 1;
-      ctx.strokeRect(x, y, width, height);
-    }
+  // For garage, allow hover overlay purely based on hover (so flak max doesn't disable it).
+  if (renderType === 'garage') {
+    hoverAllowed = isHovered;
+  } else {
+    // For other render types, keep previous rules
+    hoverAllowed = isHovered && this.shouldShowHover(renderType, context);
   }
+
+  if (hoverAllowed) {
+    ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.grid.hoverEffect;
+    ctx.fillRect(x, y, width, height);
+  }
+
+  if (context.showBorder) {
+    ctx.strokeStyle = context.borderColor || UNIVERSAL_PANEL_CONFIG.grid.borderColor;
+    ctx.lineWidth = context.borderWidth || 1;
+    ctx.strokeRect(x, y, width, height);
+  }
+}
+
 
   static drawUpgradeContent(ctx, state, context) {
     const { factory, spriteManager } = context;
@@ -96,26 +109,30 @@ export class UniversalPanelRenderer {
     sprite.drawFrame(ctx, 0, spriteX, spriteY, dimensions.width, dimensions.height);
   }
 
-  static drawGarageContent(ctx, state, context) {
-    const { canBuild, flakManager } = context;
-    if (!canBuild) return;
+ static drawGarageContent(ctx, state, context) {
+  const { canBuild, flakManager, boxIndex } = context;
+  if (!canBuild) return;
 
-    const { x, y, width, height } = state.bounds;
-    const centerX = x + width / 2;
-    const centerY = y + height / 2;
-    
-    ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
-    ctx.textAlign = 'center';
-    
-    if (flakManager?.canBuild()) {
-      ctx.font = '18px Arial';
-      ctx.fillText('+', centerX, centerY + 6);
-    } else {
-      ctx.font = '10px Arial';
-      ctx.fillText('MAX', centerX, centerY - 4);
-      ctx.fillText('CAP', centerX, centerY + 8);
-    }
+  // Only show flak-specific UI for the flak slot (index 0)
+  if (boxIndex !== 0) return;
+
+  const { x, y, width, height } = state.bounds;
+  const centerX = x + width / 2;
+  const centerY = y + height / 2;
+
+  ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
+  ctx.textAlign = 'center';
+
+  if (flakManager?.canBuild()) {
+    ctx.font = '18px Arial';
+    ctx.fillText('+', centerX, centerY + 6);
+  } else {
+    ctx.font = '10px Arial';
+    ctx.fillText('MAX', centerX, centerY - 4);
+    ctx.fillText('CAP', centerX, centerY + 8);
   }
+  }
+
 
   static drawProductionContent(ctx, state, context) {
     const { factory } = context;
@@ -126,11 +143,7 @@ export class UniversalPanelRenderer {
     ctx.fillRect(x + 2, y + height - 4, (width - 4) * factory.productionProgress, 2);
   }
 
-  static drawDefaultContent(ctx, state, context) {
-    if (!context.text) return;
-    const { x, y, width, height } = state.bounds;
-    this.drawText(ctx, context.text, x + width / 2, y + height / 2, "12px Arial", "center");
-  }
+ 
 
   static drawOverlays(ctx, state, renderType, context) {
     if (renderType === 'upgrade' && context.factory?.isMaxLevel() && context.iconManager) {
@@ -171,20 +184,30 @@ export class UniversalPanelRenderer {
 
   static getBackgroundColor(renderType, context) {
     switch (renderType) {
-      case 'garage': return this.getGarageColor(context.canBuild, context.flakManager);
-      case 'upgrade': return this.getUpgradeColor(context.factory, context.isHovered);
-      case 'production': return this.getProductionColor(context.factory, context.isHovered);
       default: return UNIVERSAL_PANEL_CONFIG.grid.boxColors.available;
     }
   }
 
-  static getGarageColor(canBuild, flakManager) {
-    const colors = UNIVERSAL_PANEL_CONFIG.grid.boxColors;
-    if (!canBuild) return colors.disabled;
-    if (flakManager?.isBuilding()) return colors.building;
-    if (!flakManager?.canBuild()) return colors.maxCapacity;
-    return colors.available;
+ static getGarageColor(canBuild, flakManager, boxIndex = 0, gridConfig = {}) {
+  const colors = UNIVERSAL_PANEL_CONFIG.grid.boxColors;
+
+  // Decide the canonical flak slot index.
+  // If you store flak slot in config (recommended), use that; otherwise default to 0.
+  const flakSlotIndex = (gridConfig.panel && gridConfig.panel.flakIndex !== undefined)
+    ? gridConfig.panel.flakIndex
+    : 0;
+
+  // Non-flak slots: color based on "canBuild" only (independent of flakManager).
+  if (boxIndex !== flakSlotIndex) {
+    return canBuild ? colors.available : colors.disabled;
   }
+
+  // Flak slot: use flak manager state to set color.
+  if (!canBuild) return colors.disabled;
+  if (flakManager?.isBuilding()) return colors.building;
+  if (!flakManager?.canBuild()) return colors.maxCapacity;
+  return colors.available;
+}
 
   static getUpgradeColor(factory, isHovered) {
     const { STYLING } = UPGRADE_BUTTON_CONFIG;
