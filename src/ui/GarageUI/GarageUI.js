@@ -46,25 +46,40 @@ export class GarageUI {
     };
   }
 
-  drawUI(ctx, offsetX, offsetY) {
-    if (!this.showGrid) return;
+ drawUI(ctx, offsetX, offsetY) {
+  if (!this.showGrid) return;
 
-    this.currentOffsetX = offsetX;
-    this.currentOffsetY = offsetY;
+  this.currentOffsetX = offsetX;
+  this.currentOffsetY = offsetY;
 
-    const pos = this.calculatePanelPosition();
-    const x = pos.x - offsetX;
-    const y = pos.y - offsetY;
+  const pos = this.calculatePanelPosition();
+  const x = pos.x - offsetX;
+  const y = pos.y - offsetY;
 
-    this.panelBounds = { x: pos.x, y: pos.y, width: this.panelWidth, height: this.panelHeight };
-    
-    UniversalPanelRenderer.drawPanelBackground(
-      ctx, x, y, this.panelWidth, this.panelHeight, 
-      UNIVERSAL_PANEL_CONFIG.LAYOUT
-    );
-    
-    this.boxes.forEach(box => box.draw(ctx, x, y));
-  }
+  this.panelBounds = { x: pos.x, y: pos.y, width: this.panelWidth, height: this.panelHeight };
+
+  // draw background
+  UniversalPanelRenderer.drawPanelBackground(
+    ctx, x, y, this.panelWidth, this.panelHeight,
+    UNIVERSAL_PANEL_CONFIG.LAYOUT
+  );
+
+  // ---- NEW: determine hovered box and header text ----
+  const hoveredBox = this.boxes.find(box => box.state && box.state.isHovered);
+  const headerText = hoveredBox
+    ? (hoveredBox.description || `This is box ${this.boxes.indexOf(hoveredBox) + 1}`)
+    : (this.defaultHeaderText || "Hover a box for details");
+
+  UniversalPanelRenderer.drawPanelHeader(ctx, x, y, this.panelWidth, headerText, {
+    padding: 10,
+    offsetY: 20
+  });
+  // ---- end new --------------------------------------
+
+  // draw boxes (they will draw letters/sprites themselves)
+  this.boxes.forEach(box => box.draw(ctx, x, y));
+}
+
 
   handleMouseMove(mouseX, mouseY) {
     const hoverArea = {
