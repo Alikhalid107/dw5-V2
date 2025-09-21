@@ -6,6 +6,7 @@ import { PanelBase } from "../ui/ProductionMenu/PanelBase.js";
 
 export class UniversalPanelRenderer {
 
+  // universal
   static drawPanelBackground(ctx, x, y, width, height, config = UNIVERSAL_PANEL_CONFIG.PANEL_BACKGROUND) {
   if (!isFinite(x) || !isFinite(y)) return;
   if (!isFinite(width) || !isFinite(height)) return;
@@ -15,37 +16,7 @@ export class UniversalPanelRenderer {
   ctx.fillRect(x, y, width, height);
   }
 
-
-  static drawFactoryInfo(ctx, x, y, factory, config = UNIVERSAL_PANEL_CONFIG) {
-    if (!factory) return;
-
-    const { positioning, text } = config.COMPONENTS;
-
-    this.drawText(
-      ctx,
-      factory.name.replace(" Factory", ""),
-      x + positioning.factoryInfoOffsetX,
-      y + positioning.factoryInfoOffsetY1,
-      text.factoryNameFont
-    );
-
-    const statusText = factory.upgrading
-      ? `Upgrading... ${factory.getRemainingUpgradeTime()}s`
-      : factory.isMaxLevel()
-        ? `Level ${factory.level} (MAX)`
-        : `Level ${factory.level} → ${factory.level + 1}`;
-
-    this.drawText(
-      ctx,
-      statusText,
-      x + positioning.factoryInfoOffsetX,
-      y + positioning.factoryInfoOffsetY2,
-      text.factoryStatusFont,
-      "left",
-      text.colors.factoryStatus
-    );
-  }
-
+  // universal
   static drawUniversalBox(ctx, state, renderType, context) {
     const { bounds } = state;
     if (!bounds) return;
@@ -55,12 +26,12 @@ export class UniversalPanelRenderer {
     switch (renderType) {
       case 'upgrade': this.drawUpgradeContent(ctx, state, context); break;
       case 'garage': this.drawGarageContent(ctx, state, context); break;
-      // case 'production': this.drawProductionContent(ctx, state, context); break;
     }
     
     // this.drawOverlays(ctx, state, renderType, context);
   }
 
+  // universal + box bg
   static drawBoxBackground(ctx, state, renderType, context) {
   const { x, y, width, height } = state.bounds;
   const bgColor = UNIVERSAL_PANEL_CONFIG.grid.boxColors.available;
@@ -91,9 +62,11 @@ export class UniversalPanelRenderer {
     ctx.lineWidth = context.borderWidth || 1;
     ctx.strokeRect(x, y, width, height);
   }
-}
+  }
 
 
+
+  // box
   static drawUpgradeContent(ctx, state, context) {
     const { factory, spriteManager } = context;
     if (!spriteManager) return;
@@ -110,6 +83,7 @@ export class UniversalPanelRenderer {
     sprite.drawFrame(ctx, 0, spriteX, spriteY, dimensions.width, dimensions.height);
   }
 
+  // box
  static drawGarageContent(ctx, state, context) {
   const { canBuild, flakManager, boxIndex } = context;
   if (!canBuild) return;
@@ -134,24 +108,7 @@ export class UniversalPanelRenderer {
   }
   }
 
-
-  // static drawProductionContent(ctx, state, context) {
-  //   const { factory } = context;
-  //   if (!factory?.isProducing) return;
-
-  //   const { x, y, width, height } = state.bounds;
-  //   ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.EFFECTS.progress.fillColor;
-  //   ctx.fillRect(x + 2, y + height - 4, (width - 4) * factory.productionProgress, 2);
-  // }
-
- 
-
-  // static drawOverlays(ctx, state, renderType, context) {
-  //   if (renderType === 'upgrade' && context.factory?.isMaxLevel() && context.iconManager) {
-  //     this.drawMaxLevelOverlay(ctx, state, context.iconManager);
-  //   }
-  // }
-
+  // can be used to put tick mark for factories
   // static drawMaxLevelOverlay(ctx, state, iconManager) {
   //   if (!iconManager?.isLoaded()) return;
 
@@ -170,20 +127,8 @@ export class UniversalPanelRenderer {
   //   this.resetShadow(ctx);
   // }
 
-  static drawCompletePanel(ctx, x, y, width, height, options = {}) {
-    const {
-      backgroundConfig = UNIVERSAL_PANEL_CONFIG.LAYOUT,
-      factory = null,
-      showFactoryInfo = false
-    } = options;
-
-    this.drawPanelBackground(ctx, x, y, width, height, backgroundConfig);
-    if (showFactoryInfo && factory) {
-      this.drawFactoryInfo(ctx, x, y, factory);
-    }
-  }
-
   // inside UniversalPanelRenderer class
+
 
 static drawPanelHeader(ctx, panelX, panelY, panelWidth, text, options = {}) {
   // options: { padding = 8, font, align, fillStyle }
@@ -197,15 +142,9 @@ static drawPanelHeader(ctx, panelX, panelY, panelWidth, text, options = {}) {
   const headerY = panelY + (options.offsetY ?? 18); // tweak for vertical placement
 
   this.drawText(ctx, text, headerX, headerY, font, align, fillStyle);
-}
+  }
 
-
-  // static getBackgroundColor(renderType, context) {
-  //   switch (renderType) {
-  //     default: return UNIVERSAL_PANEL_CONFIG.grid.boxColors.available;
-  //   }
-  // }
-
+    // can be used to put tick mark for flak and lr
 //  static getGarageColor(canBuild, flakManager, boxIndex = 0, gridConfig = {}) {
 //   const colors = UNIVERSAL_PANEL_CONFIG.grid.boxColors;
 
@@ -272,6 +211,7 @@ static drawPanelHeader(ctx, panelX, panelY, panelWidth, text, options = {}) {
     };
   }
 
+  // can also be some kind of helper
   // static getCheckmarkSettings() {
   //   const { EFFECTS } = UPGRADE_BUTTON_CONFIG;
   //   return {
@@ -284,34 +224,34 @@ static drawPanelHeader(ctx, panelX, panelY, panelWidth, text, options = {}) {
     panelBase.drawText(ctx, text, x, y, font, align, fillStyle);
   }
 
-  // static drawDebugBorders(ctx, panelPos, hoverPos, targetPos, config = UNIVERSAL_PANEL_CONFIG.DEBUG) {
-  //   if (!config.enabled) return;
+  static drawDebugBorders(ctx, panelPos, hoverPos, targetPos, config = UNIVERSAL_PANEL_CONFIG.DEBUG) {
+    if (!config.enabled) return;
 
-  //   ctx.save();
+    ctx.save();
 
-  //   ctx.strokeStyle = config.colors.hoverArea;
-  //   ctx.lineWidth = 2;
-  //   ctx.setLineDash(config.lineStyles.hoverArea);
-  //   ctx.strokeRect(hoverPos.x, hoverPos.y, hoverPos.width, hoverPos.height);
+    ctx.strokeStyle = config.colors.hoverArea;
+    ctx.lineWidth = 2;
+    ctx.setLineDash(config.lineStyles.hoverArea);
+    ctx.strokeRect(hoverPos.x, hoverPos.y, hoverPos.width, hoverPos.height);
 
-  //   ctx.strokeStyle = config.colors.panelArea;
-  //   ctx.lineWidth = 3;
-  //   ctx.setLineDash(config.lineStyles.panelArea);
-  //   ctx.strokeRect(panelPos.x, panelPos.y, panelPos.width, panelPos.height);
+    ctx.strokeStyle = config.colors.panelArea;
+    ctx.lineWidth = 3;
+    ctx.setLineDash(config.lineStyles.panelArea);
+    ctx.strokeRect(panelPos.x, panelPos.y, panelPos.width, panelPos.height);
 
-  //   ctx.strokeStyle = config.colors.targetArea;
-  //   ctx.lineWidth = 2;
-  //   ctx.setLineDash(config.lineStyles.targetArea);
-  //   ctx.strokeRect(targetPos.x, targetPos.y, targetPos.width, targetPos.height);
+    ctx.strokeStyle = config.colors.targetArea;
+    ctx.lineWidth = 2;
+    ctx.setLineDash(config.lineStyles.targetArea);
+    ctx.strokeRect(targetPos.x, targetPos.y, targetPos.width, targetPos.height);
 
-  //   ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
-  //   ctx.font = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.titleFont;
-  //   ctx.fillText('HOVER', hoverPos.x + 5, hoverPos.y + 15);
-  //   ctx.fillText('PANEL', panelPos.x + 5, panelPos.y + 15);
-  //   ctx.fillText('TARGET', targetPos.x + 5, targetPos.y + 15);
+    ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
+    ctx.font = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.titleFont;
+    ctx.fillText('HOVER', hoverPos.x + 5, hoverPos.y + 15);
+    ctx.fillText('PANEL', panelPos.x + 5, panelPos.y + 15);
+    ctx.fillText('TARGET', targetPos.x + 5, targetPos.y + 15);
 
-  //   ctx.restore();
-  // }
+    ctx.restore();
+  }
 
   static resetShadow(ctx) {
     ctx.shadowColor = "transparent";
@@ -321,7 +261,6 @@ static drawPanelHeader(ctx, panelX, panelY, panelWidth, text, options = {}) {
 
 export const PanelRenderer = {
   drawBackground: UniversalPanelRenderer.drawPanelBackground.bind(UniversalPanelRenderer),
-  drawFactoryInfo: UniversalPanelRenderer.drawFactoryInfo.bind(UniversalPanelRenderer),
   drawBox: UniversalPanelRenderer.drawUniversalBox.bind(UniversalPanelRenderer),
-  // drawDebug: UniversalPanelRenderer.drawDebugBorders.bind(UniversalPanelRenderer)
+  drawDebug: UniversalPanelRenderer.drawDebugBorders.bind(UniversalPanelRenderer)
 };

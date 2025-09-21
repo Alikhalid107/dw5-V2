@@ -122,3 +122,95 @@ export const FactoryConfig = {
     }
   }
 };
+
+
+
+
+
+// src/config/UpgradeRequirements.js
+export const UPGRADE_REQUIREMENTS = {
+  concrete: {
+    resource: { name: "Concrete", color: "yellow" },
+    levels: {
+      2: { cost: 400, time: 2 },
+      3: { cost: 600, time: 3 },
+      4: { cost: 600, time: 4 },
+      5: { cost: 600, time: 5 },
+      6: { cost: 600, time: 6 },
+      7: { cost: 600, time: 7 },
+      8: { cost: 600, time: 8 },
+      9: { cost: 600, time: 9 },
+      10: { cost: 600, time: 10 },
+      11: { cost: 600, time: 11 },
+      12: { cost: 600, time: 12 },
+      13: { cost: 600, time: 13 },
+      14: { cost: 600, time: 14 },
+      15: { cost: 600, time: 15 },
+      16: { cost: 20000, time: 16 },
+
+    }
+  },
+  steel: {
+    resource: { name: "Steel", color: "gray" },
+    levels: {
+ 2: { cost: 400, time: 2 },
+      3: { cost: 600, time: 3 },
+      4: { cost: 600, time: 4 },
+      5: { cost: 600, time: 5 },
+      6: { cost: 600, time: 6 },
+      7: { cost: 600, time: 7 },
+      8: { cost: 600, time: 8 },
+      9: { cost: 600, time: 9 },
+      10: { cost: 600, time: 10 },
+      11: { cost: 600, time: 11 },
+      12: { cost: 600, time: 12 },
+      13: { cost: 600, time: 13 },
+      14: { cost: 600, time: 14 },
+      15: { cost: 600, time: 15 },
+      16: { cost: 20000, time: 16 },
+
+    }
+  },
+  carbon: {
+    resource: { name: "Carbon", color: "green" },
+    levels: {
+ 2: { cost: 400, time: 2 },
+      3: { cost: 600, time: 3 },
+      4: { cost: 600, time: 4 },
+      5: { cost: 600, time: 5 },
+      6: { cost: 600, time: 6 },
+      7: { cost: 600, time: 7 },
+      8: { cost: 600, time: 8 },
+      9: { cost: 600, time: 9 },
+      10: { cost: 600, time: 10 },
+      11: { cost: 600, time: 11 },
+      12: { cost: 600, time: 12 },
+      13: { cost: 600, time: 13 },
+      14: { cost: 600, time: 14 },
+      15: { cost: 600, time: 15 },
+      16: { cost: 20000, time: 16 },
+
+    }
+  },
+  oil: {
+    resource: { name: "Oil", color: "orange" },
+    levels: {
+ 2: { cost: 400, time: 2 },
+      3: { cost: 600, time: 3 },
+      4: { cost: 600, time: 4 },
+      5: { cost: 600, time: 5 },
+      6: { cost: 600, time: 6 },
+      7: { cost: 600, time: 7 },
+      8: { cost: 600, time: 8 },
+      9: { cost: 600, time: 9 },
+      10: { cost: 600, time: 10 },
+      11: { cost: 600, time: 11 },
+      12: { cost: 600, time: 12 },
+      13: { cost: 600, time: 13 },
+      14: { cost: 600, time: 14 },
+      15: { cost: 600, time: 15 },
+      16: { cost: 20000, time: 16 },
+
+    }
+  }
+};

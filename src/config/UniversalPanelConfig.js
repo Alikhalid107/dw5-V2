@@ -210,5 +210,7 @@ export const UNIVERSAL_PANEL_CONFIG = {
       panelArea: [],
       targetArea: [3, 3]
     }
-  }
+  },
+
+
 };

@@ -24,8 +24,10 @@ export class UniversalBoxController {
     }
   }
 
-  updateHoverState(mouseX, mouseY, state) {
-    // If you want controller to handle hover, use world-aware test (see note below).
-    return state.updateHoverState(mouseX, mouseY);
+ updateHoverState(mouseX, mouseY, state) {
+    // FIXED: Directly set the hover state instead of delegating
+    const wasHovered = state.isHovered;
+    state.isHovered = state.isPointInside(mouseX, mouseY);
+    return wasHovered !== state.isHovered;
   }
 }

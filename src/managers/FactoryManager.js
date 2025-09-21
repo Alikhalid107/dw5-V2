@@ -1,3 +1,4 @@
+// Fixed FactoryManager.js
 import { FactoryConfig } from "../config/FactoryConfig.js";
 import { ProductionTimerOverlay } from "../ui/ProductionMenu/ProductionTimerOverlay.js";
 import { Factory } from "../sections/Factory/Factory.js";
@@ -46,7 +47,7 @@ export class FactoryManager {
       const factory = this.factories[this.activeConfirmationDialog];
       if (factory) {
         factory.isHovered = true;
-        this.ui.factoryPanels[this.activeConfirmationDialog]?.updateHoverState?.(mouseX, mouseY);
+        this.ui.factoryPanels[this.activeConfirmationDialog]?.updateHoverStates?.(mouseX, mouseY, factory);
       }
       return;
     }
@@ -68,10 +69,10 @@ export class FactoryManager {
     this.showGrid = anyFactoryHovered || overUpgradeAll;
     this.showUpgradeAll = overUpgradeAll;
     
-    // Update panel hover states
+    // Update panel hover states with correct method name
     Object.entries(this.ui.factoryPanels).forEach(([type, panel]) => {
       if (this.factories[type].isHovered) {
-        panel.updateHoverState?.(mouseX, mouseY);
+        panel.updateHoverStates?.(mouseX, mouseY, this.factories[type]);
       }
     });
   }
