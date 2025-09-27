@@ -1,150 +1,247 @@
 // src/ui/FactoryPanel/CorePanelComponents.js
 import { UNIVERSAL_PANEL_CONFIG } from "../../config/UniversalPanelConfig.js";
-import { UniversalBoxController } from "../universalSystem/UniversalBoxController.js";
-import { UniversalBoxState } from "../universalSystem/UniversalBoxState.js";
-import { UniversalPanelRenderer } from "../../universal/UniversalPanelRenderer.js";
-import { UpgradeButton } from "../UpgradeMenu/UpgradeButton.js";
-import { ProductionButtons } from "../ProductionMenu/ProductionButtons.js";
+import { UniversalBoxsesFactory } from "../universalSystem/UniversalBoxsesFactory.js";
 import { UPGRADE_REQUIREMENTS } from "../../config/FactoryConfig.js";
+import { IconManager } from "../../utils/IconManager.js";
+import { FactorySpriteManager } from "../UpgradeMenu/FactorySpriteManager.js";
+import { UPGRADE_BUTTON_CONFIG } from "../../config/UpgradeButtonConfig.js";
+import { FactoryUtils } from "../../utils/FactoryUtils.js";
+import { MessageBus } from "../../utils/MessageBus.js"; // central bus
+import { UniversalPositionCalculator } from "../universalSystem/UniversalPositionCalculator.js";
 
 export class CorePanelComponents {
-  constructor(config) {
+  constructor(config, iconManager = null, spriteManager = null) {
     this.config = config;
-    
-    this.createComponents();
-    this.setupEventHandlers();
-  }
 
-  createComponents() {
-    const sizes = UNIVERSAL_PANEL_CONFIG.COMPONENTS.sizes;
-    const createBox = (width, height) => ({
-      controller: new UniversalBoxController(this.config),
-      state: new UniversalBoxState({ boxWidth: width, boxHeight: height, DIMENSIONS: { width, height } })
+    // Initialize managers with fallbacks
+    this.iconManager = iconManager || new IconManager();
+    this.spriteManager =
+      spriteManager || new FactorySpriteManager(UPGRADE_BUTTON_CONFIG);
+
+    this.gridConfig = {
+      rows: 1,
+      cols: 3,
+      boxWidth: UNIVERSAL_PANEL_CONFIG.COMPONENTS.sizes.upgradeButtonWidth,
+      boxHeight: UNIVERSAL_PANEL_CONFIG.COMPONENTS.sizes.upgradeButtonHeight,
+      spacing: 2,
+      alignment: {
+        horizontal: "left",
+        vertical: "top",
+        paddingLeft: UNIVERSAL_PANEL_CONFIG.COMPONENTS.spacing.panelPadding,
+        paddingTop: UNIVERSAL_PANEL_CONFIG.COMPONENTS.spacing.panelPadding + 40,
+      },
+    };
+
+    this.boxes = UniversalBoxsesFactory.createBoxes(this, this.gridConfig, {
+      totalBoxes: 3,
     });
 
-    this.universalComponents = {
-      upgradeBox: { ...createBox(sizes.upgradeButtonWidth, sizes.upgradeButtonHeight), description: this.getUpgradeDescription },
-      productionBox: { ...createBox(sizes.productionButtonWidth, sizes.productionButtonHeight), description: "Choose production cycle duration" }
-    };
+    this.setupBoxDescriptions();
 
-    this.components = {
-      upgradeButton: new UpgradeButton(),
-      productionButtons: new ProductionButtons()
-    };
+    // local handle used to forward messages to whatever UI callback you set
+    this._messageForwarder = null;
+    this._subscribedToBus = false;
   }
 
-  getUpgradeDescription = (factory) => {
+  setupBoxDescriptions() {
+    const descriptions = [
+      (factory) => this.getUpgradeDescription(factory),
+      (factory) => this.getProductionDescription(factory, 1),
+      (factory) => this.getProductionDescription(factory, 15),
+    ];
+
+    this.boxes.forEach((box, index) => {
+      if (descriptions[index]) box.description = descriptions[index];
+    });
+  }
+
+  getUpgradeDescription(factory) {
     const req = UPGRADE_REQUIREMENTS[factory.type];
     const nextLevel = factory.level + 1;
 
     if (!req?.levels[nextLevel]) {
-      return [{ segments: [{ text: "Max level reached", color: "red", font: "14px Arial" }] }];
+      return [
+        {
+          segments: [
+            { text: "Max level reached", color: "red", font: "14px Arial" },
+          ],
+        },
+      ];
     }
 
     const { cost, time } = req.levels[nextLevel];
     const { name: resName, color: resColor } = req.resource;
 
     return [
-      { segments: [{ text: factory.name, color: "white", font: "14px Arial" }] },
-      { segments: [{ text: `Build time: ${time} sec`, color: "white", font: "11px Arial" }] },
-      { segments: [
-        { text: `Upgrade to Level ${nextLevel} - Cost: ${cost} `, color: "white", font: "12px Arial" },
-        { text: resName, color: resColor, font: "12px Arial" }
-      ]}
+      {
+        segments: [{ text: factory.name, color: "white", font: "14px Arial" }],
+      },
+      {
+        segments: [
+          {
+            text: `Build time: ${time} sec`,
+            color: "white",
+            font: "11px Arial",
+          },
+        ],
+      },
+      {
+        segments: [
+          {
+            text: `Upgrade to Level ${nextLevel} - Cost: ${cost} `,
+            color: "white",
+            font: "12px Arial",
+          },
+          { text: resName, color: resColor, font: "12px Arial" },
+        ],
+      },
     ];
   }
 
-  setupEventHandlers() {
-    this.clickHandlers = {
-      productionButtons: (relativeX, relativeY, factory, messageCallback) => 
-        this.components.productionButtons.handleClick(relativeX, relativeY, factory, messageCallback),
-      
-      upgradeButton: (relativeX, relativeY, factory, panelX, panelY, getComponentPosition) => 
-        this.handleUpgradeClick(relativeX, relativeY, factory, panelX, panelY, getComponentPosition)
-    };
-  }
+  getProductionDescription(factory, hours) {
+    if (!factory) return "Production unavailable";
 
-  handleUpgradeClick(relativeX, relativeY, factory, panelX, panelY, getComponentPosition) {
-    const upgradePos = getComponentPosition("upgradeButton", 0, 0);
-    const component = this.universalComponents.upgradeBox;
-    component.state.setBounds(panelX + upgradePos.x, panelY + upgradePos.y);
-
-    const clicked = component.controller.handleClick(relativeX, relativeY, component.state, { factory }, "upgrade");
-    
-    if (clicked && factory.level < factory.maxLevel) {
-      factory.level++;
-      factory.updateVisuals?.();
-      factory.updateSprite?.();
-      return true;
+    if (factory.isProducing) {
+      if (hours === 15) {
+        return "Cannot start 15hr production while active";
+      } else {
+        return FactoryUtils.isFactoryAtMaxProduction(factory)
+          ? "Cannot add more time - already at 15 hour limit"
+          : "Add 1 hour to current production";
+      }
     }
-    return false;
+
+    return hours === 1
+      ? "Quick 1-hour cycle for immediate results"
+      : "Efficient 15-hour cycle for maximum output";
   }
 
-  drawComponent(ctx, componentType, panelX, panelY, factory, getComponentPosition, spriteManager, iconManager) {
-    const isUpgrade = componentType === 'upgrade';
-    const componentKey = isUpgrade ? 'upgradeBox' : 'productionBox';
-    const positionKey = isUpgrade ? 'upgradeButton' : 'productionButtons';
-    
-    const pos = getComponentPosition(positionKey, panelX, panelY);
-    const component = this.universalComponents[componentKey];
-    component.state.setBounds(pos.x, pos.y);
+ calculatePosition(row, col, panelX, panelY) {
+  return UniversalPositionCalculator.calculateBoxPosition(
+    panelX,
+    panelY,
+    row,
+    col,
+    this.gridConfig
+  );
+}
 
-    UniversalPanelRenderer.drawUniversalBox(ctx, component.state, componentType, {
-      factory,
-      isHovered: component.state.isHovered,
-      spriteManager: isUpgrade ? spriteManager || factory.spriteManager : undefined,
-      iconManager: isUpgrade ? iconManager || factory.iconManager : undefined
+
+  handleFactoryGridClick(relativeX, relativeY, factory, panelX, panelY) {
+    const clickedBox = this.boxes.find((box) => {
+      const pos = this.calculatePosition(box.row, box.col, panelX, panelY);
+      box.state.setBounds(pos.x, pos.y);
+      return box.state.isPointInside(relativeX, relativeY);
     });
 
-    if (isUpgrade) {
-      if (!factory.isMaxLevel() || factory.upgrading) {
-        this.components.upgradeButton.draw(ctx, pos.x, pos.y, factory);
-      }
-    } else {
-      this.components.productionButtons.draw(ctx, pos.x, pos.y, factory);
+    if (!clickedBox) return false;
+
+    const clicked = clickedBox.controller.handleClick(
+      relativeX,
+      relativeY,
+      clickedBox.state,
+      {
+        factory,
+        boxIndex: clickedBox.index,
+      },
+      "factory"
+    );
+
+    // No direct upgrade UI messages here — FactoryUtils handles business rules.
+    return clicked;
+  }
+
+  setCancelDialogCallback(callback) {
+    this.onShowCancelDialog = callback;
+  }
+
+  // New: register an external message handler (e.g. Overlay.showMessage)
+  // This will subscribe to the MessageBus and forward messages to your callback.
+  setMessageCallback(callback) {
+    // Unsubscribe previous if any
+    if (this._messageForwarder && this._subscribedToBus) {
+      MessageBus.unsubscribe(this._messageForwarder);
+      this._subscribedToBus = false;
+    }
+
+    if (typeof callback !== "function") {
+      this._messageForwarder = null;
+      return;
+    }
+
+    // Create forwarder and subscribe
+    this._messageForwarder = (msg) => {
+      try { callback(msg); } catch (e) { console.error("messageCallback error:", e); }
+    };
+    MessageBus.subscribe(this._messageForwarder);
+    this._subscribedToBus = true;
+  }
+
+  // optional: remove message callback
+  clearMessageCallback() {
+    if (this._messageForwarder && this._subscribedToBus) {
+      MessageBus.unsubscribe(this._messageForwarder);
+      this._subscribedToBus = false;
+      this._messageForwarder = null;
     }
   }
 
-  drawUpgradeComponent(ctx, panelX, panelY, factory, getComponentPosition, spriteManager, iconManager) {
-    this.drawComponent(ctx, 'upgrade', panelX, panelY, factory, getComponentPosition, spriteManager, iconManager);
+  drawFactoryGrid(
+    ctx,
+    panelX,
+    panelY,
+    factory,
+    spriteManagerOverride,
+    iconManagerOverride
+  ) {
+    const spriteManager = spriteManagerOverride || this.spriteManager;
+    const iconManager = iconManagerOverride || this.iconManager;
+
+    this.boxes.forEach((box) => {
+      const pos = this.calculatePosition(box.row, box.col, panelX, panelY);
+      box.state.setBounds(pos.x, pos.y);
+
+      box.draw(ctx, panelX, panelY, {
+        renderType: "factory",
+        factory,
+        spriteManager,
+        iconManager
+      });
+
+    });
   }
 
-  drawProductionComponent(ctx, panelX, panelY, factory, getComponentPosition) {
-    this.drawComponent(ctx, 'production', panelX, panelY, factory, getComponentPosition);
-  }
-
-  updateHoverStates(mouseX, mouseY, factory, getScreenPosition, getComponentPosition) {
+  updateHoverStates(mouseX, mouseY, factory, getScreenPosition) {
     const screenPos = getScreenPosition(factory);
     if (!screenPos.isValid) return;
 
-    // Update upgrade hover
-    this.updateComponentHover(mouseX, mouseY, 'upgradeBox', 'upgradeButton', screenPos, getComponentPosition);
-    
-    // Update production hover with dynamic descriptions
-    this.components.productionButtons.updateHoverState(mouseX, mouseY);
-    const hoveredButton = this.components.productionButtons.buttons?.find(b => b.hovered);
-    const productionComponent = this.universalComponents.productionBox;
+    this.boxes.forEach((box) => {
+      const pos = this.calculatePosition(
+        box.row,
+        box.col,
+        screenPos.x,
+        screenPos.y
+      );
+      box.state.setBounds(pos.x, pos.y);
+      box.updateHoverState(mouseX, mouseY);
+    });
+  }
 
-    if (hoveredButton) {
-      productionComponent.state.isHovered = true;
-      productionComponent.description = hoveredButton.hours === 1 
-        ? "Quick 1-hour cycle for immediate results"
-        : "Efficient 15-hour cycle for maximum output";
-    } else {
-      this.updateComponentHover(mouseX, mouseY, 'productionBox', 'productionButtons', screenPos, getComponentPosition);
+  getUniversalComponent(name) {
+    const hoveredBox = this.boxes.find((box) => box.state.isHovered);
+    if (hoveredBox && name === "factoryGrid") {
+      return {
+        state: hoveredBox.state,
+        description:
+          typeof hoveredBox.description === "function"
+            ? hoveredBox.description
+            : hoveredBox.description,
+      };
     }
+    return null;
   }
 
-  updateComponentHover(mouseX, mouseY, componentKey, positionKey, screenPos, getComponentPosition) {
-    const pos = getComponentPosition(positionKey, screenPos.x, screenPos.y);
-    const component = this.universalComponents[componentKey];
-    component.state.setBounds(pos.x, pos.y);
-    component.controller.updateHoverState(mouseX, mouseY, component.state);
-  }
-
-  getComponent(name) { return this.components[name]; }
-  getUniversalComponent(name) { return this.universalComponents[name]; }
-  updateDependencies(deps = {}) { 
+  updateDependencies(deps = {}) {
     this.spriteManager = deps.spriteManager || this.spriteManager;
     this.iconManager = deps.iconManager || this.iconManager;
   }

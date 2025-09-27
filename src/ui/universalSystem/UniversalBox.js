@@ -32,28 +32,41 @@ export class UniversalBox {
     );
   }
 
-  draw(ctx, panelX, panelY) {
-    const pos = this.calculatePosition(panelX, panelY);
-    this.state.setBounds(pos.x, pos.y);
-    this._currentOffsets = {
-      offsetX: this.parentUI.currentOffsetX || 0,
-      offsetY: this.parentUI.currentOffsetY || 0
-    };
 
-    const context = {
-      canBuild: this.canBuild,
-      flakManager: this.parentUI.flakManager,
-      showBorder: false,
-      boxIndex: this.index,
-      gridConfig: this.parentUI.gridConfig
-    };
-    
-    UniversalPanelRenderer.drawUniversalBox(ctx, this.state, 'garage', context);
+  draw(ctx, panelX, panelY, { renderType, ...context } = {}) {
+  const pos = this.calculatePosition(panelX, panelY);
+  this.state.setBounds(pos.x, pos.y);
+  this._currentOffsets = {
+    offsetX: this.parentUI.currentOffsetX || 0,
+    offsetY: this.parentUI.currentOffsetY || 0
+  };
+
+  // Always require renderType explicitly
+  if (!renderType) {
+    throw new Error("UniversalBox.draw requires a renderType (e.g., 'factory', 'garage')");
   }
+
+  const finalContext = {
+    ...context,
+    boxIndex: this.index,
+    showBorder: false
+  };
+
+  UniversalPanelRenderer.drawUniversalBox(ctx, this.state, renderType, finalContext);
+}
+
+
+get description() {
+  return this._description;
+}
+
+set description(value) {
+  this._description = value;
+}
 
   updateHoverState(mouseX, mouseY) {
     const wasHovered = this.state.isHovered;
-    this.state.isHovered = this.canBuild && this.state.bounds && this._isPointInWorldBounds(mouseX, mouseY);
+    this.state.isHovered = this.state.bounds && this._isPointInWorldBounds(mouseX, mouseY);
     return wasHovered !== this.state.isHovered;
   }
 

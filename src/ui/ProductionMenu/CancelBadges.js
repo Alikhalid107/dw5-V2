@@ -1,6 +1,7 @@
 import { PanelBase } from './PanelBase.js';
 import { IconManager } from '../../utils/IconManager.js';
 import { UNIVERSAL_PANEL_CONFIG } from '../../config/UniversalPanelConfig.js';
+import { FactoryUtils } from '../../utils/FactoryUtils.js';
 
 export class CancelBadges extends PanelBase {
   constructor(config = UNIVERSAL_PANEL_CONFIG) {
@@ -44,41 +45,10 @@ export class CancelBadges extends PanelBase {
 
   shouldShow1hCancelBadge(factory) {
     if (!factory.isProducing) return false;
-    
-    // Show cancel on 1h button ONLY when at maximum production time (15h)
-    // This happens when:
-    // 1. User clicked 1h button 15 times (reaching 15h total)
-    // 2. User clicked 15h button directly
-    
-    // Check if factory is at maximum production time
-    if (factory.productionTimeRemaining !== undefined) {
-      // Convert 15 hours to milliseconds for comparison
-      const maxProductionTimeMs = 15 * 60 * 60 * 1000;
-      return factory.productionTimeRemaining >= maxProductionTimeMs;
-    }
-    
-    // Alternative: Check if factory cannot start 15h production (meaning at max)
-    if (factory.canStart15HourProduction) {
-      return !factory.canStart15HourProduction();
-    }
-    
-    // Alternative: Check total production time
-    if (factory.totalProductionTime !== undefined) {
-      const maxProductionTimeMs = 15 * 60 * 60 * 1000;
-      return factory.totalProductionTime >= maxProductionTimeMs;
-    }
-    
-    // Alternative: Check initial production time
-    if (factory.initialProductionTime !== undefined) {
-      return factory.initialProductionTime >= 15;
-    }
-    
-    return false;
+    return FactoryUtils.isFactoryAtMaxProduction(factory); // Use utility method
   }
 
   shouldShow15hCancelBadge(factory) {
-    // Always show cancel on 15h button when factory is producing
-    // This appears immediately when production starts (either 1h or 15h)
     return factory.isProducing;
   }
 

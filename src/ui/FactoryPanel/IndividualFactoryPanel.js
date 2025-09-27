@@ -14,11 +14,25 @@ export class IndividualFactoryPanel {
     this.panelWidth = this.config.panelWidth;
     this.panelHeight = this.config.panelHeight;
 
-    // Initialize component groups
     this.coreComponents = new CorePanelComponents(this.config);
     this.overlayComponents = new OverlayComponents();
 
-    this.setupEventHandlers();
+    this.setupComponentCommunication();
+  }
+
+  setupComponentCommunication() {
+    this.coreComponents.setCancelDialogCallback((factory, factoryInstance) => {
+      // Store the factory manager reference for proper dialog handling
+      if (this.factoryManager) {
+        this.overlayComponents.showConfirmationDialog(this.factoryManager, factory.type, factoryInstance);
+      } else {
+        console.warn("Factory manager not set - cannot show confirmation dialog");
+      }
+    });
+
+    this.coreComponents.setMessageCallback((message) => {
+      this.overlayComponents.showMessage(message);
+    });
   }
 
   calculatePanelPosition(factory) {
@@ -36,63 +50,29 @@ export class IndividualFactoryPanel {
     return { x, y, isValid: isFinite(x) && isFinite(y) };
   }
 
-  getComponentPosition(componentName, panelX, panelY) {
-    const positions = UniversalPositionCalculator.calculateComponentPositions(
-      this.config, UNIVERSAL_PANEL_CONFIG.COMPONENTS
-    );
-    const pos = positions[componentName];
-    return pos ? { x: panelX + pos.x, y: panelY + pos.y } : { x: panelX, y: panelY };
-  }
-
   isPointInHoverArea(mouseX, mouseY, factory) {
     const area = this.calculateHoverArea(factory);
     return mouseX >= area.x && mouseX <= area.x + area.width &&
            mouseY >= area.y && mouseY <= area.y + area.height;
   }
 
-  setupEventHandlers() {
-    this.clickHandlers = {
-      confirmDialog: (relativeX, relativeY, factory, factoryManager) => {
-        return this.overlayComponents.clickHandlers.confirmDialog(relativeX, relativeY, factory, factoryManager);
-      },
-      cancelBadges: (relativeX, relativeY, factory, factoryManager) => {
-        return this.overlayComponents.clickHandlers.cancelBadges(relativeX, relativeY, factory, factoryManager);
-      },
-      productionButtons: (relativeX, relativeY, factory) => {
-        return this.coreComponents.clickHandlers.productionButtons(
-          relativeX, relativeY, factory, 
-          (msg) => this.overlayComponents.showMessage(msg, 3000)
-        );
-      },
-      upgradeButton: (relativeX, relativeY, factory, factoryManager, panelX, panelY) => {
-        return this.coreComponents.clickHandlers.upgradeButton(
-          relativeX, relativeY, factory, panelX, panelY, this.getComponentPosition.bind(this)
-        );
-      }
-    };
-  }
-
   draw(ctx, offsetX = 0, offsetY = 0, factory = this.factory) {
     const screenPos = this.getScreenPosition(factory, offsetX, offsetY);
     if (!screenPos.isValid) return;
+    
     const { x: panelX, y: panelY } = screenPos;
 
     UniversalPanelRenderer.drawPanelBackground(ctx, panelX, panelY, this.panelWidth, this.panelHeight, this.config);
-
     this.drawPanelHeader(ctx, panelX, panelY);
-    this.drawUniversalComponents(ctx, panelX, panelY, factory);
-    this.drawOverlayComponents(ctx, panelX, panelY, factory);
+    this.coreComponents.drawFactoryGrid(ctx, panelX, panelY, factory, this.spriteManager, this.iconManager);
+    this.overlayComponents.draw(ctx, panelX, panelY, factory, this.panelWidth);
   }
 
   drawPanelHeader(ctx, panelX, panelY) {
-    const hoveredComponent = Object.keys(this.coreComponents.universalComponents).find(
-      componentName => this.coreComponents.universalComponents[componentName].state.isHovered
-    );
-
+    const hoveredComponent = this.coreComponents.getUniversalComponent("factoryGrid");
     if (!hoveredComponent) return;
 
-    const comp = this.coreComponents.universalComponents[hoveredComponent];
-    const desc = comp.description;
+    const desc = hoveredComponent.description;
     let headerLines = [];
 
     if (typeof desc === "function") {
@@ -101,7 +81,7 @@ export class IndividualFactoryPanel {
         headerLines = Array.isArray(result) ? result : 
           [{ segments: [{ text: result, color: "white", font: "14px Arial" }] }];
       } catch (err) {
-        console.warn("description function threw:", err);
+        console.warn("Description function error:", err);
       }
     } else if (typeof desc === "string") {
       headerLines = [{ segments: [{ text: desc, color: "white", font: "14px Arial" }] }];
@@ -112,42 +92,18 @@ export class IndividualFactoryPanel {
       let offsetX = panelX + 10;
       const y = panelY + 20 + i * lineHeight;
 
-      (line.segments || []).forEach(seg => {
-        UniversalPanelRenderer.drawText(ctx, seg.text, offsetX, y,
-          seg.font || "14px Arial", "left", seg.color || "white");
+      (line.segments || []).forEach((seg) => {
+        ctx.font = seg.font || "14px Arial";
+        ctx.fillStyle = seg.color || "white";
+        ctx.textAlign = "left";
+        ctx.fillText(seg.text, offsetX, y);
         offsetX += ctx.measureText(seg.text).width;
       });
     });
   }
 
-  drawUniversalComponents(ctx, panelX, panelY, factory) {
-    this.coreComponents.drawUpgradeComponent(
-      ctx, panelX, panelY, factory, 
-      this.getComponentPosition.bind(this), 
-      this.spriteManager, this.iconManager
-    );
-    
-    this.coreComponents.drawProductionComponent(
-      ctx, panelX, panelY, factory, 
-      this.getComponentPosition.bind(this)
-    );
-    
-    if (factory?.isProducing) {
-      const pos = this.getComponentPosition("productionButtons", panelX, panelY);
-      this.overlayComponents.drawCancelBadges(ctx, pos.x, pos.y, factory);
-    }
-  }
-
-  drawOverlayComponents(ctx, panelX, panelY, factory) {
-    this.overlayComponents.drawOverlayComponents(ctx, panelX, panelY, factory, this.panelWidth);
-  }
-
   updateHoverStates(mouseX, mouseY, factory) {
-    this.coreComponents.updateHoverStates(
-      mouseX, mouseY, factory, 
-      this.getScreenPosition.bind(this), 
-      this.getComponentPosition.bind(this)
-    );
+    this.coreComponents.updateHoverStates(mouseX, mouseY, factory, this.getScreenPosition.bind(this));
   }
 
   handleClick(mouseX, mouseY, offsetX = 0, offsetY = 0, factory = this.factory, factoryManager = null) {
@@ -156,26 +112,42 @@ export class IndividualFactoryPanel {
     const screenPos = this.getScreenPosition(factory, offsetX, offsetY);
     if (!screenPos.isValid) return false;
 
-    const clickOrder = ["confirmDialog", "cancelBadges", "productionButtons", "upgradeButton"];
-    for (const handlerName of clickOrder) {
-      const handler = this.clickHandlers[handlerName];
-      if (handler?.call(this, relativeX, relativeY, factory, factoryManager, screenPos.x, screenPos.y)) {
-        return true;
-      }
+    // Set and store factory manager reference
+    this.setFactoryManager(factoryManager);
+
+    // Priority order: overlay components first, then core components
+    return this.overlayComponents.handleClick(relativeX, relativeY, factory, factoryManager) ||
+           this.coreComponents.handleFactoryGridClick(relativeX, relativeY, factory, screenPos.x, screenPos.y);
+  }
+
+  setFactoryManager(factoryManager) {
+    this.factoryManager = factoryManager;
+    // Ensure overlay components also have the factory manager reference
+    if (this.overlayComponents && factoryManager) {
+      this.overlayComponents.factoryManager = factoryManager;
     }
-    return false;
   }
 
-  getComponent(componentName) { 
-    return this.coreComponents.getComponent(componentName) || 
-           this.overlayComponents.getComponent(componentName);
+  // Add method to check if confirmation dialog should be shown
+  isConfirmationDialogVisible() {
+    return this.overlayComponents?.isConfirmationDialogVisible() || false;
   }
 
-  getUniversalComponent(componentName) { 
-    return this.coreComponents.getUniversalComponent(componentName); 
+  showProductionMessage(message) {
+    this.overlayComponents.showMessage(message);
   }
 
-  drawDebugBorders(ctx, factory, offsetX = 0, offsetY = 0) {
+  getUniversalComponent(componentName) {
+    return this.coreComponents.getUniversalComponent(componentName);
+  }
+
+  updateDependencies(dependencies = {}) {
+    this.spriteManager = dependencies.spriteManager || this.spriteManager;
+    this.iconManager = dependencies.iconManager || this.iconManager;
+    this.coreComponents.updateDependencies(dependencies);
+  }
+
+   drawDebugBorders(ctx, factory, offsetX = 0, offsetY = 0) {
     const panelPos = this.getScreenPosition(factory, offsetX, offsetY);
     const hoverArea = this.calculateHoverArea(factory);
     const targetPos = {
@@ -198,13 +170,5 @@ export class IndividualFactoryPanel {
       isPointInHoverArea: (mouseX, mouseY, factory) => this.isPointInHoverArea(mouseX, mouseY, factory),
       drawDebugBorders: (ctx, factory, offsetX, offsetY) => this.drawDebugBorders(ctx, factory, offsetX, offsetY)
     };
-  }
-
-  updateDependencies(dependencies = {}) {
-    this.spriteManager = dependencies.spriteManager || this.spriteManager;
-    this.iconManager = dependencies.iconManager || this.iconManager;
-    
-    // Update dependencies in component groups
-    this.coreComponents.updateDependencies(dependencies);
   }
 }

@@ -150,14 +150,4 @@ export class ConfirmationDialog extends PanelBase {
   hide(factoryManager, factoryType) {
     this._hideDialog(factoryManager, factoryType);
   }
-
-  _bounds(x, y, width, height) {
-    return { x, y, width, height };
-  }
-
-  isPointInBounds(x, y, bounds) {
-    if (!bounds) return false;
-    return x >= bounds.x && x <= bounds.x + bounds.width && 
-           y >= bounds.y && y <= bounds.y + bounds.height;
-  }
 }

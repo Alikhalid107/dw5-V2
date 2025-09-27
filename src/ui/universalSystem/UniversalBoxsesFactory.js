@@ -2,17 +2,31 @@
 import { UniversalBox } from "./UniversalBox.js";
 
 export class UniversalBoxsesFactory {
-  static createBoxes(parentUI, gridConfig) {
+  static createBoxes(parentUI, gridConfig, options = {}) {
     const boxes = [];
-    for (let row = 0; row < gridConfig.rows; row++) {
-      for (let col = 0; col < gridConfig.cols; col++) {
-        // If this is the last row and last column, skip creating that box
-        if (row === gridConfig.rows - 1 && col === gridConfig.cols - 1) {
-          continue;
-        }
-        boxes.push(new UniversalBox(parentUI, row, col, row * gridConfig.cols + col, gridConfig));
-      }
+    let totalBoxes;
+
+    // Prefer explicit options
+    if (options.totalBoxes !== undefined) {
+      totalBoxes = options.totalBoxes;
+    } else {
+      totalBoxes = gridConfig.rows * gridConfig.cols;
     }
+
+    for (let i = 0; i < totalBoxes; i++) {
+      const row = Math.floor(i / gridConfig.cols);
+      const col = i % gridConfig.cols;
+
+      // Allow panels to tell us if they want to skip last box
+      if (options.skipLast &&
+          row === gridConfig.rows - 1 &&
+          col === gridConfig.cols - 1) {
+        continue;
+      }
+
+      boxes.push(new UniversalBox(parentUI, row, col, i, gridConfig));
+    }
+
     return boxes;
   }
 }
