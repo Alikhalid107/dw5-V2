@@ -1,5 +1,4 @@
 // src/ui/FactoryPanel/IndividualFactoryPanel.js
-import { UNIVERSAL_PANEL_CONFIG } from "../../config/UniversalPanelConfig.js";
 import { ConfigurationMerger } from "../../universal/ConfigurationMerger.js";
 import { UniversalPositionCalculator } from "../universalSystem/UniversalPositionCalculator.js";
 import { UniversalPanelRenderer } from "../../universal/UniversalPanelRenderer.js";
@@ -11,36 +10,42 @@ export class IndividualFactoryPanel {
     this.factory = factory;
     this.factoryType = factoryType;
     this.config = ConfigurationMerger.getFactoryPanelConfig(factoryType);
-    this.panelWidth = this.config.panelWidth;
-    this.panelHeight = this.config.panelHeight;
 
+    // Create core components first - they will auto-calculate panel dimensions
     this.coreComponents = new CorePanelComponents(this.config);
     this.overlayComponents = new OverlayComponents();
+
+    // Use auto-calculated dimensions from coreComponents
+    // Only fall back to config if explicitly set AND coreComponents failed
+    this.panelWidth = this.coreComponents?.panelWidth ;
+    this.panelHeight = this.coreComponents?.panelHeight ;
 
     this.setupComponentCommunication();
   }
 
   setupComponentCommunication() {
-    this.coreComponents.setCancelDialogCallback((factory, factoryInstance) => {
-      // Store the factory manager reference for proper dialog handling
-      if (this.factoryManager) {
-        this.overlayComponents.showConfirmationDialog(this.factoryManager, factory.type, factoryInstance);
-      } else {
-        console.warn("Factory manager not set - cannot show confirmation dialog");
-      }
-    });
-
     this.coreComponents.setMessageCallback((message) => {
       this.overlayComponents.showMessage(message);
     });
   }
 
   calculatePanelPosition(factory) {
-    return UniversalPositionCalculator.calculatePanelPosition(factory, this.config);
+    // Pass panel dimensions to position calculator
+    const configWithDimensions = {
+      ...this.config,
+      panelWidth: this.panelWidth,
+      panelHeight: this.panelHeight
+    };
+    return UniversalPositionCalculator.calculatePanelPosition(factory, configWithDimensions);
   }
 
   calculateHoverArea(factory) {
-    return UniversalPositionCalculator.calculateHoverArea(factory, this.config);
+    const configWithDimensions = {
+      ...this.config,
+      panelWidth: this.panelWidth,
+      panelHeight: this.panelHeight
+    };
+    return UniversalPositionCalculator.calculateHoverArea(factory, configWithDimensions);
   }
 
   getScreenPosition(factory, offsetX = 0, offsetY = 0) {
@@ -64,7 +69,7 @@ export class IndividualFactoryPanel {
 
     UniversalPanelRenderer.drawPanelBackground(ctx, panelX, panelY, this.panelWidth, this.panelHeight, this.config);
     this.drawPanelHeader(ctx, panelX, panelY);
-    this.coreComponents.drawFactoryGrid(ctx, panelX, panelY, factory, this.spriteManager, this.iconManager);
+    this.coreComponents.drawFactoryGrid(ctx, panelX, panelY, factory);
     this.overlayComponents.draw(ctx, panelX, panelY, factory, this.panelWidth);
   }
 
@@ -89,8 +94,8 @@ export class IndividualFactoryPanel {
 
     const lineHeight = 18;
     headerLines.forEach((line, i) => {
-      let offsetX = panelX + 10;
-      const y = panelY + 20 + i * lineHeight;
+      let offsetX = panelX + 1;
+      const y = panelY + 60 + i * lineHeight;
 
       (line.segments || []).forEach((seg) => {
         ctx.font = seg.font || "14px Arial";
@@ -112,7 +117,7 @@ export class IndividualFactoryPanel {
     const screenPos = this.getScreenPosition(factory, offsetX, offsetY);
     if (!screenPos.isValid) return false;
 
-    // Set and store factory manager reference
+    // Set factory manager reference
     this.setFactoryManager(factoryManager);
 
     // Priority order: overlay components first, then core components
@@ -122,13 +127,11 @@ export class IndividualFactoryPanel {
 
   setFactoryManager(factoryManager) {
     this.factoryManager = factoryManager;
-    // Ensure overlay components also have the factory manager reference
     if (this.overlayComponents && factoryManager) {
       this.overlayComponents.factoryManager = factoryManager;
     }
   }
 
-  // Add method to check if confirmation dialog should be shown
   isConfirmationDialogVisible() {
     return this.overlayComponents?.isConfirmationDialogVisible() || false;
   }
@@ -141,13 +144,7 @@ export class IndividualFactoryPanel {
     return this.coreComponents.getUniversalComponent(componentName);
   }
 
-  updateDependencies(dependencies = {}) {
-    this.spriteManager = dependencies.spriteManager || this.spriteManager;
-    this.iconManager = dependencies.iconManager || this.iconManager;
-    this.coreComponents.updateDependencies(dependencies);
-  }
-
-   drawDebugBorders(ctx, factory, offsetX = 0, offsetY = 0) {
+  drawDebugBorders(ctx, factory, offsetX = 0, offsetY = 0) {
     const panelPos = this.getScreenPosition(factory, offsetX, offsetY);
     const hoverArea = this.calculateHoverArea(factory);
     const targetPos = {
@@ -163,6 +160,14 @@ export class IndividualFactoryPanel {
       height: hoverArea.height,
     };
     UniversalPanelRenderer.drawDebugBorders(ctx, panelPos, hoverPos, targetPos);
+  }
+
+  // NEW METHOD: Update box count and recalculate panel dimensions
+  updateBoxCount(totalBoxes) {
+    this.coreComponents.updateBoxCount(totalBoxes);
+    this.panelWidth = this.coreComponents.panelWidth;
+    this.panelHeight = this.coreComponents.panelHeight;
+    console.log(`Updated panel dimensions: ${this.panelWidth}x${this.panelHeight}`);
   }
 
   get positioning() {

@@ -2,11 +2,11 @@
 import { UNIVERSAL_PANEL_CONFIG } from "../../config/UniversalPanelConfig.js";
 import { UniversalBoxsesFactory } from "../universalSystem/UniversalBoxsesFactory.js";
 import { UPGRADE_REQUIREMENTS } from "../../config/FactoryConfig.js";
+import { FactoryUtils } from "../../utils/FactoryUtils.js";
+import { MessageBus } from "../../utils/MessageBus.js";
 import { IconManager } from "../../utils/IconManager.js";
 import { FactorySpriteManager } from "../UpgradeMenu/FactorySpriteManager.js";
 import { UPGRADE_BUTTON_CONFIG } from "../../config/UpgradeButtonConfig.js";
-import { FactoryUtils } from "../../utils/FactoryUtils.js";
-import { MessageBus } from "../../utils/MessageBus.js"; // central bus
 import { UniversalPositionCalculator } from "../universalSystem/UniversalPositionCalculator.js";
 
 export class CorePanelComponents {
@@ -18,29 +18,62 @@ export class CorePanelComponents {
     this.spriteManager =
       spriteManager || new FactorySpriteManager(UPGRADE_BUTTON_CONFIG);
 
-    this.gridConfig = {
-      rows: 1,
-      cols: 3,
-      boxWidth: UNIVERSAL_PANEL_CONFIG.COMPONENTS.sizes.upgradeButtonWidth,
-      boxHeight: UNIVERSAL_PANEL_CONFIG.COMPONENTS.sizes.upgradeButtonHeight,
-      spacing: 2,
-      alignment: {
-        horizontal: "left",
-        vertical: "top",
-        paddingLeft: UNIVERSAL_PANEL_CONFIG.COMPONENTS.spacing.panelPadding,
-        paddingTop: UNIVERSAL_PANEL_CONFIG.COMPONENTS.spacing.panelPadding + 40,
-      },
-    };
+    // Helper function to merge configs
+    function createGridConfig() {
+      const base = UNIVERSAL_PANEL_CONFIG.grid;
+      const preset = UNIVERSAL_PANEL_CONFIG.grid.factory;
 
+      return {
+        rows: preset.rows,
+        cols: preset.cols,
+        boxWidth: base.boxWidth,
+        boxHeight: base.boxHeight,
+        spacing: base.spacing,
+        alignment: {
+          ...base.alignment,
+          ...(preset.alignment || {}),
+        },
+      };
+    }
+
+    // Create grid config
+    this.gridConfig = createGridConfig();
+
+    // Create boxes
     this.boxes = UniversalBoxsesFactory.createBoxes(this, this.gridConfig, {
       totalBoxes: 3,
     });
 
-    this.setupBoxDescriptions();
+    // Calculate panel dimensions automatically
+    this.calculatePanelDimensions();
 
-    // local handle used to forward messages to whatever UI callback you set
+    this.setupBoxDescriptions();
     this._messageForwarder = null;
-    this._subscribedToBus = false;
+  }
+
+  // NEW METHOD: Auto-calculate panel dimensions based on grid
+  calculatePanelDimensions() {
+    const alignment = this.gridConfig.alignment || {};
+
+    // Get padding from alignment or use defaults from config
+    const paddingLeft = alignment.paddingLeft  ;
+    const paddingRight = alignment.paddingRight ;
+    const paddingTop = alignment.paddingTop  ;
+    const paddingBottom =alignment.paddingBottom ;
+
+    // Calculate grid dimensions
+    const gridWidth =
+      this.gridConfig.cols * this.gridConfig.boxWidth +
+      (this.gridConfig.cols - 1) * this.gridConfig.spacing;
+
+    const gridHeight =
+      this.gridConfig.rows * this.gridConfig.boxHeight +
+      (this.gridConfig.rows - 1) * this.gridConfig.spacing;
+
+    // Set panel dimensions (grid + padding)
+    this.panelWidth = gridWidth + paddingLeft + paddingRight;
+    this.panelHeight = gridHeight + paddingTop + paddingBottom;
+
   }
 
   setupBoxDescriptions() {
@@ -116,16 +149,15 @@ export class CorePanelComponents {
       : "Efficient 15-hour cycle for maximum output";
   }
 
- calculatePosition(row, col, panelX, panelY) {
-  return UniversalPositionCalculator.calculateBoxPosition(
-    panelX,
-    panelY,
-    row,
-    col,
-    this.gridConfig
-  );
-}
-
+  calculatePosition(row, col, panelX, panelY) {
+    return UniversalPositionCalculator.calculateBoxPosition(
+      panelX,
+      panelY,
+      row,
+      col,
+      this.gridConfig
+    );
+  }
 
   handleFactoryGridClick(relativeX, relativeY, factory, panelX, panelY) {
     const clickedBox = this.boxes.find((box) => {
@@ -136,7 +168,7 @@ export class CorePanelComponents {
 
     if (!clickedBox) return false;
 
-    const clicked = clickedBox.controller.handleClick(
+    return clickedBox.controller.handleClick(
       relativeX,
       relativeY,
       clickedBox.state,
@@ -146,42 +178,24 @@ export class CorePanelComponents {
       },
       "factory"
     );
-
-    // No direct upgrade UI messages here — FactoryUtils handles business rules.
-    return clicked;
   }
 
-  setCancelDialogCallback(callback) {
-    this.onShowCancelDialog = callback;
-  }
-
-  // New: register an external message handler (e.g. Overlay.showMessage)
-  // This will subscribe to the MessageBus and forward messages to your callback.
   setMessageCallback(callback) {
     // Unsubscribe previous if any
-    if (this._messageForwarder && this._subscribedToBus) {
+    if (this._messageForwarder) {
       MessageBus.unsubscribe(this._messageForwarder);
-      this._subscribedToBus = false;
     }
 
-    if (typeof callback !== "function") {
-      this._messageForwarder = null;
-      return;
-    }
-
-    // Create forwarder and subscribe
-    this._messageForwarder = (msg) => {
-      try { callback(msg); } catch (e) { console.error("messageCallback error:", e); }
-    };
-    MessageBus.subscribe(this._messageForwarder);
-    this._subscribedToBus = true;
-  }
-
-  // optional: remove message callback
-  clearMessageCallback() {
-    if (this._messageForwarder && this._subscribedToBus) {
-      MessageBus.unsubscribe(this._messageForwarder);
-      this._subscribedToBus = false;
+    if (typeof callback === "function") {
+      this._messageForwarder = (msg) => {
+        try {
+          callback(msg);
+        } catch (e) {
+          console.error("messageCallback error:", e);
+        }
+      };
+      MessageBus.subscribe(this._messageForwarder);
+    } else {
       this._messageForwarder = null;
     }
   }
@@ -205,9 +219,8 @@ export class CorePanelComponents {
         renderType: "factory",
         factory,
         spriteManager,
-        iconManager
+        iconManager,
       });
-
     });
   }
 
@@ -244,5 +257,14 @@ export class CorePanelComponents {
   updateDependencies(deps = {}) {
     this.spriteManager = deps.spriteManager || this.spriteManager;
     this.iconManager = deps.iconManager || this.iconManager;
+  }
+
+  // NEW METHOD: Update configuration and recalculate dimensions
+  updateBoxCount(totalBoxes) {
+    this.boxes = UniversalBoxsesFactory.createBoxes(this, this.gridConfig, {
+      totalBoxes: totalBoxes,
+    });
+    this.calculatePanelDimensions();
+    this.setupBoxDescriptions();
   }
 }

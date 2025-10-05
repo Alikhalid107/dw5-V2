@@ -17,9 +17,7 @@ export class ProductionTimerOverlay {
     // Validate coordinates
     if (!isFinite(overlayX) || !isFinite(overlayY)) return;
 
-    if (this.factory.showProductionComplete) {
-      this.drawCompletedOverlay(ctx, overlayX, overlayY);
-    } else {
+     if (this.factory.isProducing) {
       this.drawTimerOverlay(ctx, overlayX, overlayY);
     }
   }
@@ -41,21 +39,6 @@ export class ProductionTimerOverlay {
     ctx.fillText(timeText, x + this.overlayWidth / 2, y + this.overlayHeight / 2 + 4);
   }
 
-  drawCompletedOverlay(ctx, x, y) {
-    // Use same background but different styling for completed state
-    const gradient = ctx.createLinearGradient(x, y, x, y + this.overlayHeight);
-    gradient.addColorStop(0, this.config.styling.backgroundGradient.start);
-    gradient.addColorStop(1, this.config.styling.backgroundGradient.end);
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(x, y, this.overlayWidth, this.overlayHeight);
-
-    // Completed text
-    ctx.fillStyle = this.config.styling.textColor;
-    ctx.font = this.config.styling.font;
-    ctx.textAlign = this.config.styling.textAlign;
-    ctx.fillText("Complete!", x + this.overlayWidth / 2, y + this.overlayHeight / 2 + 4);
-  }
 
   // Helper method to check if overlay should be visible
   shouldShow() {

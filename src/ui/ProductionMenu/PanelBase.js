@@ -15,8 +15,8 @@ export class PanelBase {
   }
 
   drawText(ctx, text, x, y, font = null, align = "left", style = null) {
-    const defaultFont = font || this.config.COMPONENTS.text.defaultFont;
-    const defaultStyle = style || this.config.COMPONENTS.text.colors.primary;
+    const defaultFont = this.config.COMPONENTS.text.defaultFont;
+    const defaultStyle =  this.config.COMPONENTS.text.colors.primary;
 
     ctx.fillStyle = defaultStyle;
     ctx.font = defaultFont;

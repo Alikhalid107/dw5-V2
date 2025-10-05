@@ -1,6 +1,5 @@
 import { UniversalBoxsesFactory } from "../universalSystem/UniversalBoxsesFactory.js";
 import { UniversalPanelRenderer } from "../../universal/UniversalPanelRenderer.js";
-import { UNIVERSAL_PANEL_CONFIG } from "../../config/UniversalPanelConfig.js";
 import { ConfigurationMerger } from "../../universal/ConfigurationMerger.js";
 
 export class GarageUI {
@@ -33,11 +32,11 @@ export class GarageUI {
   }
 
   calculatePanelDimensions() {
-    const alignment = this.gridConfig.alignment || {};
-    const paddingLeft = alignment.paddingLeft || this.gridConfig.padding;
-    const paddingRight = alignment.paddingRight || 2;
-    const paddingTop = alignment.paddingTop || this.gridConfig.padding;
-    const paddingBottom = alignment.paddingBottom || 2;
+    const alignment = this.gridConfig.alignment ;
+    const paddingLeft = alignment.paddingLeft ;
+    const paddingRight = alignment.paddingRight ;
+    const paddingTop = alignment.paddingTop ;
+    const paddingBottom = alignment.paddingBottom ;
 
     const gridWidth =
       this.gridConfig.cols * this.gridConfig.boxWidth +
@@ -85,7 +84,6 @@ export class GarageUI {
       y,
       this.panelWidth,
       this.panelHeight,
-      UNIVERSAL_PANEL_CONFIG.LAYOUT
     );
 
     // ---- NEW: determine hovered box and header text ----

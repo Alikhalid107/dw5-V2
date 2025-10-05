@@ -10,28 +10,31 @@ export class CancelBadges extends PanelBase {
     this.iconManager = new IconManager();
     this.oneHourCancelBounds = null;
     this.fifteenHourCancelBounds = null;
-    
-    // Calculate icon size based on production button size and config
-    this.iconSize = Math.min(
-      this.config.COMPONENTS.sizes.productionButtonHeight * this.config.CANCEL_BADGE.iconSizeMultiplier, 
-      this.config.CANCEL_BADGE.maxIconSize  
-    );
   }
 
+  // draw called by parent. prodButtonWidth is optional (if parent provides actual button width)
+  // oneHourButtonX and fifteenHourButtonX are expected to be the top-left X of those buttons
   draw(ctx, oneHourButtonX, fifteenHourButtonX, buttonY, prodButtonWidth, factory) {
-    // Only show cancel badges if factory is producing
+    // reset bounds and bail if not producing
     if (!factory || !factory.isProducing) {
       this.oneHourCancelBounds = null;
       this.fifteenHourCancelBounds = null;
       return;
     }
 
-    // Determine which buttons should show the cancel badge
     const shouldShow1hCancel = this.shouldShow1hCancelBadge(factory);
     const shouldShow15hCancel = this.shouldShow15hCancelBadge(factory);
 
+    // config flag to link 1h badge position to 15h button (optional)
+    const linkOneHourTo15h = !!this.config?.CANCEL_BADGE?.linkTo15h;
+
     if (shouldShow1hCancel) {
-      this.drawCancelBadge(ctx, oneHourButtonX, buttonY, "oneHour", prodButtonWidth);
+      // if linking enabled and fifteenHourButtonX provided, use that X for the 1h badge
+      const targetX = linkOneHourTo15h && fifteenHourButtonX !== undefined
+        ? fifteenHourButtonX
+        : oneHourButtonX;
+
+      this.drawCancelBadge(ctx, targetX, buttonY, "oneHour", prodButtonWidth);
     } else {
       this.oneHourCancelBounds = null;
     }
@@ -44,69 +47,57 @@ export class CancelBadges extends PanelBase {
   }
 
   shouldShow1hCancelBadge(factory) {
-    if (!factory.isProducing) return false;
-    return FactoryUtils.isFactoryAtMaxProduction(factory); // Use utility method
+    if (!factory || !factory.isProducing) return false;
+    // show 1h cancel only when factory is at max production (as original logic)
+    return FactoryUtils.isFactoryAtMaxProduction(factory);
   }
 
   shouldShow15hCancelBadge(factory) {
+    if (!factory) return false;
     return factory.isProducing;
   }
 
+  // drawCancelBadge now accepts prodButtonWidth and uses it if provided.
   drawCancelBadge(ctx, buttonX, buttonY, which, prodButtonWidth) {
-    const buttonHeight = this.config.COMPONENTS.sizes.productionButtonHeight;
-    
-    // Position the cancel icon in the center of the button
-    const iconX = buttonX + (prodButtonWidth - this.iconSize) / 2;
-    const iconY = buttonY + (buttonHeight - this.iconSize) / 2;
-    
-    // Create bounds for click detection
-    const bounds = this._bounds(iconX, iconY, this.iconSize, this.iconSize);
-    
+    // If parent supplies exact button width use it; otherwise fallback to config grid size
+    const buttonWidth = prodButtonWidth ?? (this.config?.grid?.boxWidth ?? 60);
+    const buttonHeight = (this.config?.grid?.boxHeight ?? 40);
+
+    // compute icon size based on config multiplier or explicit iconSize cap
+    const multiplier = this.config?.CANCEL_BADGE?.iconSizeMultiplier ?? 1;
+    const computedSize = buttonHeight * multiplier;
+
+    const explicitSize = this.config?.CANCEL_BADGE?.iconSize;
+    const sizeCandidates = explicitSize ? [computedSize, explicitSize] : [computedSize];
+    const iconSize = Math.min(...sizeCandidates);
+
+    // Position icon centered inside the button area (buttonX is top-left)
+    const iconX = buttonX + (buttonWidth - iconSize) / 2;
+    const iconY = buttonY + (buttonHeight - iconSize) / 2;
+
+    const bounds = this._bounds(iconX, iconY, iconSize, iconSize);
     if (which === "oneHour") {
       this.oneHourCancelBounds = bounds;
     } else {
       this.fifteenHourCancelBounds = bounds;
     }
 
-    // Draw the cross mark icon if IconManager is loaded
-    if (this.iconManager.isLoaded()) {
-      this.iconManager.drawIcon(
-        ctx,
-        "CROSS_MARK",
-        iconX,
-        iconY,
-        this.iconSize,
-        this.iconSize
-      );
-    } else {
-      // Fallback: draw a simple X
-      this.drawFallbackX(ctx, iconX, iconY, this.iconSize);
+    if (this.iconManager.isLoaded && this.iconManager.isLoaded()) {
+      this.iconManager.drawIcon(ctx, "CROSS_MARK", iconX, iconY, iconSize, iconSize);
     }
-  }
-
-  drawFallbackX(ctx, x, y, size) {
-    ctx.strokeStyle = this.config.CANCEL_BADGE.fallbackStroke.color;
-    ctx.lineWidth = this.config.CANCEL_BADGE.fallbackStroke.width;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(x + size, y + size);
-    ctx.moveTo(x + size, y);
-    ctx.lineTo(x, y + size);
-    ctx.stroke();
   }
 
   handleClick(mouseX, mouseY, factory) {
-    // Only handle clicks if the factory is producing
     if (!factory || !factory.isProducing) return false;
 
-    // Check 1h cancel (only if badge is visible and bounds exist)
     if (this.oneHourCancelBounds && this.isPointInBounds(mouseX, mouseY, this.oneHourCancelBounds)) {
-      return true; // Return true to trigger cancel dialog
+      return true;
     }
 
-    // Check 15h cancel (only if badge is visible and bounds exist)  
     if (this.fifteenHourCancelBounds && this.isPointInBounds(mouseX, mouseY, this.fifteenHourCancelBounds)) {
-      return true; // Return true to trigger cancel dialog
+      return true;
     }
+
+    return false;
   }
 }

@@ -59,17 +59,22 @@ export class OverlayComponents {
   }
 
   drawCancelBadgesForFactory(ctx, panelX, panelY, factory) {
-    const { spacing, sizes } = UNIVERSAL_PANEL_CONFIG.COMPONENTS;
-    const buttonWidth = sizes.upgradeButtonWidth;
-    const paddingLeft = UNIVERSAL_PANEL_CONFIG.COMPONENTS.spacing.panelPadding;
-    const paddingTop = UNIVERSAL_PANEL_CONFIG.COMPONENTS.spacing.panelPadding + 40;
+  const buttonWidth = UNIVERSAL_PANEL_CONFIG.grid.boxWidth;
+  const gridSpacing = UNIVERSAL_PANEL_CONFIG.grid.spacing;
+  
+  const paddingLeft = UNIVERSAL_PANEL_CONFIG.COMPONENTS.spacing.panelPadding + UNIVERSAL_PANEL_CONFIG.CANCEL_BADGE.cancelBadgesOffsetX;
+  const paddingTop = UNIVERSAL_PANEL_CONFIG.COMPONENTS.spacing.panelPadding + UNIVERSAL_PANEL_CONFIG.CANCEL_BADGE.cancelBadgesOffsetY;
 
-    const button1hX = panelX + paddingLeft + buttonWidth + (spacing.buttonSpacing || 0);
-    const button15hX = panelX + paddingLeft + (buttonWidth + (spacing.buttonSpacing || 0)) * 2;
-    const buttonY = panelY + paddingTop;
+  // First button (1hr) - starts at paddingLeft
+  const button1hX = panelX + paddingLeft;
+  
+  // Second button (15hr) - after first button + spacing
+  const button15hX = panelX + paddingLeft + buttonWidth + gridSpacing;
+  
+  const buttonY = panelY + paddingTop;
 
-    this.cancelBadges.draw(ctx, button1hX, button15hX, buttonY, buttonWidth, factory);
-  }
+  this.cancelBadges.draw(ctx, button1hX, button15hX, buttonY, buttonWidth, factory);
+}
 
   showConfirmationDialog(factoryManager, factoryType, factoryInstance) {
     try {
