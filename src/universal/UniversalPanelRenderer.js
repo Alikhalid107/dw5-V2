@@ -95,7 +95,7 @@ export class UniversalPanelRenderer {
     const { factory, spriteManager, iconManager } = context;
     if (!spriteManager || !factory) return;
 
-    const sprite = spriteManager.getSprite(factory.type || "concrete");
+    const sprite = spriteManager.getSprite(factory.type );
     if (!sprite) {
       console.warn(`No sprite found for factory type: ${factory.type}`);
       return;
@@ -161,8 +161,8 @@ export class UniversalPanelRenderer {
 
     const actions = {
       0: () => this.drawUpgradeContent(ctx, state, context),
-      1: () => this.drawProductionBoxContent(ctx, state, context.factory, "1h", "PROD"),
-      2: () => this.drawProductionBoxContent(ctx, state, context.factory, "15h", "PROD")
+      1: () => this.drawProductionBoxContent(ctx, state, context.factory, "1h"),
+      2: () => this.drawProductionBoxContent(ctx, state, context.factory, "15h")
     };
 
     actions[boxIndex]?.();
@@ -187,17 +187,14 @@ export class UniversalPanelRenderer {
     ctx.fillStyle = baseColor;
     ctx.textAlign = "center";
     ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 4;
 
     // Main time text
-    ctx.font = "16px Arial";
-    ctx.strokeText(timeText, centerX, centerY - 2);
-    ctx.fillText(timeText, centerX, centerY - 2);
+    ctx.font = "18px Arial";
+    ctx.strokeText(timeText, centerX, centerY + 5);
+    ctx.fillText(timeText, centerX, centerY + 5);
 
-    // Sub text
-    ctx.font = "10px Arial";
-    ctx.strokeText(subText, centerX, centerY + 12);
-    ctx.fillText(subText, centerX, centerY + 12);
+   
   }
 
   static drawPanelHeader(ctx, panelX, panelY, panelWidth, text, options = {}) {

@@ -92,10 +92,10 @@ export class IndividualFactoryPanel {
       headerLines = [{ segments: [{ text: desc, color: "white", font: "14px Arial" }] }];
     }
 
-    const lineHeight = 18;
+    const lineHeight = 14;
     headerLines.forEach((line, i) => {
       let offsetX = panelX + 1;
-      const y = panelY + 60 + i * lineHeight;
+      const y = panelY + 65 + i * lineHeight;
 
       (line.segments || []).forEach((seg) => {
         ctx.font = seg.font || "14px Arial";
