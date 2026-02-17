@@ -1,4 +1,4 @@
-import { UniversalBoxsesFactory } from "../universalSystem/UniversalBoxsesFactory.js";
+import { UniversalBoxesFactory } from "../universalSystem/UniversalBoxesFactory.js";
 import { UniversalPanelRenderer } from "../../universal/UniversalPanelRenderer.js";
 import { ConfigurationMerger } from "../../universal/ConfigurationMerger.js";
 
@@ -26,7 +26,7 @@ export class GarageUI {
 
     this.calculatePanelDimensions();
     this.panelBounds = null;
-    this.boxes = UniversalBoxsesFactory.createBoxes(this, this.gridConfig, {
+    this.boxes = UniversalBoxesFactory.createBoxes(this, this.gridConfig, {
       skipLast: true,
     });
   }
@@ -161,6 +161,6 @@ export class GarageUI {
     this.gridConfig = this.config.grid;
     this.gridConfig.buildableBoxIndex = this.config.panel.buildableBoxIndex;
     this.calculatePanelDimensions();
-    this.boxes = UniversalBoxsesFactory.createBoxes(this, this.gridConfig);
+    this.boxes = UniversalBoxesFactory.createBoxes(this, this.gridConfig);
   }
 }

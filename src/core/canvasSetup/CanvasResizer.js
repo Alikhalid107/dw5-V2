@@ -1,4 +1,4 @@
-import { detectBrowserZoom } from '../../utils/ZoomDetector.js';
+import { ZoomDetector } from '../CameraController/ZoomDetector.js';
 
 export class CanvasResizer {
     static resize(canvas, ctx) {
@@ -9,7 +9,7 @@ export class CanvasResizer {
         let dpr = window.devicePixelRatio || 1;
         
         // Detect if we're dealing with browser zoom vs actual high-DPI display
-        const zoom = detectBrowserZoom();
+        const zoom = ZoomDetector.detectBrowserZoom();
         
         // For zoom levels, we want to maintain sharpness
         // Adjust DPR to compensate for browser zoom

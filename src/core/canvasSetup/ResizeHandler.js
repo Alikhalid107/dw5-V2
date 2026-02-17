@@ -1,5 +1,5 @@
 import { CanvasResizer } from './CanvasResizer.js';
-import { detectBrowserZoom } from '../../utils/ZoomDetector.js';
+import { ZoomDetector } from '../CameraController/ZoomDetector.js';
 import { EventBus } from "../../events/EventBus.js";
 import { CANVAS_EVENTS } from "../../events/EventTypes.js";
 
@@ -8,7 +8,7 @@ export class ResizeHandler {
         this.canvas = canvas;
         this.ctx = ctx;
         this.pending = false;
-        this.lastZoom = detectBrowserZoom();
+        this.lastZoom = ZoomDetector.detectBrowserZoom();
     }
 
     setupResizeListener() {
@@ -30,7 +30,7 @@ export class ResizeHandler {
 
     setupZoomListener() {
     window.addEventListener("scroll", () => {
-        const currentZoom = detectBrowserZoom();
+        const currentZoom = ZoomDetector.detectBrowserZoom();
         if (Math.abs(currentZoom - this.lastZoom) > 0.05) {
             this.lastZoom = currentZoom;
             CanvasResizer.resize(this.canvas, this.ctx);

@@ -9,18 +9,18 @@ export class ProductionTimerOverlay {
   }
 
   draw(ctx, offsetX, offsetY) {
-    if (!this.factory.isProducing && !this.factory.showProductionComplete) return;
+  // FIXED: Only check production state — never hide due to hover/mouse position
+  if (!this.factory.isProducing && !this.factory.productionSystem?.showProductionComplete) return;
 
-    const overlayX = this.factory.x + (this.factory.width / 2) - (this.overlayWidth / 2) - (offsetX || 0);
-    const overlayY = this.factory.y - this.config.dimensions.offsetY - (offsetY || 0);
+  const overlayX = this.factory.x + (this.factory.width / 2) - (this.overlayWidth / 2) - (offsetX || 0);
+  const overlayY = this.factory.y - this.config.dimensions.offsetY - (offsetY || 0);
 
-    // Validate coordinates
-    if (!isFinite(overlayX) || !isFinite(overlayY)) return;
+  if (!isFinite(overlayX) || !isFinite(overlayY)) return;
 
-     if (this.factory.isProducing) {
-      this.drawTimerOverlay(ctx, overlayX, overlayY);
-    }
+  if (this.factory.isProducing) {
+    this.drawTimerOverlay(ctx, overlayX, overlayY);
   }
+}
 
   drawTimerOverlay(ctx, x, y) {
     // Background with gradient from config

@@ -1,7 +1,7 @@
-// UniversalBoxsesFactory.js
+// UniversalBoxesFactory.js
 import { UniversalBox } from "./UniversalBox.js";
 
-export class UniversalBoxsesFactory {
+export class UniversalBoxesFactory {
   static createBoxes(parentUI, gridConfig, options = {}) {
     const boxes = [];
     let totalBoxes;

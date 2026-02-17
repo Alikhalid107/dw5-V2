@@ -2,6 +2,11 @@
 import { UNIVERSAL_PANEL_CONFIG } from "../config/UniversalPanelConfig.js";
 import { UPGRADE_BUTTON_CONFIG } from "../config/UpgradeButtonConfig.js";
 import { FactoryConfig } from "../config/FactoryConfig.js";
+import { IconManager } from '../utils/IconManager.js'; // adjust path as needed
+import { PRODUCTION_BUTTONS_CONFIG } from "../config/ProductionButtonConfig.js";
+
+const iconManager = new IconManager();
+
 
 export class UniversalPanelRenderer {
   static drawPanelBackground(ctx, x, y, width, height, config = UNIVERSAL_PANEL_CONFIG.PANEL_BACKGROUND) {
@@ -169,33 +174,36 @@ export class UniversalPanelRenderer {
   }
 
   static drawProductionBoxContent(ctx, state, factory, timeText, subText) {
-    const { x, y, width, height } = state.bounds;
-    const centerX = x + width / 2;
-    const centerY = y + height / 2;
+  const { x, y, width, height } = state.bounds;
+  const centerX = x + width / 2;
+  const centerY = y + height / 2;
 
-    const factoryColors = {
-      concrete: "#fcfc8bff",
-      carbon: "#32CD32",
-      steel: "#DC143C",
-      oil: "#9932CC",
-      default: "white"
-    };
+  const { FACTORY_COLORS, FACTORY_ICONS, PRODUCTION_BOX } = PRODUCTION_BUTTONS_CONFIG;
 
-    const baseColor = factoryColors[factory?.type] ;
+  const baseColor = FACTORY_COLORS[factory?.type] || FACTORY_COLORS.default;
+  const iconName = FACTORY_ICONS[factory?.type];
 
-    // Text styling
-    ctx.fillStyle = baseColor;
-    ctx.textAlign = "center";
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 4;
+  // Draw sprite behind text
+  if (iconName && iconManager.isLoaded()) {
+    const spriteSize = Math.min(width, height) * PRODUCTION_BOX.spriteSizeMultiplier;
+    const spriteX = centerX - spriteSize / 2;
+    const spriteY = centerY - spriteSize / 2;
 
-    // Main time text
-    ctx.font = "18px Arial";
-    ctx.strokeText(timeText, centerX, centerY + 5);
-    ctx.fillText(timeText, centerX, centerY + 5);
-
-   
+    ctx.save();
+    ctx.globalAlpha = PRODUCTION_BOX.spriteOpacity;
+    iconManager.drawIcon(ctx, iconName, spriteX, spriteY, spriteSize, spriteSize);
+    ctx.restore();
   }
+
+  // Draw text on top
+  ctx.fillStyle = baseColor;
+  ctx.textAlign = "center";
+  ctx.strokeStyle = PRODUCTION_BOX.textStrokeColor;
+  ctx.lineWidth = PRODUCTION_BOX.textStrokeWidth;
+  ctx.font = PRODUCTION_BOX.textFont;
+  ctx.strokeText(timeText, centerX, centerY + PRODUCTION_BOX.textOffsetY);
+  ctx.fillText(timeText, centerX, centerY + PRODUCTION_BOX.textOffsetY);
+}
 
   static drawPanelHeader(ctx, panelX, panelY, panelWidth, text, options = {}) {
     const padding = options.padding ?? 8;

@@ -104,28 +104,27 @@ export class FactoryManager {
   // Rendering methods
   getObjects() { return Object.values(this.factories).flatMap(factory => factory.getObjects()); }
 
-  drawUI(ctx, offsetX, offsetY) { 
-    this.ui.drawUI(ctx, offsetX, offsetY);
-    
-    // Draw debug borders and production overlays
-    Object.entries(this.ui.factoryPanels).forEach(([type, panel]) => {
-      const factory = this.factories[type];
-      if (factory && panel.positioning) {
-        panel.positioning.drawDebugBorders(ctx, factory, offsetX, offsetY);
-      }
-    });
-    
-    Object.values(this.productionOverlays).forEach(overlay => overlay.draw(ctx, offsetX, offsetY));
+drawUI(ctx, offsetX, offsetY) { 
+  this.ui.drawUI(ctx, offsetX, offsetY);
+  
+  Object.entries(this.ui.factoryPanels).forEach(([type, panel]) => {
+    const factory = this.factories[type];
+    if (factory && panel.positioning) {
+      panel.positioning.drawDebugBorders(ctx, factory, offsetX, offsetY);
+    }
+  });
 
-    // Draw confirmation dialog if active
-    if (this.activeConfirmationDialog) {
-      const factory = this.factories[this.activeConfirmationDialog];
-      const panel = this.ui.factoryPanels[this.activeConfirmationDialog];
-      if (factory && panel?.confirmationDialog) {
-        panel.confirmationDialog.draw(ctx, offsetX, offsetY, panel.width);
-      }
+  // FIXED: Always draw production overlays regardless of hover state
+  Object.values(this.productionOverlays).forEach(overlay => overlay.draw(ctx, offsetX, offsetY));
+
+  if (this.activeConfirmationDialog) {
+    const factory = this.factories[this.activeConfirmationDialog];
+    const panel = this.ui.factoryPanels[this.activeConfirmationDialog];
+    if (factory && panel?.confirmationDialog) {
+      panel.confirmationDialog.draw(ctx, offsetX, offsetY, panel.width);
     }
   }
+}
   
   handleClick(mouseX, mouseY) { return this.ui.handleClick(mouseX, mouseY); }
 }

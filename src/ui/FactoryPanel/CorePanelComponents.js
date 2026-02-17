@@ -1,6 +1,6 @@
 // src/ui/FactoryPanel/CorePanelComponents.js
 import { UNIVERSAL_PANEL_CONFIG } from "../../config/UniversalPanelConfig.js";
-import { UniversalBoxsesFactory } from "../universalSystem/UniversalBoxsesFactory.js";
+import { UniversalBoxesFactory } from "../universalSystem/UniversalBoxesFactory.js";
 import { UPGRADE_REQUIREMENTS } from "../../config/FactoryConfig.js";
 import { MessageBus } from "../../utils/MessageBus.js";
 import { IconManager } from "../../utils/IconManager.js";
@@ -14,7 +14,7 @@ export class CorePanelComponents {
     this.iconManager = iconManager || new IconManager();
     this.spriteManager = spriteManager || new FactorySpriteManager(UPGRADE_BUTTON_CONFIG);
     this.gridConfig = this._createGridConfig();
-    this.boxes = UniversalBoxsesFactory.createBoxes(this, this.gridConfig, { totalBoxes: 3 });
+    this.boxes = UniversalBoxesFactory.createBoxes(this, this.gridConfig, { totalBoxes: 3 });
     this.calculatePanelDimensions();
     this.setupBoxDescriptions();
     this._messageForwarder = null;
@@ -166,7 +166,7 @@ export class CorePanelComponents {
   }
 
   updateBoxCount(totalBoxes) {
-    this.boxes = UniversalBoxsesFactory.createBoxes(this, this.gridConfig, { totalBoxes });
+    this.boxes = UniversalBoxesFactory.createBoxes(this, this.gridConfig, { totalBoxes });
     this.calculatePanelDimensions();
     this.setupBoxDescriptions();
   }

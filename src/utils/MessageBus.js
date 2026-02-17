@@ -1,4 +1,14 @@
-// src/utils/MessageBus.js
+/**
+ * MessageBus — UI-level message dispatcher.
+ *
+ * Use for user-facing status strings shown in the UI (e.g. production
+ * warnings like "Capped at 15 hours", "Cannot start 15hr production").
+ *
+ * Subscribers are typically UI components that display toast/message text.
+ *
+ * For system-level engine events (camera, canvas, zoom), use EventBus
+ * in src/events/EventBus.js instead.
+ */
 export const MessageBus = {
   _subs: new Set(),
 
