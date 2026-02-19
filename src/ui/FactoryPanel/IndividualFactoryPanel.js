@@ -74,38 +74,64 @@ export class IndividualFactoryPanel {
   }
 
   drawPanelHeader(ctx, panelX, panelY) {
-    const hoveredComponent = this.coreComponents.getUniversalComponent("factoryGrid");
-    if (!hoveredComponent) return;
+  const hoveredComponent = this.coreComponents.getUniversalComponent("factoryGrid");
+  if (!hoveredComponent) return;
 
-    const desc = hoveredComponent.description;
-    let headerLines = [];
+  const desc = hoveredComponent.description;
+  let headerLines = [];
 
-    if (typeof desc === "function") {
-      try {
-        const result = desc(this.factory);
-        headerLines = Array.isArray(result) ? result : 
-          [{ segments: [{ text: result, color: "white", font: "14px Arial" }] }];
-      } catch (err) {
-        console.warn("Description function error:", err);
-      }
-    } else if (typeof desc === "string") {
-      headerLines = [{ segments: [{ text: desc, color: "white", font: "14px Arial" }] }];
+  if (typeof desc === "function") {
+    try {
+      const result = desc(this.factory);
+      headerLines = Array.isArray(result) ? result :
+        [{ segments: [{ text: result, color: "white", font: "14px Arial" }] }];
+    } catch (err) {
+      console.warn("Description function error:", err);
     }
-
-    const lineHeight = 14;
-    headerLines.forEach((line, i) => {
-      let offsetX = panelX + 1;
-      const y = panelY + 65 + i * lineHeight;
-
-      (line.segments || []).forEach((seg) => {
-        ctx.font = seg.font || "14px Arial";
-        ctx.fillStyle = seg.color || "white";
-        ctx.textAlign = "left";
-        ctx.fillText(seg.text, offsetX, y);
-        offsetX += ctx.measureText(seg.text).width;
-      });
-    });
+  } else if (typeof desc === "string") {
+    headerLines = [{ segments: [{ text: desc, color: "white", font: "14px Arial" }] }];
   }
+
+  const lineHeight = 14;
+  const panelRight = panelX + this.panelWidth - 4; // 4px right padding
+  const panelLeft = panelX + 2;                    // 2px left padding
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(panelX, panelY, this.panelWidth, this.panelHeight);
+  ctx.clip();
+
+  headerLines.forEach((line, i) => {
+    const y = panelY + 65 + i * lineHeight;
+    if (y > panelY + this.panelHeight) return;
+
+    // Split segments by alignment
+    const leftSegs = (line.segments || []).filter(s => s.align !== "right");
+    const rightSegs = (line.segments || []).filter(s => s.align === "right");
+
+    // Draw left-aligned segments
+    let currentX = panelLeft;
+    leftSegs.forEach((seg) => {
+      ctx.font = seg.font || "14px Arial";
+      ctx.fillStyle = seg.color || "white";
+      ctx.textAlign = "left";
+      ctx.fillText(seg.text, currentX, y);
+      currentX += ctx.measureText(seg.text).width;
+    });
+
+    // Draw right-aligned segments (drawn right-to-left from panel edge)
+    let rightX = panelRight;
+    [...rightSegs].reverse().forEach((seg) => {
+      ctx.font = seg.font || "14px Arial";
+      ctx.fillStyle = seg.color || "white";
+      ctx.textAlign = "right";
+      ctx.fillText(seg.text, rightX, y);
+      rightX -= ctx.measureText(seg.text).width + 2;
+    });
+  });
+
+  ctx.restore();
+}
 
   updateHoverStates(mouseX, mouseY, factory) {
     this.coreComponents.updateHoverStates(mouseX, mouseY, factory, this.getScreenPosition.bind(this));

@@ -51,47 +51,52 @@ export class CorePanelComponents {
   }
 
   getUpgradeDescription(factory) {
-    const req = UPGRADE_REQUIREMENTS[factory.type];
-    const nextLevel = factory.level + 1;
+  const req = UPGRADE_REQUIREMENTS[factory.type];
+  const nextLevel = factory.level + 1;
 
-    if (!req?.levels[nextLevel]) {
-      return [{ segments: [{ text: "       Max level reached         ", font: "16px Arial" }] }];
-    }
-
-    const { cost, time } = req.levels[nextLevel];
-    const { name: resName, color: resColor } = req.resource;
-
-    return [
-      { segments: [{ text: factory.name, color: "white", font: "15px Arial" }] },
-      { segments: [{ text: `Build up         ${time}sec`, color: "white", font: "12px Arial" }] },
-      {
-        segments: [
-          { text: `to Level ${nextLevel}      `, color: "white", font: "12px Arial" },
-          { text: `${resName} `, color: resColor, font: "12px Arial" },
-          { text: `${cost}`, color: resColor, font: "12px Arial" },
-        ],
-      },
-    ];
+  if (!req?.levels[nextLevel]) {
+    return [{ segments: [{ text: "Max level reached", font: "16px Arial", align: "center" }] }];
   }
+
+  const { cost, time } = req.levels[nextLevel];
+  const { name: resName, color: resColor } = req.resource;
+
+  return [
+    { 
+      segments: [{ text: factory.name, color: "white", font: "15px Arial", align: "left" }] 
+    },
+    { 
+      segments: [
+        { text: "Build up", color: "white", font: "12px Arial", align: "left" },
+        { text: `${time}sec`, color: "white", font: "12px Arial", align: "right" }  // ← right side
+      ] 
+    },
+    {
+      segments: [
+        { text: `to Level ${nextLevel}`, color: "white", font: "12px Arial", align: "left" },
+        { text: `${resName} ${cost}`, color: resColor, font: "12px Arial", align: "right" }  // ← right side
+      ]
+    },
+  ];
+}
 
   getProductionDescription(factory, hours) {
-    if (!factory) return "Production unavailable";
-    
-    const { production } = UPGRADE_REQUIREMENTS[factory.type];
-    const { cost, name: resName, color: resColor } = production;
+  if (!factory) return "Production unavailable";
 
-    return [
-      { segments: [{ text: `${hours} Hour${hours > 1 ? 's' : ''}`, color: "white", font: "15px Arial" }] },
-      { segments: [{ text: factory.resource, color: "white", font: "12px Arial" }] },
-      {
-        segments: [
-          { text: "production      ", color: "white", font: "12px Arial" },
-          { text: "Titan ", color: resColor, font: "12px Arial" },
-          { text: `${cost * hours}`, color: resColor, font: "12px Arial" },
-        ],
-      },
-    ];
-  }
+  const { production } = UPGRADE_REQUIREMENTS[factory.type];
+  const { cost, name: resName, color: resColor } = production;
+
+  return [
+    { segments: [{ text: `${hours} Hour${hours > 1 ? 's' : ''}`, color: "white", font: "15px Arial", align: "left" }] },
+    { segments: [{ text: factory.resource, color: "white", font: "12px Arial", align: "left" }] },
+    {
+      segments: [
+        { text: "production", color: "white", font: "12px Arial", align: "left" },
+        { text: `Titan ${cost * hours}`, color: resColor, font: "12px Arial", align: "right" }
+      ]
+    },
+  ];
+}
 
   calculatePosition(row, col, panelX, panelY) {
     return UniversalPositionCalculator.calculateBoxPosition(panelX, panelY, row, col, this.gridConfig);
@@ -128,15 +133,25 @@ export class CorePanelComponents {
   }
 
   drawFactoryGrid(ctx, panelX, panelY, factory, spriteManagerOverride, iconManagerOverride) {
-    const spriteManager = spriteManagerOverride || this.spriteManager;
-    const iconManager = iconManagerOverride || this.iconManager;
+  const spriteManager = spriteManagerOverride || this.spriteManager;
+  const iconManager = iconManagerOverride || this.iconManager;
 
-    this.boxes.forEach((box) => {
-      const pos = this.calculatePosition(box.row, box.col, panelX, panelY);
-      box.state.setBounds(pos.x, pos.y);
-      box.draw(ctx, panelX, panelY, { renderType: "factory", factory, spriteManager, iconManager });
+  // Calculate panel bounds once
+  const panelBounds = {
+    x: panelX,
+    y: panelY,
+    width: this.panelWidth,
+    height: this.panelHeight
+  };
+
+  this.boxes.forEach((box) => {
+    const pos = this.calculatePosition(box.row, box.col, panelX, panelY);
+    box.state.setBounds(pos.x, pos.y);
+    box.draw(ctx, panelX, panelY, { 
+      renderType: "factory", factory, spriteManager, iconManager, panelBounds  // ← pass it
     });
-  }
+  });
+}
 
   updateHoverStates(mouseX, mouseY, factory, getScreenPosition) {
     const screenPos = getScreenPosition(factory);

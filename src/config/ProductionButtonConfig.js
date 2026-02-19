@@ -18,6 +18,7 @@ export const PRODUCTION_BUTTONS_CONFIG = {
 
   PRODUCTION_BOX: {
     spriteSizeMultiplier: 1.3,  // ← increase this to make sprite bigger (try 1.5, 1.8, 2.0)
+    spriteHoverSizeMultiplier: 1.6,  // ← tweak this for hover size
     spriteOpacity: 1,         // ← sprite transparency
     textFont: "18px Arial",
     textStrokeColor: "black",

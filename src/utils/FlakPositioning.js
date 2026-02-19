@@ -70,7 +70,7 @@ export class FlakPositioning {
     setTimeout(attempt, FLAK_CONFIG.POSITIONING.POSITIONING_RETRY_DELAY);
   }
 
-calculateFlakPosition(side, rowIndex, currentFlakCount, flakWidth = 0) {
+  calculateFlakPosition(side, rowIndex, currentFlakCount, flakWidth = 0) {
   const row = FLAK_CONFIG.ROWS[rowIndex];
   const baseY = this.garageY + this.garageHeight + row.rowOffsetY;
   const { left, right } = this.getLeftRightCounts(rowIndex, currentFlakCount);
@@ -81,9 +81,11 @@ calculateFlakPosition(side, rowIndex, currentFlakCount, flakWidth = 0) {
     getTargetX = () =>
       this.garageX - row.rowOffsetX - indexOnSide * row.spacing;
   } else {
+    // Use rowOffsetXRight if defined, otherwise fall back to rowOffsetX
+    const rightOffset = row.rowOffsetXRight !== undefined ? row.rowOffsetXRight : row.rowOffsetX;
     const indexOnSide = right + 1;
     getTargetX = () =>
-      this.garageX + this.garageWidth + row.rowOffsetX + (indexOnSide - 1) * row.spacing - flakWidth;
+      this.garageX + this.garageWidth + rightOffset + (indexOnSide - 1) * row.spacing - flakWidth;
   }
 
   return { baseY, getTargetX, zIndex: row.zIndex };

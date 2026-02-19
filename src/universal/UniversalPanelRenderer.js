@@ -84,41 +84,41 @@ export class UniversalPanelRenderer {
 
   if (!disableGlow && effects.glowEnabled) {
     ctx.shadowColor = effects.buttonGlowColor;
-    ctx.shadowBlur = effects.buttonGlowBlur;
     ctx.fillRect(x, y, width, height);
     this.resetShadow(ctx);
   }
 
   if (effects.hoverOverlayEnabled) {
-    ctx.fillStyle = effects.hoverOverlayColor;
     ctx.fillRect(x, y, width, height);
   }
 }
 
 
   static drawUpgradeContent(ctx, state, context) {
-    const { factory, spriteManager, iconManager } = context;
-    if (!spriteManager || !factory) return;
+  const { factory, spriteManager, iconManager, panelBounds } = context;
+  if (!spriteManager || !factory) return;
 
-    const sprite = spriteManager.getSprite(factory.type );
-    if (!sprite) {
-      console.warn(`No sprite found for factory type: ${factory.type}`);
-      return;
-    }
+  const sprite = spriteManager.getSprite(factory.type);
+  if (!sprite) return;
 
-    const { x, y, width, height } = state.bounds;
-    const scaleFactor = this.getScaleFactor(factory, state.isHovered, factory.scaleFactor);
-    const dimensions = this.calculateSpriteDimensions(sprite, factory.type, scaleFactor);
+  const { x, y, width, height } = state.bounds;
+  const scaleFactor = this.getScaleFactor(factory, state.isHovered, factory.scaleFactor);
+  const dimensions = this.calculateSpriteDimensions(sprite, factory.type, scaleFactor);
 
-    const spriteX = x + (width - dimensions.width) / 2;
-    const spriteY = y + (height - dimensions.height) / 2;
+  const spriteX = x + (width - dimensions.width) / 2;
+  const spriteY = y + (height - dimensions.height) / 2;
 
-    // Draw sprite and effects
-    this.drawSpriteWithEffects(ctx, sprite, spriteX, spriteY, dimensions, state.isHovered);
+  ctx.save();
+  // Clip to panel bounds if available, else fall back to box bounds
+  const clip = panelBounds || { x, y, width, height };
+  ctx.beginPath();
+  ctx.rect(clip.x, clip.y, clip.width, clip.height);
+  ctx.clip();
 
-    // Draw checkmark for max level factories
-    this.drawMaxLevelIcon(ctx, factory, iconManager, x, y, width, state.isHovered);
-  }
+  this.drawSpriteWithEffects(ctx, sprite, spriteX, spriteY, dimensions, state.isHovered);
+  this.drawMaxLevelIcon(ctx, factory, iconManager, x, y, width, state.isHovered);
+  ctx.restore();
+}
 
   static drawSpriteWithEffects(ctx, sprite, x, y, dimensions, isHovered) {
   
@@ -162,18 +162,18 @@ export class UniversalPanelRenderer {
   }
 
   static drawFactoryContent(ctx, state, context) {
-    const { boxIndex } = context;
+  const { boxIndex, panelBounds } = context;
 
-    const actions = {
-      0: () => this.drawUpgradeContent(ctx, state, context),
-      1: () => this.drawProductionBoxContent(ctx, state, context.factory, "1h"),
-      2: () => this.drawProductionBoxContent(ctx, state, context.factory, "15h")
-    };
+  const actions = {
+    0: () => this.drawUpgradeContent(ctx, state, context),
+    1: () => this.drawProductionBoxContent(ctx, state, context.factory, "1h", null, panelBounds),
+    2: () => this.drawProductionBoxContent(ctx, state, context.factory, "15h", null, panelBounds)
+  };
 
-    actions[boxIndex]?.();
-  }
+  actions[boxIndex]?.();
+}
 
-  static drawProductionBoxContent(ctx, state, factory, timeText, subText) {
+  static drawProductionBoxContent(ctx, state, factory, timeText, subText, panelBounds) {
   const { x, y, width, height } = state.bounds;
   const centerX = x + width / 2;
   const centerY = y + height / 2;
@@ -183,19 +183,28 @@ export class UniversalPanelRenderer {
   const baseColor = FACTORY_COLORS[factory?.type] || FACTORY_COLORS.default;
   const iconName = FACTORY_ICONS[factory?.type];
 
-  // Draw sprite behind text
   if (iconName && iconManager.isLoaded()) {
-    const spriteSize = Math.min(width, height) * PRODUCTION_BOX.spriteSizeMultiplier;
+    const multiplier = state.isHovered
+      ? PRODUCTION_BOX.spriteHoverSizeMultiplier
+      : PRODUCTION_BOX.spriteSizeMultiplier;
+
+    const spriteSize = Math.min(width, height) * multiplier;
     const spriteX = centerX - spriteSize / 2;
     const spriteY = centerY - spriteSize / 2;
 
     ctx.save();
+    // Clip to panel bounds so sprite doesn't exceed panel
+    const clip = panelBounds || { x, y, width, height };
+    ctx.beginPath();
+    ctx.rect(clip.x, clip.y, clip.width, clip.height);
+    ctx.clip();
+
     ctx.globalAlpha = PRODUCTION_BOX.spriteOpacity;
     iconManager.drawIcon(ctx, iconName, spriteX, spriteY, spriteSize, spriteSize);
     ctx.restore();
   }
 
-  // Draw text on top
+  // Text always outside clip
   ctx.fillStyle = baseColor;
   ctx.textAlign = "center";
   ctx.strokeStyle = PRODUCTION_BOX.textStrokeColor;
@@ -245,7 +254,7 @@ export class UniversalPanelRenderer {
     };
   }
 
-    static drawDebugBorders(ctx, panelPos, hoverPos, targetPos, config = UNIVERSAL_PANEL_CONFIG.DEBUG) {
+  static drawDebugBorders(ctx, panelPos, hoverPos, targetPos, config = UNIVERSAL_PANEL_CONFIG.DEBUG) {
     if (!config.enabled) return;
 
     ctx.save();
