@@ -27,7 +27,7 @@ export class UIHandler {
 
     // Only draw panels when something is hovered
     const activeBase = this.bases.find(base =>
-        base.compositeBase?.garageUI?.showGrid || base.compositeBase?.factoryManager?.showGrid
+        base.compositeBase?.garageUI?.showGrid || base.compositeBase?.factoryManager?.showGrid || base.compositeBase?.towerManager?.showGrid
     );
     if (activeBase) {
         activeBase.compositeBase.drawUI(this.ctx, offsetX, offsetY);

@@ -30,6 +30,18 @@ export const UNIVERSAL_PANEL_CONFIG = {
         },
     },
 
+    tower: {
+      rows: 1,
+        cols: 4,
+        alignment: {
+          paddingTop: 60, // Override if needed
+          // paddingLeft: 2, // Override if needed
+          // paddingRight: 2, // Override if needed
+          paddingBottom: 2, // Override if needed
+        },
+      },
+  
+
     // Box styling
     boxColors: {
       available: "rgba(146, 168, 185, 0.5)",

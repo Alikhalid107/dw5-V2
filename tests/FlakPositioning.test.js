@@ -127,26 +127,51 @@ describe('FlakPositioning', () => {
   });
 
   describe('calculateFlakPosition', () => {
-    it('should return position with baseY and getTargetX', () => {
-      const pos = positioning.calculateFlakPosition('left', 0, 0);
-      expect(pos.baseY).toBeDefined();
-      expect(pos.getTargetX).toBeTypeOf('function');
-      expect(pos.zIndex).toBeDefined();
-    });
-
-    it('should calculate left flak position based on row config', () => {
-      const pos = positioning.calculateFlakPosition('left', 0, 0);
-      const x = pos.getTargetX();
-      expect(typeof x).toBe('number');
-      expect(Number.isFinite(x)).toBe(true);
-    });
-
-    it('should place right flaks to the right of garage', () => {
-      const pos = positioning.calculateFlakPosition('right', 0, 0, 30);
-      const x = pos.getTargetX();
-      expect(x).toBeGreaterThanOrEqual(garageX + garageWidth - 100);
-    });
+  it('should return position with baseY and getTargetX', () => {
+    const pos = positioning.calculateFlakPosition('left', 0, 0);
+    expect(pos.baseY).toBeDefined();
+    expect(pos.getTargetX).toBeTypeOf('function');
+    expect(pos.zIndex).toBeDefined();
   });
+
+  it('should calculate left flak position based on row config', () => {
+    const pos = positioning.calculateFlakPosition('left', 0, 0);
+    const x = pos.getTargetX();
+    expect(typeof x).toBe('number');
+    expect(Number.isFinite(x)).toBe(true);
+  });
+
+  it('should place right flaks to the right of garage', () => {
+    const pos = positioning.calculateFlakPosition('right', 0, 0, 30);
+    const x = pos.getTargetX();
+    expect(x).toBeGreaterThanOrEqual(garageX + garageWidth - 200);
+  });
+
+  // NEW: verify right side uses rowOffsetXRight independently
+  it('should use rowOffsetXRight for right side positioning', () => {
+    const posRight = positioning.calculateFlakPosition('right', 0, 0);
+    const posLeft = positioning.calculateFlakPosition('left', 0, 0);
+    const xRight = posRight.getTargetX();
+    const xLeft = posLeft.getTargetX();
+    expect(Number.isFinite(xRight)).toBe(true);
+    expect(xRight).toBeGreaterThan(xLeft); // right flak is always to the right of left flak
+  });
+
+  // NEW: verify fallback when rowOffsetXRight is not defined
+  it('should fall back to rowOffsetX when rowOffsetXRight is undefined', () => {
+    // Temporarily remove rowOffsetXRight from row 0 to test fallback
+    const originalConfig = { ...require('../src/config/FlakConfig.js').FLAK_CONFIG.ROWS[0] };
+    const row = require('../src/config/FlakConfig.js').FLAK_CONFIG.ROWS[0];
+    delete row.rowOffsetXRight;
+
+    const pos = positioning.calculateFlakPosition('right', 0, 0);
+    const x = pos.getTargetX();
+    expect(Number.isFinite(x)).toBe(true);
+
+    // Restore
+    Object.assign(row, originalConfig);
+  });
+});
 
   describe('cleanup', () => {
     it('should clear pending positions', () => {

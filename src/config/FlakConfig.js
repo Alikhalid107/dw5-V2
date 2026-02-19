@@ -9,9 +9,9 @@ export const FLAK_CONFIG = {
   },
   
   ROWS: [
-  { count: 8, zIndex: -89, rowOffsetY: -15, rowOffsetX: -60, rowOffsetXRight: -100, spacing: 33 },
-  { count: 7, zIndex: -90, rowOffsetY: -25, rowOffsetX: -50, rowOffsetXRight: -50, spacing: 33 },
-  { count: 6, zIndex: -91, rowOffsetY: -35, rowOffsetX: -30, rowOffsetXRight: -30, spacing: 33 },
-  { count: 4, zIndex: -92, rowOffsetY: -45, rowOffsetX: -10, rowOffsetXRight: -10, spacing: 33 },
+  { count: 8, zIndex: -89, rowOffsetY: -15, rowOffsetX: -60, rowOffsetXRight: -120, spacing: 33 },
+  { count: 7, zIndex: -90, rowOffsetY: -25, rowOffsetX: -50, rowOffsetXRight: -100, spacing: 33 },
+  { count: 6, zIndex: -91, rowOffsetY: -35, rowOffsetX: -30, rowOffsetXRight: -80, spacing: 33 },
+  { count: 4, zIndex: -92, rowOffsetY: -45, rowOffsetX: -10, rowOffsetXRight: -60, spacing: 33 },
 ]
 };

@@ -5,17 +5,16 @@ export class BaseInputHandler {
     this.garageUI = garageUI;
   }
 
- handleMouseMove(mouseX, mouseY) {
+handleMouseMove(mouseX, mouseY) {
   this.factoryManager.handleMouseMove(mouseX, mouseY);
-  
-  // Updated method call for unified GarageUI
   this.garageUI.handleMouseMove(mouseX, mouseY);
-  // Optional: you can use showPanel if needed for other logic
+  this.towerManager?.handleMouseMove(mouseX, mouseY);  // ← add
 }
 
-  // To this:
 handleClick(mouseX, mouseY) {
-  return this.garageUI.handleClick(mouseX, mouseY) || this.factoryManager.handleClick(mouseX, mouseY);
+  return this.garageUI.handleClick(mouseX, mouseY) ||
+         this.factoryManager.handleClick(mouseX, mouseY) ||
+         this.towerManager?.handleClick(mouseX, mouseY);  // ← add
 }
 // (handleClick stays the same)
 }

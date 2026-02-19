@@ -5,7 +5,7 @@ import { WallSection } from "./WallSection.js";
 import { FlagManager } from "../managers/FlagManager.js";
 import { FactoryManager } from "../managers/FactoryManager.js";
 import { GarageUI } from "../ui/GarageUI/GarageUI.js";
-
+import { TowerManager } from "../managers/TowerManager.js";
 import { BaseInputHandler } from "../utils/BaseInputHandler.js";
 import { BaseObjectUpdater } from "../utils/BaseObjectUpdater.js";
 
@@ -22,6 +22,7 @@ export class CompositeBase {
     
     this.inputHandler = new BaseInputHandler(this.factoryManager, this.garageUI,);
     this.objectUpdater = new BaseObjectUpdater(this.flakManager, this.factoryManager);
+
   }
 
   initializeSections() {
@@ -44,6 +45,7 @@ export class CompositeBase {
     this.wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight);
     this.flagManager = new FlagManager(gx, gy, gw, gh);
     this.factoryManager = new FactoryManager(gx, gy, gw, gh);
+    this.towerManager = new TowerManager(randX, randY);
   }
 
   createCompositeBase() {
@@ -65,6 +67,8 @@ export class CompositeBase {
     this.flagManager?.update(deltaTime);
     this.garageUI?.update(deltaTime);
     this.factoryManager?.update(deltaTime);
+    this.towerManager?.update(deltaTime);
+
 
     if (this.flakManager?.update) {
       const buildCompleted = this.flakManager.update(deltaTime);
@@ -78,6 +82,8 @@ export class CompositeBase {
 
   handleMouseMove(mouseX, mouseY) {
     this.inputHandler.handleMouseMove(mouseX, mouseY);
+    this.towerManager?.handleMouseMove(mouseX, mouseY);  // add in BaseInputHandler too
+
   }
 
   handleClick(mouseX, mouseY) {
@@ -87,7 +93,10 @@ export class CompositeBase {
   drawUI(ctx, offsetX, offsetY) {
     this.factoryManager?.drawUI?.(ctx, offsetX, offsetY);
     this.garageUI?.drawUI(ctx, offsetX, offsetY);
+    this.towerManager?.drawUI?.(ctx, offsetX, offsetY);
+
   }
+  
 
 
   // ---------- Flak Management ----------

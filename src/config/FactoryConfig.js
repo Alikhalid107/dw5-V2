@@ -2,17 +2,7 @@
 const generateLevels = () => 
   Object.fromEntries(Array.from({ length: 15 }, (_, i) => [i + 2, { cost: (i + 2) * 100, time: i + 2 }]));
 
-// Default panel config
-const DEFAULT_PANEL = {
-  panelWidth: 188,
-  panelHeight: 100,
-  panelOffsetX: 12,
-  panelOffsetY: 20,
-  hoverAreaX: 10,
-  hoverAreaY: 20,
-  hoverAreaWidth: 188,
-  hoverAreaHeight: 50
-};
+
 
 // Factory configurations
 export const FactoryConfig = {
@@ -25,7 +15,6 @@ export const FactoryConfig = {
     additionalImage: "concreteFactory.png",
     additionalOffsetX: -95, additionalOffsetY: -30,
     additionalWidth: 209, additionalHeight: 98, additionalZIndex: -98,
-    panelConfig: { ...DEFAULT_PANEL, panelOffsetX: 0 },
     effects: {
       concreteMixerTruck: {
         image: "concreteMixerTruck.png", offsetX: 90, offsetY: 50,
@@ -44,7 +33,6 @@ export const FactoryConfig = {
     additionalImage: "steelFactory.png",
     additionalOffsetX: -80, additionalOffsetY: -30,
     additionalWidth: 182, additionalHeight: 115, additionalZIndex: -98,
-    panelConfig: DEFAULT_PANEL,
     effects: {
       smoke: {
         image: "smoke.png", offsetX: -30, offsetY: -72,
@@ -68,7 +56,6 @@ export const FactoryConfig = {
     additionalImage: "carbonFactory.png",
     additionalOffsetX: -70, additionalOffsetY: -15,
     additionalWidth: 162, additionalHeight: 91, additionalZIndex: -98,
-    panelConfig: DEFAULT_PANEL
   },
 
   oil: {
@@ -80,7 +67,6 @@ export const FactoryConfig = {
     additionalImage: "oilFactory.png",
     additionalOffsetX: 70, additionalOffsetY: -35,
     additionalWidth: 191, additionalHeight: 107, additionalZIndex: -98,
-    panelConfig: DEFAULT_PANEL,
     effects: {
       oilPumps: [
         {

@@ -30,7 +30,9 @@ export class UniversalPanelRenderer {
     const contentMethods = {
       upgrade: this.drawUpgradeContent,
       garage: this.drawGarageContent,
-      factory: this.drawFactoryContent
+      factory: this.drawFactoryContent,
+      tower: this.drawTowerContent       // ← new
+
     };
 
     const method = contentMethods[renderType];
@@ -91,8 +93,20 @@ export class UniversalPanelRenderer {
   if (effects.hoverOverlayEnabled) {
     ctx.fillRect(x, y, width, height);
   }
-}
+  }
 
+  static drawTowerContent(ctx, state, context) {
+  const { x, y, width, height } = state.bounds;
+  const centerX = x + width / 2;
+  const centerY = y + height / 2;
+  const { label } = context;
+
+  // Placeholder — you'll swap this with sprites later
+  ctx.fillStyle = "white";
+  ctx.font = "11px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(label || "Tower", centerX, centerY + 4);
+}
 
   static drawUpgradeContent(ctx, state, context) {
   const { factory, spriteManager, iconManager, panelBounds } = context;
@@ -118,7 +132,7 @@ export class UniversalPanelRenderer {
   this.drawSpriteWithEffects(ctx, sprite, spriteX, spriteY, dimensions, state.isHovered);
   this.drawMaxLevelIcon(ctx, factory, iconManager, x, y, width, state.isHovered);
   ctx.restore();
-}
+  }
 
   static drawSpriteWithEffects(ctx, sprite, x, y, dimensions, isHovered) {
   
@@ -171,7 +185,7 @@ export class UniversalPanelRenderer {
   };
 
   actions[boxIndex]?.();
-}
+  }
 
   static drawProductionBoxContent(ctx, state, factory, timeText, subText, panelBounds) {
   const { x, y, width, height } = state.bounds;
@@ -212,7 +226,7 @@ export class UniversalPanelRenderer {
   ctx.font = PRODUCTION_BOX.textFont;
   ctx.strokeText(timeText, centerX, centerY + PRODUCTION_BOX.textOffsetY);
   ctx.fillText(timeText, centerX, centerY + PRODUCTION_BOX.textOffsetY);
-}
+  }
 
   static drawPanelHeader(ctx, panelX, panelY, panelWidth, text, options = {}) {
     const padding = options.padding ?? 8;
@@ -283,6 +297,29 @@ export class UniversalPanelRenderer {
     ctx.restore();
   }
 
+  static drawBoxBackground(ctx, state, renderType, context = {}) {
+  const { x, y, width, height } = state.bounds;
+  const { STYLING } = UPGRADE_BUTTON_CONFIG;
+
+  let bgColor = UNIVERSAL_PANEL_CONFIG.grid.boxColors.available;
+
+  const isUpgradeLike = renderType === "upgrade" || renderType === "factory" || renderType === "tower"; // ← add tower
+
+  if (isUpgradeLike && state.isHovered) {
+    bgColor = STYLING.hoverBackgroundColor;
+  } else if (renderType === "garage" && state.isHovered) {
+    bgColor = UNIVERSAL_PANEL_CONFIG.grid.hoverEffect;
+  }
+
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(x, y, width, height);
+
+  if (context.showBorder) {
+    ctx.strokeStyle = context.borderColor || UNIVERSAL_PANEL_CONFIG.grid.borderColor;
+    ctx.lineWidth = context.borderWidth || 1;
+    ctx.strokeRect(x, y, width, height);
+  }
+  }
 
   static resetShadow(ctx) {
     ctx.shadowColor = "transparent";

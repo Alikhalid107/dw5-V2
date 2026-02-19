@@ -10,7 +10,7 @@ export const WALL_CONFIG = {
       y: 415
     },
     right: {
-      x: -715,
+      x: -725,
       y: 415
     }
   },
