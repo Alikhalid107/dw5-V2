@@ -37,7 +37,7 @@ export class Grass {
             y * tileH,
             tileW,
             tileH,
-            -100,
+            -103,
             src
           )
         );

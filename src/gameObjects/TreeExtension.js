@@ -8,7 +8,7 @@ export class TreeExtension extends CroppedGameObject {
       y,
       croppedWidth,
       height,
-      -98,
+      -102,
       "../public/treeExtension.png",
       cropLeft,
       0,

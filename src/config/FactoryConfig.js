@@ -42,7 +42,7 @@ export const FactoryConfig = {
       fire: {
         image: "fire.png", offsetX: 90, offsetY: 65,
         width: 14, height: 23, totalFrames: 1,
-        frameSpeed: 0, zIndex: 92, loop: false
+        frameSpeed: 0, zIndex: 97, loop: false
       }
     }
   },

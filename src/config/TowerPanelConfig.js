@@ -16,6 +16,42 @@ export const TOWER_PANEL_CONFIG = {
     offsetY: -55,
   },
 
+ BUILDING: {
+  spawnOffsetX: 155,
+  spawnOffsetY: -145,
+
+  // Left building — 5 frames, levels 1-5
+  left: {
+    spriteSheet: "military_central_left.png",
+    totalFrames: 5,
+    frameWidth: 186,   // 930 / 5
+    frameHeight: 117,
+    displayWidth: 186,
+    displayHeight: 117,
+    maxLevel: 5,
+    spawnOffsetX: 155,  // ← tune per building
+    spawnOffsetY: -145,
+    zIndex: -100,  // ← left zIndex
+
+  },
+
+  // Right building — 4 frames, levels 1-4
+  right: {
+    spriteSheet: "military_central_right.png",
+    totalFrames: 5,     // image has 5 frames
+    frameWidth: 186,    // 930 / 5
+    frameHeight: 125,
+    displayWidth: 186,
+    displayHeight: 125,
+    maxLevel: 4,        // only show up to level 4
+    spawnOffsetX: 150,  // ← different position from left
+    spawnOffsetY: -85,
+    zIndex: -99,  // ← right zIndex
+
+  },
+
+  maxLevel: 5, // keep for backward compat
+},
   // Tower-specific styling only
   styling: {
     backgroundColor: UNIVERSAL_PANEL_CONFIG.PANEL_BACKGROUND.color, // ← reuse same panel color
@@ -38,7 +74,7 @@ export const TOWER_PANEL_CONFIG = {
   towerB: { normal: 0.8, hover: 0.9, anchorX: 0.5, anchorY: 0.5 },
   towerC: { normal: 1.6, hover: 2.2, anchorX: 0.5, anchorY: 0.5 },
   towerD: { normal: 1.0, hover: 1.2, anchorX: 0.5, anchorY: 0.5 },
-},
+  },  
 },
 
   // Debug - tower has its own colors separate from universal debug
@@ -48,5 +84,6 @@ export const TOWER_PANEL_CONFIG = {
     panelAreaColor: "rgba(0, 100, 255, 0.9)",
     lineWidth: 2,
     lineDash: [5, 4],
-  }
+  },
+  
 };

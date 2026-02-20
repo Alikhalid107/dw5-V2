@@ -97,7 +97,7 @@ export class UniversalPanelRenderer {
 
  static drawTowerContent(ctx, state, context) {
   const { x, y, width, height } = state.bounds;
-  const { label, spriteManager, boxIndex, panelBounds } = context;
+  const { label, spriteManager, boxIndex, panelBounds, towerManager } = context;
 
   if (spriteManager) {
     spriteManager.drawForBox(ctx, boxIndex, state.isHovered, x, y, width, height, panelBounds);
@@ -107,6 +107,27 @@ export class UniversalPanelRenderer {
     ctx.textAlign = "center";
     ctx.fillText(label || "Tower", x + width / 2, y + height / 2 + 4);
   }
+
+  // Show level indicator on box 0
+  if (boxIndex === 0 && towerManager?.militaryBuilding) {
+  const left = towerManager.militaryBuilding;
+  const right = towerManager.militaryBuildingRight;
+
+  let levelText;
+  if (right) {
+    levelText = right.isMaxLevel() ? "MAX" : `R:Lv${right.level}`;
+  } else {
+    levelText = left.isMaxLevel() ? "L:MAX" : `L:Lv${left.level}`;
+  }
+
+  ctx.fillStyle = "white";
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 2;
+  ctx.font = "bold 10px Arial";
+  ctx.textAlign = "center";
+  ctx.strokeText(levelText, x + width / 2, y + height - 4);
+  ctx.fillText(levelText, x + width / 2, y + height - 4);
+}
 }
 
   static drawUpgradeContent(ctx, state, context) {

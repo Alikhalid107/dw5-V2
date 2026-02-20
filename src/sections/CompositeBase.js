@@ -45,40 +45,49 @@ export class CompositeBase {
     this.wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight);
     this.flagManager = new FlagManager(gx, gy, gw, gh);
     this.factoryManager = new FactoryManager(gx, gy, gw, gh);
-    this.towerManager = new TowerManager(randX, randY);
-  }
+this.towerManager = new TowerManager(randX, randY, gx, gy, gw, gh);  }
 
   createCompositeBase() {
-    const objects = [];
-    
-    objects.push(...this.baseSection.getObjects());
-    objects.push(...this.garageSection.getObjects());
-    objects.push(...this.flakManager.getObjects());
-    objects.push(...this.wallSection.getObjects());
-    objects.push(...this.flagManager.getObjects());
-    objects.push(...this.factoryManager.getObjects());
-
-    return objects;
-  }
+  const objects = [];
+  objects.push(...this.baseSection.getObjects());
+  objects.push(...this.garageSection.getObjects());
+  objects.push(...this.flakManager.getObjects());
+  objects.push(...this.wallSection.getObjects());
+  objects.push(...this.flagManager.getObjects());
+  objects.push(...this.factoryManager.getObjects());
+  objects.push(...this.towerManager.getObjects()); // ← add
+  return objects;
+}
 
   getObjects() { return this.objects; }
 
   update(deltaTime) {
-    this.flagManager?.update(deltaTime);
-    this.garageUI?.update(deltaTime);
-    this.factoryManager?.update(deltaTime);
-    this.towerManager?.update(deltaTime);
+  this.flagManager?.update(deltaTime);
+  this.garageUI?.update(deltaTime);
+  this.factoryManager?.update(deltaTime);
+  this.towerManager?.update(deltaTime);
 
-
-    if (this.flakManager?.update) {
-      const buildCompleted = this.flakManager.update(deltaTime);
-      if (buildCompleted) {
-        this.objectUpdater.updateFlakObjects(this.objects);
-      }
-    }
-
-    this.objectUpdater.updateFactoryObjects(this.objects);
+  // Add left military building when spawned
+  if (this.towerManager?.militaryBuilding &&
+      !this.objects.includes(this.towerManager.militaryBuilding)) {
+    this.objects.push(this.towerManager.militaryBuilding);
   }
+
+  // Add right military building when spawned
+  if (this.towerManager?.militaryBuildingRight &&
+      !this.objects.includes(this.towerManager.militaryBuildingRight)) {
+    this.objects.push(this.towerManager.militaryBuildingRight);
+  }
+
+  if (this.flakManager?.update) {
+    const buildCompleted = this.flakManager.update(deltaTime);
+    if (buildCompleted) {
+      this.objectUpdater.updateFlakObjects(this.objects);
+    }
+  }
+
+  this.objectUpdater.updateFactoryObjects(this.objects);
+}
 
   handleMouseMove(mouseX, mouseY) {
     this.inputHandler.handleMouseMove(mouseX, mouseY);
@@ -86,9 +95,10 @@ export class CompositeBase {
 
   }
 
-  handleClick(mouseX, mouseY) {
-    return this.inputHandler.handleClick(mouseX, mouseY);
-  }
+ handleClick(mouseX, mouseY) {
+  return this.inputHandler.handleClick(mouseX, mouseY) ||
+         this.towerManager?.handleClick(mouseX, mouseY);  // ← add this
+}
 
   drawUI(ctx, offsetX, offsetY) {
     this.factoryManager?.drawUI?.(ctx, offsetX, offsetY);

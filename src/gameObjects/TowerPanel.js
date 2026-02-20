@@ -9,6 +9,12 @@ export class TowerPanel {
     this.baseY = baseY;
     this.components = new TowerPanelComponents();
     this.isVisible = false;
+    this.towerManager = null; // ← set later via setTowerManager
+  }
+
+  // ← NEW
+  setTowerManager(towerManager) {
+    this.towerManager = towerManager;
   }
 
   isPointInHoverArea(mouseX, mouseY) {
@@ -55,7 +61,6 @@ export class TowerPanel {
     this.components.currentOffsetX = offsetX;
     this.components.currentOffsetY = offsetY;
 
-    // Use UniversalPanelRenderer same as IndividualFactoryPanel
     UniversalPanelRenderer.drawPanelBackground(ctx, panelX, panelY, width, height,
       { color: this.config.styling.backgroundColor }
     );
@@ -65,7 +70,8 @@ export class TowerPanel {
     ctx.textAlign = "left";
     ctx.fillText(this.config.styling.headerText, panelX + 8, panelY + 18);
 
-    this.components.draw(ctx, panelX, panelY);
+    // ← pass towerManager so level indicator can be drawn on box 0
+    this.components.draw(ctx, panelX, panelY, this.towerManager);
     this.drawDebug(ctx, offsetX, offsetY);
   }
 
@@ -76,11 +82,10 @@ export class TowerPanel {
     const worldX = x + this.baseX;
     const worldY = y + this.baseY;
     const pos = this.getPanelPosition();
-    
-    // Use auto-calculated dimensions, not config.panel
+
     const pw = this.components.panelWidth;
     const ph = this.components.panelHeight;
-    
+
     const { hoverAreaColor, panelAreaColor, lineWidth, lineDash } = this.config.debug;
 
     ctx.save();
