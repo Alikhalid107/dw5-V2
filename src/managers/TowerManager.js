@@ -26,6 +26,8 @@ export class TowerManager {
   }
 
   update(deltaTime) {
-    // future: building timers etc
+  if (this.panel.isVisible) {
+    this.panel.components.update(deltaTime);
   }
+}
 }

@@ -95,17 +95,18 @@ export class UniversalPanelRenderer {
   }
   }
 
-  static drawTowerContent(ctx, state, context) {
+ static drawTowerContent(ctx, state, context) {
   const { x, y, width, height } = state.bounds;
-  const centerX = x + width / 2;
-  const centerY = y + height / 2;
-  const { label } = context;
+  const { label, spriteManager, boxIndex, panelBounds } = context;
 
-  // Placeholder — you'll swap this with sprites later
-  ctx.fillStyle = "white";
-  ctx.font = "11px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(label || "Tower", centerX, centerY + 4);
+  if (spriteManager) {
+    spriteManager.drawForBox(ctx, boxIndex, state.isHovered, x, y, width, height, panelBounds);
+  } else {
+    ctx.fillStyle = "white";
+    ctx.font = "11px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(label || "Tower", x + width / 2, y + height / 2 + 4);
+  }
 }
 
   static drawUpgradeContent(ctx, state, context) {
