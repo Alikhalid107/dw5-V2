@@ -14,8 +14,9 @@ export class TowerPanel {
 
   // ← NEW
   setTowerManager(towerManager) {
-    this.towerManager = towerManager;
-  }
+  this.towerManager = towerManager;
+  this.components.setupBoxDescriptions(towerManager); // ← re-setup with manager
+}
 
   isPointInHoverArea(mouseX, mouseY) {
     const { x, y, width, height } = this.config.hoverArea;
@@ -50,30 +51,77 @@ export class TowerPanel {
   }
 
   draw(ctx, offsetX = 0, offsetY = 0) {
-    if (!this.isVisible) return;
+  if (!this.isVisible) return;
 
-    const pos = this.getPanelPosition();
-    const panelX = pos.x - offsetX;
-    const panelY = pos.y - offsetY;
-    const width = this.components.panelWidth;
-    const height = this.components.panelHeight;
+  const pos = this.getPanelPosition();
+  const panelX = pos.x - offsetX;
+  const panelY = pos.y - offsetY;
+  const width = this.components.panelWidth;
+  const height = this.components.panelHeight;
 
-    this.components.currentOffsetX = offsetX;
-    this.components.currentOffsetY = offsetY;
+  this.components.currentOffsetX = offsetX;
+  this.components.currentOffsetY = offsetY;
 
-    UniversalPanelRenderer.drawPanelBackground(ctx, panelX, panelY, width, height,
-      { color: this.config.styling.backgroundColor }
-    );
+  UniversalPanelRenderer.drawPanelBackground(ctx, panelX, panelY, width, height,
+    { color: this.config.styling.backgroundColor }
+  );
 
+  // Draw hovered box description in header area
+  this.drawPanelHeader(ctx, panelX, panelY, width, height);
+
+  this.components.draw(ctx, panelX, panelY, this.towerManager);
+  this.drawDebug(ctx, offsetX, offsetY);
+}
+
+drawPanelHeader(ctx, panelX, panelY, panelWidth, panelHeight) {
+  const desc = this.components.getHoveredDescription();
+
+  // Default title when nothing hovered
+  if (!desc) {
     ctx.fillStyle = this.config.styling.headerColor;
     ctx.font = this.config.styling.headerFont;
     ctx.textAlign = "left";
-    ctx.fillText(this.config.styling.headerText, panelX + 8, panelY + 18);
-
-    // ← pass towerManager so level indicator can be drawn on box 0
-    this.components.draw(ctx, panelX, panelY, this.towerManager);
-    this.drawDebug(ctx, offsetX, offsetY);
+    ctx.fillText(this.config.styling.headerText, panelX + 8, panelY + 14);
+    return;
   }
+
+  const lineHeight = 13;
+  const panelRight = panelX + panelWidth - 4;
+  const panelLeft = panelX + 4;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(panelX, panelY, panelWidth, panelHeight);
+  ctx.clip();
+
+  desc.forEach((line, i) => {
+    const y = panelY + 14 + i * lineHeight;
+    if (y > panelY + panelHeight) return;
+
+    const leftSegs = (line.segments || []).filter(s => s.align !== "right");
+    const rightSegs = (line.segments || []).filter(s => s.align === "right");
+
+    let currentX = panelLeft;
+    leftSegs.forEach(seg => {
+      ctx.font = seg.font || "12px Arial";
+      ctx.fillStyle = seg.color || "white";
+      ctx.textAlign = "left";
+      ctx.fillText(seg.text, currentX, y);
+      currentX += ctx.measureText(seg.text).width + 2;
+    });
+
+    let rightX = panelRight;
+    [...rightSegs].reverse().forEach(seg => {
+      ctx.font = seg.font || "12px Arial";
+      ctx.fillStyle = seg.color || "white";
+      ctx.textAlign = "right";
+      ctx.fillText(seg.text, rightX, y);
+      rightX -= ctx.measureText(seg.text).width + 2;
+    });
+  });
+
+  ctx.restore();
+}
 
   drawDebug(ctx, offsetX, offsetY) {
     if (!this.config.debug.enabled) return;

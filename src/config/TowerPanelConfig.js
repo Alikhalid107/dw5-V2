@@ -108,11 +108,14 @@ detector: {
 },
   // Tower-specific styling only
   styling: {
-    backgroundColor: UNIVERSAL_PANEL_CONFIG.PANEL_BACKGROUND.color, // ← reuse same panel color
-    headerText: "Build Tower",
-    headerFont: "bold 13px Arial",
-    headerColor: UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary, // ← reuse "white"
-  },
+  backgroundColor: UNIVERSAL_PANEL_CONFIG.PANEL_BACKGROUND.color,
+  headerText: "Build Tower",
+  headerFont: "bold 13px Arial",
+  headerColor: UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary,
+  checkMarkSize: 50,  // ← tune this
+  checkMarkOffsetX: 10,  // ← tune: relative to box x
+  checkMarkOffsetY: -10,  // ← tune: relative to box y
+},
 
   // Tower-specific sprites (same pattern as UPGRADE_BUTTON_CONFIG.SPRITES)
   SPRITES: {

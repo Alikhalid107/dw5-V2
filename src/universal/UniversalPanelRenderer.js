@@ -4,6 +4,7 @@ import { UPGRADE_BUTTON_CONFIG } from "../config/UpgradeButtonConfig.js";
 import { FactoryConfig } from "../config/FactoryConfig.js";
 import { IconManager } from '../utils/IconManager.js'; // adjust path as needed
 import { PRODUCTION_BUTTONS_CONFIG } from "../config/ProductionButtonConfig.js";
+import { TOWER_PANEL_CONFIG } from "../config/TowerPanelConfig.js";
 
 const iconManager = new IconManager();
 
@@ -97,7 +98,7 @@ export class UniversalPanelRenderer {
 
  static drawTowerContent(ctx, state, context) {
   const { x, y, width, height } = state.bounds;
-  const { label, spriteManager, boxIndex, panelBounds, towerManager } = context;
+  const { label, spriteManager, boxIndex, panelBounds, towerManager, iconManager } = context;
 
   if (spriteManager) {
     spriteManager.drawForBox(ctx, boxIndex, state.isHovered, x, y, width, height, panelBounds);
@@ -108,26 +109,31 @@ export class UniversalPanelRenderer {
     ctx.fillText(label || "Tower", x + width / 2, y + height / 2 + 4);
   }
 
-  // Show level indicator on box 0
-  if (boxIndex === 0 && towerManager?.militaryBuilding) {
-  const left = towerManager.militaryBuilding;
-  const right = towerManager.militaryBuildingRight;
-
-  let levelText;
-  if (right) {
-    levelText = right.isMaxLevel() ? "MAX" : `R:Lv${right.level}`;
-  } else {
-    levelText = left.isMaxLevel() ? "L:MAX" : `L:Lv${left.level}`;
-  }
-
-  ctx.fillStyle = "white";
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 2;
-  ctx.font = "bold 10px Arial";
-  ctx.textAlign = "center";
-  ctx.strokeText(levelText, x + width / 2, y + height - 4);
-  ctx.fillText(levelText, x + width / 2, y + height - 4);
+  // Check mark logic — same pattern as drawMaxLevelIcon
+  const shouldShowCheck = this.isTowerBoxComplete(boxIndex, towerManager);
+if (shouldShowCheck && iconManager?.isLoaded?.()) {
+  const { checkMarkSize, checkMarkOffsetX, checkMarkOffsetY } = TOWER_PANEL_CONFIG.styling;
+  iconManager.drawCheckMark(
+    ctx,
+    x + (checkMarkOffsetX ?? 0),  // ← offset from box x
+    y + (checkMarkOffsetY ?? 0),  // ← offset from box y
+    checkMarkSize ?? 40
+  );
+  this.resetShadow(ctx);
 }
+}
+
+// Helper — checks if a tower box should show the tick mark
+static isTowerBoxComplete(boxIndex, towerManager) {
+  if (!towerManager) return false;
+  switch (boxIndex) {
+    case 0: return towerManager.militaryBuilding?.isMaxLevel() &&
+                   towerManager.militaryBuildingRight?.isMaxLevel();
+    case 1: return !!towerManager.radarBuilding;
+    case 2: return !!towerManager.jammerBuilding;
+    case 3: return !!towerManager.detectorBuilding;
+    default: return false;
+  }
 }
 
   static drawUpgradeContent(ctx, state, context) {
