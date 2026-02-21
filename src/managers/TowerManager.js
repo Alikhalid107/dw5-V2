@@ -1,5 +1,8 @@
 import { TowerPanel } from "../gameObjects/TowerPanel.js";
 import { MilitaryBuilding } from "../gameObjects/MilitaryBuilding.js";
+import { RadarBuilding } from "../gameObjects/RadarBuilding.js";
+import { JammerBuilding } from "../gameObjects/JammerBuilding.js";
+import { DetectorBuilding } from "../gameObjects/DetectorBuilding.js";
 
 export class TowerManager {
   constructor(baseX, baseY, garageX, garageY, garageWidth, garageHeight) {
@@ -11,8 +14,11 @@ export class TowerManager {
     this.garageHeight = garageHeight;
     this.panel = new TowerPanel(baseX, baseY);
     this.showGrid = false;
-    this.militaryBuilding = null;      // left building
-    this.militaryBuildingRight = null; // right building — spawns after left is maxed
+    this.militaryBuilding = null;
+    this.militaryBuildingRight = null;
+    this.radarBuilding = null;
+    this.jammerBuilding = null;    // ← new
+    this.detectorBuilding = null;  // ← new
     this.panel.setTowerManager(this);
   }
 
@@ -27,49 +33,59 @@ export class TowerManager {
 
     switch (clickedBox.index) {
       case 0: return this.handleMilitaryClick();
-      case 1: console.log("Radar clicked"); return true;
-      case 2: console.log("Jammer clicked"); return true;
-      case 3: console.log("Detector clicked"); return true;
+      case 1: return this.handleRadarClick();
+      case 2: return this.handleJammerClick();    // ← new
+      case 3: return this.handleDetectorClick();  // ← new
     }
     return false;
   }
 
+  handleJammerClick() {
+    if (this.jammerBuilding) {
+      console.log("Jammer already placed");
+      return false;
+    }
+    this.jammerBuilding = new JammerBuilding(this.garageX, this.garageY);
+    console.log("Jammer building spawned");
+    return true;
+  }
+
+  handleDetectorClick() {
+    if (this.detectorBuilding) {
+      console.log("Detector already placed");
+      return false;
+    }
+    this.detectorBuilding = new DetectorBuilding(this.garageX, this.garageY);
+    console.log("Detector building spawned");
+    return true;
+  }
+
+  handleRadarClick() {
+    if (this.radarBuilding) {
+      console.log("Radar already placed");
+      return false;
+    }
+    this.radarBuilding = new RadarBuilding(this.garageX, this.garageY);
+    return true;
+  }
+
   handleMilitaryClick() {
-    // Phase 1 — left building not yet maxed
     if (!this.militaryBuilding) {
-      this.militaryBuilding = new MilitaryBuilding(
-        this.garageX, this.garageY,
-        this.garageWidth, this.garageHeight,
-        "left"
-      );
-      console.log("Left military building spawned at level 1");
+      this.militaryBuilding = new MilitaryBuilding(this.garageX, this.garageY, this.garageWidth, this.garageHeight, "left");
       return true;
     }
-
     if (!this.militaryBuilding.isMaxLevel()) {
       this.militaryBuilding.upgrade();
-      console.log(`Left military building level ${this.militaryBuilding.level}`);
       return true;
     }
-
-    // Phase 2 — left is maxed, now handle right building
     if (!this.militaryBuildingRight) {
-      this.militaryBuildingRight = new MilitaryBuilding(
-        this.garageX, this.garageY,
-        this.garageWidth, this.garageHeight,
-        "right"
-      );
-      console.log("Right military building spawned at level 1");
+      this.militaryBuildingRight = new MilitaryBuilding(this.garageX, this.garageY, this.garageWidth, this.garageHeight, "right");
       return true;
     }
-
     if (!this.militaryBuildingRight.isMaxLevel()) {
       this.militaryBuildingRight.upgrade();
-      console.log(`Right military building level ${this.militaryBuildingRight.level}`);
       return true;
     }
-
-    console.log("Both military buildings are max level");
     return false;
   }
 
@@ -77,6 +93,9 @@ export class TowerManager {
     const objects = [];
     if (this.militaryBuilding) objects.push(...this.militaryBuilding.getObjects());
     if (this.militaryBuildingRight) objects.push(...this.militaryBuildingRight.getObjects());
+    if (this.radarBuilding) objects.push(...this.radarBuilding.getObjects());
+    if (this.jammerBuilding) objects.push(...this.jammerBuilding.getObjects());
+    if (this.detectorBuilding) objects.push(...this.detectorBuilding.getObjects());
     return objects;
   }
 
@@ -88,5 +107,7 @@ export class TowerManager {
     if (this.panel.isVisible) {
       this.panel.components.update(deltaTime);
     }
+    this.radarBuilding?.update(deltaTime);
+    this.detectorBuilding?.update(deltaTime);  // ← new
   }
 }

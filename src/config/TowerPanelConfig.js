@@ -15,6 +15,7 @@ export const TOWER_PANEL_CONFIG = {
     offsetX: 0,
     offsetY: -55,
   },
+  
 
  BUILDING: {
   spawnOffsetX: 155,
@@ -47,9 +48,62 @@ export const TOWER_PANEL_CONFIG = {
     spawnOffsetX: 150,  // ← different position from left
     spawnOffsetY: -85,
     zIndex: -99,  // ← right zIndex
-
   },
 
+  radar: {
+  spriteSheet: "radar_rotor.png",
+  totalFrames: 72,
+  frameWidth: 41,
+  frameHeight: 33,
+  displayWidth: 45,
+  displayHeight: 35,
+  spawnOffsetX: -10,
+  spawnOffsetY: -14,
+  zIndex: -98,
+  animDuration: 2700,
+
+  // Tower positioned relative to rotor via offsetX/Y
+  tower: {
+    spriteSheet: "radar_tower.png",
+    displayWidth: 67,
+    displayHeight: 100,
+    offsetX: 2,  // ← tune: relative to rotor's x
+    offsetY: 23,  // ← tune: relative to rotor's y
+    zIndex: -99,   // behind rotor
+  }
+},
+jammer: {
+  spriteSheet: "jammer.png",
+  totalFrames: 1,
+  displayWidth: 70,
+  displayHeight: 120,
+  spawnOffsetX: 185,  // ← tune
+  spawnOffsetY: 10,
+  zIndex: -97,
+},
+
+detector: {
+  spriteSheet: "detector_rotor.png",
+  totalFrames: 72,
+  frameWidth: 46,
+  frameHeight: 48,
+  displayWidth: 46,
+  displayHeight: 48,
+  spawnOffsetX: 210,
+  spawnOffsetY: 40,
+  zIndex: -96,
+  animDuration: 3000,
+
+  // Tower positioned relative to rotor
+  tower: {
+    spriteSheet: "detector_tower.png",
+    displayWidth: 41,
+    displayHeight: 71,
+    offsetX: 12,    // ← tune
+    offsetY: 28,  // ← tune
+    zIndex: -97,   // behind rotor
+  }
+},
   maxLevel: 5, // keep for backward compat
 },
   // Tower-specific styling only
@@ -64,9 +118,9 @@ export const TOWER_PANEL_CONFIG = {
   SPRITES: {
   spritePaths: {
     towerA: "military_central_left.png",
-    towerB: "radar.png",
+    towerB: "radar_rotor.png",
     towerC: "jammer.png",
-    towerD: "detector.png",
+    towerD: "detector_rotor.png",
   },
   
   sizes: {

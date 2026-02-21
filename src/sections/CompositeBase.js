@@ -67,17 +67,30 @@ this.towerManager = new TowerManager(randX, randY, gx, gy, gw, gh);  }
   this.factoryManager?.update(deltaTime);
   this.towerManager?.update(deltaTime);
 
-  // Add left military building when spawned
   if (this.towerManager?.militaryBuilding &&
       !this.objects.includes(this.towerManager.militaryBuilding)) {
     this.objects.push(this.towerManager.militaryBuilding);
   }
 
-  // Add right military building when spawned
   if (this.towerManager?.militaryBuildingRight &&
       !this.objects.includes(this.towerManager.militaryBuildingRight)) {
     this.objects.push(this.towerManager.militaryBuildingRight);
   }
+
+  // ← THIS WAS MISSING
+  if (this.towerManager?.radarBuilding &&
+      !this.objects.includes(this.towerManager.radarBuilding)) {
+    this.objects.push(this.towerManager.radarBuilding);
+  }
+  if (this.towerManager?.jammerBuilding &&
+    !this.objects.includes(this.towerManager.jammerBuilding)) {
+  this.objects.push(this.towerManager.jammerBuilding);
+}
+
+if (this.towerManager?.detectorBuilding &&
+    !this.objects.includes(this.towerManager.detectorBuilding)) {
+  this.objects.push(this.towerManager.detectorBuilding);
+}
 
   if (this.flakManager?.update) {
     const buildCompleted = this.flakManager.update(deltaTime);
