@@ -1,4 +1,3 @@
-// src/universal/UniversalBoxController.js
 import { FactoryUtils } from "../../utils/FactoryUtils.js";
 
 export class UniversalBoxController {
@@ -11,7 +10,6 @@ export class UniversalBoxController {
 
     switch (actionType) {
       case "factory":
-        // Pass entire context to FactoryUtils; FactoryUtils handles messaging now.
         return FactoryUtils.handleFactoryClick(context);
 
       case "build":
@@ -19,6 +17,12 @@ export class UniversalBoxController {
           return context.flakManager?.canBuild()
             ? context.flakManager.startBuilding()
             : false;
+        }
+        if (context.boxIndex === 1) {  // ← box 2, wall upgrade
+          return context.wallSection?.upgradeWalls() || false;
+        }
+         if (context.boxIndex === 2) {  // ← box 3
+          return context.garageUI?.spawnLongRange() || false;
         }
         return false;
 

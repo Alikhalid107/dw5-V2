@@ -23,7 +23,7 @@ export const TOWER_PANEL_CONFIG = {
 
   // Left building — 5 frames, levels 1-5
   left: {
-    spriteSheet: "military_central_left.png",
+    spriteSheet: "militaryCentralLeft.png",
     totalFrames: 5,
     frameWidth: 186,   // 930 / 5
     frameHeight: 117,
@@ -38,7 +38,7 @@ export const TOWER_PANEL_CONFIG = {
 
   // Right building — 4 frames, levels 1-4
   right: {
-    spriteSheet: "military_central_right.png",
+    spriteSheet: "militaryCentralRight.png",
     totalFrames: 5,     // image has 5 frames
     frameWidth: 186,    // 930 / 5
     frameHeight: 125,
@@ -60,7 +60,7 @@ export const TOWER_PANEL_CONFIG = {
   spawnOffsetX: -10,
   spawnOffsetY: -14,
   zIndex: -98,
-  animDuration: 2700,
+  animDuration: 3000,
 
   // Tower positioned relative to rotor via offsetX/Y
   tower: {
@@ -120,7 +120,7 @@ detector: {
   // Tower-specific sprites (same pattern as UPGRADE_BUTTON_CONFIG.SPRITES)
   SPRITES: {
   spritePaths: {
-    towerA: "military_central_left.png",
+    towerA: "militaryCentralLeft.png",
     towerB: "radar_rotor.png",
     towerC: "jammer.png",
     towerD: "detector_rotor.png",

@@ -75,6 +75,36 @@ export class WallSection {
     }
   }
 
+ upgradeWalls() {
+  if (this.wallsUpgraded) return false;
+
+  this.leftWall.setImage(WALL_CONFIG.UPGRADE.IMAGES.left);
+  this.rightWall.setImage(WALL_CONFIG.UPGRADE.IMAGES.right);
+
+  this.leftWall.width = WALL_CONFIG.UPGRADE.DIMENSIONS.width;
+  this.leftWall.height = WALL_CONFIG.UPGRADE.DIMENSIONS.height;
+  this.rightWall.width = WALL_CONFIG.UPGRADE.DIMENSIONS.width;
+  this.rightWall.height = WALL_CONFIG.UPGRADE.DIMENSIONS.height;
+
+  // Apply upgrade-specific positions
+  const leftPos = WallPositioning.calculateWallPosition(
+    'left', this.baseX, this.baseY, this.baseWidth,
+    WALL_CONFIG.UPGRADE.OFFSETS.left
+  );
+  const rightPos = WallPositioning.calculateWallPosition(
+    'right', this.baseX, this.baseY, this.baseWidth,
+    WALL_CONFIG.UPGRADE.OFFSETS.right
+  );
+
+  this.leftWall.x = leftPos.x;
+  this.leftWall.y = leftPos.y;
+  this.rightWall.x = rightPos.x;
+  this.rightWall.y = rightPos.y;
+
+  this.wallsUpgraded = true;
+  return true;
+}
+
   // ---------- public getters ----------
   getObjects() {
     return this.objects;

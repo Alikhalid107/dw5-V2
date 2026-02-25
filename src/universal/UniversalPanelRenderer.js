@@ -5,6 +5,8 @@ import { FactoryConfig } from "../config/FactoryConfig.js";
 import { IconManager } from '../utils/IconManager.js'; // adjust path as needed
 import { PRODUCTION_BUTTONS_CONFIG } from "../config/ProductionButtonConfig.js";
 import { TOWER_PANEL_CONFIG } from "../config/TowerPanelConfig.js";
+import { WALL_CONFIG } from "../config/WallConfig.js";
+import { GARAGE_CONFIG } from "../config/GarageConfig.js";
 
 const iconManager = new IconManager();
 
@@ -183,25 +185,50 @@ static isTowerBoxComplete(boxIndex, towerManager) {
   }
 
   static drawGarageContent(ctx, state, context) {
-    const { canBuild, flakManager, boxIndex } = context;
-    if (!canBuild || boxIndex !== 0) return;
+  const { canBuild, flakManager, boxIndex, wallSection, iconManager, garageSpriteManager, garageUI, panelBounds } = context;
+  const { x, y, width, height } = state.bounds;
+  const centerX = x + width / 2;
+  const centerY = y + height / 2;
 
-    const { x, y, width, height } = state.bounds;
-    const centerX = x + width / 2;
-    const centerY = y + height / 2;
+  if (boxIndex === 0) {
+  // Always draw flak sprite (frame 0 static, animated on hover)
+  if (garageSpriteManager) {
+    garageSpriteManager.drawFlakInBox(ctx, state.isHovered, x, y, width, height, panelBounds);
+  }
 
-    ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
-    ctx.textAlign = "center";
+  // Draw + or MAX CAP text on top of sprite
+  ctx.fillStyle = UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary;
+  
+  return;
+}
 
-    if (flakManager?.canBuild()) {
-      ctx.font = "18px Arial";
-      ctx.fillText("+", centerX, centerY + 6);
+  if (boxIndex === 1) {
+    if (wallSection?.wallsUpgraded && iconManager?.isLoaded?.()) {
+      const { checkMarkSize, checkMarkOffsetX, checkMarkOffsetY } = WALL_CONFIG.UI;
+      iconManager.drawCheckMark(ctx, x + (checkMarkOffsetX ?? 0), y + (checkMarkOffsetY ?? 0), checkMarkSize ?? 35);
     } else {
+      ctx.fillStyle = "white";
       ctx.font = "10px Arial";
-      ctx.fillText("MAX", centerX, centerY - 4);
-      ctx.fillText("CAP", centerX, centerY + 8);
+      ctx.textAlign = "center";
+      ctx.fillText("WALL", centerX, centerY - 4);
+      ctx.fillText("UP", centerX, centerY + 8);
+    }
+    return;
+  }
+
+  if (boxIndex === 2) {
+    // Draw sprite in box — rotates on hover
+    if (garageSpriteManager) {
+      garageSpriteManager.drawInBox(ctx, state.isHovered, x, y, width, height, panelBounds);
+    }
+
+    // Tick mark when placed
+    if (garageUI?.longRangeBuilding && iconManager?.isLoaded?.()) {
+      const { size, offsetX: ox, offsetY: oy } = GARAGE_CONFIG.longRange.checkMark;
+      iconManager.drawCheckMark(ctx, x + ox, y + oy, size);
     }
   }
+}
 
   static drawFactoryContent(ctx, state, context) {
   const { boxIndex, panelBounds } = context;

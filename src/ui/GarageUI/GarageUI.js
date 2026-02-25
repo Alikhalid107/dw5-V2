@@ -1,6 +1,9 @@
 import { UniversalBoxesFactory } from "../universalSystem/UniversalBoxesFactory.js";
 import { UniversalPanelRenderer } from "../../universal/UniversalPanelRenderer.js";
 import { ConfigurationMerger } from "../../universal/ConfigurationMerger.js";
+import { IconManager } from "../../utils/IconManager.js";
+import { LongRangeBuilding } from "../../gameObjects/LongRangeBuilding.js";
+import { GarageSpriteManager } from "../../managers/GarageSpriteManager.js";
 
 export class GarageUI {
   constructor(
@@ -9,6 +12,7 @@ export class GarageUI {
     garageY,
     garageWidth,
     garageHeight,
+    wallSection = null, // ← add wallSection to constructor
     customConfig = {}
   ) {
     this.flakManager = flakManager;
@@ -16,9 +20,15 @@ export class GarageUI {
     this.garageY = garageY;
     this.garageWidth = garageWidth;
     this.garageHeight = garageHeight;
+    this.wallSection = wallSection;
+    this.iconManager = new IconManager(); // ← add
     this.showGrid = false;
     this.currentOffsetX = 0;
     this.currentOffsetY = 0;
+
+    this.longRangeBuilding = null;
+    this.garageSpriteManager = new GarageSpriteManager();
+
 
     this.config = ConfigurationMerger.getGarageUIConfig(customConfig);
     this.gridConfig = this.config.grid;
@@ -109,7 +119,14 @@ export class GarageUI {
     // ---- end new --------------------------------------
 
     // draw boxes (they will draw letters/sprites themselves)
-    this.boxes.forEach((box) => box.draw(ctx, x, y, {renderType: "garage",}))}
+   this.boxes.forEach((box) => box.draw(ctx, x, y, {
+  renderType: "garage",
+  wallSection: this.wallSection,
+  iconManager: this.iconManager,
+  garageUI: this,
+  garageSpriteManager: this.garageSpriteManager,  // ← add
+  panelBounds: { x, y, width: this.panelWidth, height: this.panelHeight }, // ← add
+}))}
   
 
   handleMouseMove(mouseX, mouseY) {
@@ -147,15 +164,35 @@ export class GarageUI {
   }
 
   handleClick(mouseX, mouseY) {
-    return (
-      this.showGrid && this.boxes.some((box) => box.handleClick(mouseX, mouseY))
-    );
-  }
+  return this.boxes.find(box => {
+    if (!box._isPointInWorldBounds(mouseX, mouseY)) return false;
+    return box.controller.handleClick(mouseX, mouseY, box.state, {
+      flakManager: this.flakManager,
+      wallSection: this.wallSection,
+      garageUI: this,              // ← THIS WAS MISSING
+      boxIndex: box.index,
+      gridConfig: this.gridConfig
+    }, 'build');
+  }) || false;
+}
+
+  spawnLongRange() {
+  if (this.longRangeBuilding) return false;
+  this.longRangeBuilding = new LongRangeBuilding(this.garageX, this.garageY);
+  return true;
+}
 
   update(deltaTime) {
-    // No update needed for boxes currently
-  }
+  const flakBox = this.boxes[0];   // ← verify with log
+  const lrBox = this.boxes[2];     // ← verify with log
 
+  this.garageSpriteManager.update(
+    deltaTime,
+    flakBox?.state?.isHovered || false,
+    lrBox?.state?.isHovered || false
+  );
+  this.longRangeBuilding?.update(deltaTime);
+}
   updateConfig(newConfig) {
     this.config = ConfigurationMerger.getGarageUIConfig(newConfig);
     this.gridConfig = this.config.grid;

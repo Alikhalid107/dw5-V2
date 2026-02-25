@@ -3,22 +3,37 @@ export const WALL_CONFIG = {
     width: 485,
     height: 59
   },
-  
+
   OFFSETS: {
-    left: {
-      x: 200,
-      y: 415
-    },
-    right: {
-      x: -725,
-      y: 415
-    }
+    left: { x: 200, y: 415 },
+    right: { x: -725, y: 415 }
   },
-  
+
   IMAGES: {
-    left: 'simpleWallLeft.png',
-    right: 'simpleWallRight.png'
+    left: 'simpleWallLeft2.png',
+    right: 'simpleWallRight2.png'
   },
-  
+  UI: {
+  checkMarkSize: 50,      // ← tune size
+  checkMarkOffsetX: 10,    // ← tune x relative to box
+  checkMarkOffsetY: -7,    // ← tune y relative to box
+},
+
+  // ← new
+  UPGRADE: {
+    IMAGES: {
+      left: 'greatWallLeft2.png',
+      right: 'greatWallRight2.png'
+    },
+    DIMENSIONS: {
+    width: 492,   // ← set your upgrade wall dimensions
+    height: 73,
+  },
+  OFFSETS: {
+    left: { x: 200, y: 400 },   // ← tune separately from simple wall
+    right: { x: -725, y: 400 }
+  }
+  },
+
   Z_INDEX: 5
 };

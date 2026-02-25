@@ -7,4 +7,8 @@ export class Wall extends GameObject {
     this.side = side;
     this.id = `wall-${side}`;
   }
+
+  setImage(newImage) {
+  this.imageLoader.loadImage(newImage);
+}
 }

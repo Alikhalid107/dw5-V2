@@ -2,6 +2,20 @@ export const FLAK_CONFIG = {
   DEFAULT_SCALE_FACTOR: 1,
   MAX_FLAK_CAPACITY: 50,
   BUILD_DURATION: 1, // seconds
+
+  BOX_SPRITE: {
+    spriteSheet: "flak.png",
+    totalFrames: 72,
+    frameWidth: 54,   // actual flak frame width
+    frameHeight: 39,  // actual flak frame height
+    animDuration: 1500,  // ms for full rotation on hover
+    box: {
+      sizeMultiplier: 0.8,
+      hoverSizeMultiplier: 1,
+      anchorX: 1.0,
+      anchorY: 0.5,
+    }
+  },
   
   POSITIONING: {
     CLAMP_OFFSET: 300, // pixels beyond garage boundaries

@@ -1,7 +1,7 @@
 import { Flak } from "../gameObjects/Flak.js";
 import { FLAK_CONFIG } from '../config/FlakConfig.js';
 import { FlakPositioning } from '../utils/FlakPositioning.js';
-import { FlakBuildSystem } from './FlakBuildSystem.js';
+import { FlakBuildSystem } from '../sections/FlakBuildSystem.js';
 
 export class FlakManager {
   constructor(garageX, garageY, garageWidth, garageHeight) {
