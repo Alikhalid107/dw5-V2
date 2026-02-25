@@ -3,6 +3,7 @@ import { EXTENSION_PANEL_CONFIG } from "../../config/ExtensionPanelConfig.js";
 import { UniversalBoxesFactory } from "../universalSystem/UniversalBoxesFactory.js";
 import { UniversalPositionCalculator } from "../universalSystem/UniversalPositionCalculator.js";
 import { IconManager } from "../../utils/IconManager.js";
+import { ExtensionSpriteManager } from "../../managers/ExtensionSpriteManager.js";
 
 export class ExtensionPanelComponents {
   constructor() {
@@ -13,11 +14,12 @@ export class ExtensionPanelComponents {
     this.currentOffsetX = 0;
     this.currentOffsetY = 0;
     this.iconManager = new IconManager();
+    this.spriteManager = new ExtensionSpriteManager();
   }
 
   _createGridConfig() {
     const { grid } = UNIVERSAL_PANEL_CONFIG;
-    const preset = grid.tower; // ← reuse tower preset (same sizing)
+    const preset = grid.tower;
     return {
       rows: preset.rows,
       cols: preset.cols,
@@ -37,70 +39,86 @@ export class ExtensionPanelComponents {
 
   setupBoxDescriptions(extensionManager = null) {
     this.extensionManager = extensionManager;
-    this.boxes[0].description = (em) => this.getExtADescription(em);
-    this.boxes[1].description = (em) => this.getExtBDescription(em);
-    this.boxes[2].description = (em) => this.getExtCDescription(em);
-    this.boxes[3].description = (em) => this.getExtDDescription(em);
+    this.boxes[0].description = (em) => this.getMinistryDescription(em);
+    this.boxes[1].description = (em) => this.getUpgradeAllDescription(em);
+    this.boxes[2].description = (em) => this.getOfficeDescription(em);
+    this.boxes[3].description = (em) => this.getGroupDescription(em);
   }
 
-  getExtADescription(em) {
+  getMinistryDescription(em) {
+    const b = em?.ministryBuilding;
+    if (b?.isMaxLevel()) {
+      return [{ segments: [{ text: "Max level reached", font: "16px Arial", align: "center", color: "white" }] }];
+    }
+    const level = b ? b.level : 0;
     return [
-      { segments: [{ text: "Extension A", color: "white", font: "15px Arial", align: "left" }] },
+      { segments: [{ text: "Ministry", color: "white", font: "15px Arial", align: "left" }] },
       { segments: [
-        { text: "Description here", color: "white", font: "12px Arial", align: "left" },
+        { text: "Command building", color: "white", font: "12px Arial", align: "left" },
+        { text: `Lv ${level}/${EXTENSION_PANEL_CONFIG.BUILDING.ministry.maxLevel}`, color: "#fcfc8b", font: "12px Arial", align: "right" }
       ]},
       { segments: [
-        { text: "Detail line", color: "white", font: "12px Arial", align: "left" },
-        { text: "Titan 50", color: "#A6C7FA", font: "12px Arial", align: "right" }
-      ]},
-    ];
-  }
-
-  getExtBDescription(em) {
-  if (em?.upgradingAll) {
-    const remaining = Math.max(0, Math.ceil(
-      (em.upgradeAllTime - em.upgradeAllTimer) / 1000
-    ));
-    return [
-      { segments: [{ text: "Upgrading All...", color: "orange", font: "15px Arial", align: "left" }] },
-      { segments: [{ text: `${remaining}s remaining`, color: "white", font: "12px Arial", align: "left" }] },
-    ];
-  }
-
-  const canUpgrade = Object.values(em?.factoryManager?.factories || {})
-    .some(f => !f.isMaxLevel());
-
-  if (!canUpgrade) {
-    return [{ segments: [{ text: "Max level reached", font: "16px Arial", align: "center", color: "white" }] }];
-  }
-
-  return [
-    { segments: [{ text: "Upgrade All", color: "white", font: "15px Arial", align: "left" }] },
-    { segments: [{ text: "Upgrades all factories", color: "white", font: "12px Arial", align: "left" }] },
-    { segments: [
-      { text: "to max level", color: "white", font: "12px Arial", align: "left" },
-      { text: "Titan 500", color: "#A6C7FA", font: "12px Arial", align: "right" }
-    ]},
-  ];
-}
-
-  getExtCDescription(em) {
-    return [
-      { segments: [{ text: "Extension C", color: "white", font: "15px Arial", align: "left" }] },
-      { segments: [{ text: "Description here", color: "white", font: "12px Arial", align: "left" }] },
-      { segments: [
-        { text: "Detail line", color: "white", font: "12px Arial", align: "left" },
-        { text: "Titan 50", color: "#A6C7FA", font: "12px Arial", align: "right" }
+        { text: "Click to upgrade", color: "white", font: "12px Arial", align: "left" },
+        { text: "Titan 100", color: "#A6C7FA", font: "12px Arial", align: "right" }
       ]},
     ];
   }
 
-  getExtDDescription(em) {
+  getUpgradeAllDescription(em) {
+    if (em?.upgradingAll) {
+      const remaining = Math.max(0, Math.ceil((em.upgradeAllTime - em.upgradeAllTimer) / 1000));
+      return [
+        { segments: [{ text: "Upgrading All...", color: "orange", font: "15px Arial", align: "left" }] },
+        { segments: [{ text: `${remaining}s remaining`, color: "white", font: "12px Arial", align: "left" }] },
+      ];
+    }
+    const canUpgrade = Object.values(em?.factoryManager?.factories || {}).some(f => !f.isMaxLevel());
+    if (!canUpgrade) {
+      return [{ segments: [{ text: "Max level reached", font: "16px Arial", align: "center", color: "white" }] }];
+    }
     return [
-      { segments: [{ text: "Extension D", color: "white", font: "15px Arial", align: "left" }] },
-      { segments: [{ text: "Description here", color: "white", font: "12px Arial", align: "left" }] },
+      { segments: [{ text: "Upgrade All", color: "white", font: "15px Arial", align: "left" }] },
+      { segments: [{ text: "Upgrades all factories", color: "white", font: "12px Arial", align: "left" }] },
       { segments: [
-        { text: "Detail line", color: "white", font: "12px Arial", align: "left" },
+        { text: "to max level", color: "white", font: "12px Arial", align: "left" },
+        { text: "Titan 500", color: "#A6C7FA", font: "12px Arial", align: "right" }
+      ]},
+    ];
+  }
+
+  getOfficeDescription(em) {
+    const b = em?.officeBuilding;
+    if (b?.isMaxLevel()) {
+      return [{ segments: [{ text: "Max level reached", font: "16px Arial", align: "center", color: "white" }] }];
+    }
+    const level = b ? b.level : 0;
+    return [
+      { segments: [{ text: "Military Office", color: "white", font: "15px Arial", align: "left" }] },
+      { segments: [
+        { text: "Increases unit cap", color: "white", font: "12px Arial", align: "left" },
+        { text: `Lv ${level}/${EXTENSION_PANEL_CONFIG.BUILDING.militaryOffice.maxLevel}`, color: "#fcfc8b", font: "12px Arial", align: "right" }
+      ]},
+      { segments: [
+        { text: "Click to upgrade", color: "white", font: "12px Arial", align: "left" },
+        { text: "Titan 75", color: "#A6C7FA", font: "12px Arial", align: "right" }
+      ]},
+    ];
+  }
+
+  getGroupDescription(em) {
+    const b = em?.groupBuilding;
+    if (b?.isMaxLevel()) {
+      return [{ segments: [{ text: "Max level reached", font: "16px Arial", align: "center", color: "white" }] }];
+    }
+    const level = b ? b.level : 0;
+    return [
+      { segments: [{ text: "Group Limit", color: "white", font: "15px Arial", align: "left" }] },
+      { segments: [
+        { text: "Increases group size", color: "white", font: "12px Arial", align: "left" },
+        { text: `Lv ${level}/${EXTENSION_PANEL_CONFIG.BUILDING.groupLimit.maxLevel}`, color: "#fcfc8b", font: "12px Arial", align: "right" }
+      ]},
+      { segments: [
+        { text: "Click to upgrade", color: "white", font: "12px Arial", align: "left" },
         { text: "Titan 50", color: "#A6C7FA", font: "12px Arial", align: "right" }
       ]},
     ];
@@ -114,9 +132,7 @@ export class ExtensionPanelComponents {
   }
 
   calculatePosition(row, col, panelX, panelY) {
-    return UniversalPositionCalculator.calculateBoxPosition(
-      panelX, panelY, row, col, this.gridConfig
-    );
+    return UniversalPositionCalculator.calculateBoxPosition(panelX, panelY, row, col, this.gridConfig);
   }
 
   updateHoverStates(mouseX, mouseY, panelX, panelY) {
@@ -136,7 +152,13 @@ export class ExtensionPanelComponents {
   }
 
   update(deltaTime) {
-    // add animations here if needed later
+    const box2 = this.boxes[2];
+    const box3 = this.boxes[3];
+    this.spriteManager.update(
+      deltaTime,
+      box2?.state?.isHovered || false,
+      box3?.state?.isHovered || false
+    );
   }
 
   draw(ctx, panelX, panelY, extensionManager = null) {
@@ -151,6 +173,7 @@ export class ExtensionPanelComponents {
       box.draw(ctx, panelX, panelY, {
         renderType: "extension",
         panelBounds,
+        spriteManager: this.spriteManager,
         iconManager: this.iconManager,
         extensionManager,
         boxIndex: box.index,

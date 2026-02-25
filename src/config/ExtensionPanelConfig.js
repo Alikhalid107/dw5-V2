@@ -18,23 +18,58 @@ export const EXTENSION_PANEL_CONFIG = {
     headerText: "Base Extensions",
     headerFont: "bold 13px Arial",
     headerColor: UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary,
-    checkMarkSize: 40,
-    checkMarkOffsetX: 0,
-    checkMarkOffsetY: 0,
+    checkMarkSize: 50,
+    checkMarkOffsetX: 10,
+    checkMarkOffsetY: -10,
+  },
+
+  BUILDING: {
+    ministry: {
+      spriteSheet: "ministry.png",
+      totalFrames: 6,
+      frameWidth: 195,      // 1170 / 6
+      frameHeight: 117,
+      displayWidth: 195,
+      displayHeight: 117,
+      maxLevel: 6,
+      spawnOffsetX: -210,    // ← tune
+      spawnOffsetY: 40,   // ← tune
+      zIndex: -95,
+    },
+
+    militaryOffice: {
+      spriteSheet: "militaryOffice.png",
+      totalFrames: 3,
+      frameWidth: 83,       // 249 / 3
+      frameHeight: 122,
+      displayWidth: 83,
+      displayHeight: 122,
+      maxLevel: 3,
+      spawnOffsetX: -160,    // ← tune
+      spawnOffsetY: 60,   // ← tune
+      zIndex: -94,
+    },
+
+    groupLimit: {
+      spriteSheet: "group_limit_building.png",
+      totalFrames: 3,
+      frameWidth: 75,       // 225 / 3
+      frameHeight: 118,
+      displayWidth: 75,
+      displayHeight: 118,
+      maxLevel: 3,
+      spawnOffsetX: -80,    // ← tune
+      spawnOffsetY: 60,   // ← tune
+      zIndex: -93,
+    },
   },
 
   SPRITES: {
-    spritePaths: {
-      extA: "extA.png",  // ← set your sprite paths
-      extB: "extB.png",
-      extC: "extC.png",
-      extD: "extD.png",
-    },
     sizes: {
-      extA: { normal: 1.0, hover: 1.2, anchorX: 0.5, anchorY: 0.5 },
-      extB: { normal: 1.0, hover: 1.2, anchorX: 0.5, anchorY: 0.5 },
-      extC: { normal: 1.0, hover: 1.2, anchorX: 0.5, anchorY: 0.5 },
-      extD: { normal: 1.0, hover: 1.2, anchorX: 0.5, anchorY: 0.5 },
+      extA: { normal: 1.8, hover: 2.1, anchorX: 0.4, anchorY: 0.5 },
+      extB: { normal: 1.0, hover: 1.0, anchorX: 0.5, anchorY: 0.5 }, // upgrade all — no sprite
+      extC: { normal: 1.8, hover: 2.1, anchorX: 0.4, anchorY: 0.8 },
+      extD: { normal: 1.8, hover: 2.1, anchorX: 0.4, anchorY: 0.8 },
     }
   },
 

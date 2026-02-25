@@ -23,7 +23,7 @@ export const GARAGE_CONFIG = {
     checkMark: {
       size: 50,
       offsetX: 10,
-      offsetY: -7,
+      offsetY: -10,
     }
   }
 };

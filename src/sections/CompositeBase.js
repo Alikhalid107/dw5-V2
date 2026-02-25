@@ -46,7 +46,7 @@ initializeSections() {
   this.flagManager = new FlagManager(gx, gy, gw, gh);
   this.factoryManager = new FactoryManager(gx, gy, gw, gh);
   this.towerManager = new TowerManager(randX, randY, gx, gy, gw, gh);
-  this.extensionManager = new ExtensionManager(randX, randY, this.factoryManager);
+  this.extensionManager = new ExtensionManager(randX, randY,gx,gy, this.factoryManager);
 }
 
   createCompositeBase() {
@@ -103,6 +103,18 @@ initializeSections() {
     if (this.extensionManager.upgradeAllTimer >= this.extensionManager.upgradeAllTime) {
       this.extensionManager.completeUpgradeAll(this.objectUpdater, this.objects);
     }
+  }
+  if (this.extensionManager?.ministryBuilding &&
+    !this.objects.includes(this.extensionManager.ministryBuilding)) {
+  this.objects.push(this.extensionManager.ministryBuilding);  
+  }
+if (this.extensionManager?.officeBuilding &&
+    !this.objects.includes(this.extensionManager.officeBuilding)) {
+  this.objects.push(this.extensionManager.officeBuilding);
+  }
+if (this.extensionManager?.groupBuilding &&
+    !this.objects.includes(this.extensionManager.groupBuilding)) {
+  this.objects.push(this.extensionManager.groupBuilding);
   }
 
 

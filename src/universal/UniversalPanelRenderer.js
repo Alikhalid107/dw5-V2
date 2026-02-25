@@ -7,6 +7,7 @@ import { PRODUCTION_BUTTONS_CONFIG } from "../config/ProductionButtonConfig.js";
 import { TOWER_PANEL_CONFIG } from "../config/TowerPanelConfig.js";
 import { WALL_CONFIG } from "../config/WallConfig.js";
 import { GARAGE_CONFIG } from "../config/GarageConfig.js";
+import { EXTENSION_PANEL_CONFIG } from "../config/ExtensionPanelConfig.js";
 
 const iconManager = new IconManager();
 
@@ -299,18 +300,72 @@ if (shouldShowCheck && iconManager?.isLoaded?.()) {
     ctx.fillText(text, headerX, headerY);
   }
 
-  static drawExtensionContent(ctx, state, context) {
+ static drawExtensionContent(ctx, state, context) {
   const { x, y, width, height } = state.bounds;
-  const { boxIndex, iconManager, extensionManager } = context;
+  const { boxIndex, spriteManager, iconManager, extensionManager, panelBounds } = context;
   const centerX = x + width / 2;
   const centerY = y + height / 2;
 
-  // Placeholder text — replace with sprites later
-  ctx.fillStyle = "white";
-  ctx.font = "10px Arial";
-  ctx.textAlign = "center";
-  ctx.fillText(`EXT ${boxIndex + 1}`, centerX, centerY + 4);
+  // Draw sprite for boxes 0, 2, 3
+  if (boxIndex !== 1 && spriteManager) {
+    spriteManager.drawForBox(ctx, boxIndex, state.isHovered, x, y, width, height, panelBounds);
+  }
+
+  // Box 1 — upgrade all: show text placeholder
+  if (boxIndex === 1) {
+    ctx.fillStyle = extensionManager?.upgradingAll ? "orange" : "white";
+    ctx.font = "10px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(extensionManager?.upgradingAll ? "..." : "UP ALL", centerX, centerY + 4);
+  }
+
+  // Tick marks
+  const shouldShowCheck = this.isExtensionBoxComplete(boxIndex, extensionManager);
+  if (shouldShowCheck && iconManager?.isLoaded?.()) {
+    const { checkMarkSize, checkMarkOffsetX, checkMarkOffsetY } = EXTENSION_PANEL_CONFIG.styling;
+    iconManager.drawCheckMark(
+      ctx,
+      x + (checkMarkOffsetX ?? 0),
+      y + (checkMarkOffsetY ?? 0),
+      checkMarkSize ?? 40
+    );
+    this.resetShadow(ctx);
+  }
+
+  // Level indicator for buildings
+  const levelText = this.getExtensionLevelText(boxIndex, extensionManager);
+  if (levelText) {
+    ctx.fillStyle = "white";
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 2;
+    ctx.font = "bold 10px Arial";
+    ctx.textAlign = "center";
+    ctx.strokeText(levelText, x + width / 2, y + height - 4);
+    ctx.fillText(levelText, x + width / 2, y + height - 4);
+  }
+  }
+
+  static isExtensionBoxComplete(boxIndex, em) {
+  if (!em) return false;
+  switch (boxIndex) {
+    case 0: return !!em.ministryBuilding?.isMaxLevel();
+    case 1: return em.upgradeAllUsed &&   // ← only show tick after it was used
+                   Object.values(em.factoryManager?.factories || {}).every(f => f.isMaxLevel());
+    case 2: return !!em.officeBuilding?.isMaxLevel();
+    case 3: return !!em.groupBuilding?.isMaxLevel();
+    default: return false;
+  }
 }
+
+static getExtensionLevelText(boxIndex, em) {
+  if (!em) return null;
+  switch (boxIndex) {
+    case 0: return em.ministryBuilding && !em.ministryBuilding.isMaxLevel() ? `Lv${em.ministryBuilding.level}` : null;
+    case 2: return em.officeBuilding && !em.officeBuilding.isMaxLevel() ? `Lv${em.officeBuilding.level}` : null;
+    case 3: return em.groupBuilding && !em.groupBuilding.isMaxLevel() ? `Lv${em.groupBuilding.level}` : null;
+    default: return null;
+  }
+  }
 
   static getScaleFactor(factory, isHovered, baseScale) {
     const { STYLING } = UPGRADE_BUTTON_CONFIG;
