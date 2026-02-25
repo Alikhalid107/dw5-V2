@@ -10,7 +10,6 @@ export class FactoryManager {
       garageX, garageY, garageWidth, garageHeight, 
       factoryProperties: FactoryConfig, 
       showGrid: false, 
-      showUpgradeAll: false,
       activeConfirmationDialog: null
     });
     
@@ -40,42 +39,36 @@ export class FactoryManager {
     this.ui?.update?.(deltaTime);
   }
 
-  handleMouseMove(mouseX, mouseY) {
-    // Handle confirmation dialog state
-    if (this.activeConfirmationDialog) {
-      this.showGrid = true;
-      const factory = this.factories[this.activeConfirmationDialog];
-      if (factory) {
-        factory.isHovered = true;
-        this.ui.factoryPanels[this.activeConfirmationDialog]?.updateHoverStates?.(mouseX, mouseY, factory);
-      }
-      return;
+handleMouseMove(mouseX, mouseY) {
+  if (this.activeConfirmationDialog) {
+    this.showGrid = true;
+    const factory = this.factories[this.activeConfirmationDialog];
+    if (factory) {
+      factory.isHovered = true;
+      this.ui.factoryPanels[this.activeConfirmationDialog]?.updateHoverStates?.(mouseX, mouseY, factory);
     }
-
-    // Reset hover states and check for new hovers
-    Object.values(this.factories).forEach(f => f.isHovered = false);
-
-    const anyFactoryHovered = Object.values(this.factories).some(factory => {
-      const panel = this.ui.factoryPanels[factory.type];
-      if (panel?.positioning?.isPointInHoverArea(mouseX, mouseY, factory)) { 
-        factory.isHovered = true; 
-        return true; 
-      }
-      return false;
-    });
-
-    const overUpgradeAll = this.ui?.upgradeAllButton?.isPointInsideWorld?.(mouseX, mouseY) || false;
-    
-    this.showGrid = anyFactoryHovered || overUpgradeAll;
-    this.showUpgradeAll = overUpgradeAll;
-    
-    // Update panel hover states with correct method name
-    Object.entries(this.ui.factoryPanels).forEach(([type, panel]) => {
-      if (this.factories[type].isHovered) {
-        panel.updateHoverStates?.(mouseX, mouseY, this.factories[type]);
-      }
-    });
+    return;
   }
+
+  Object.values(this.factories).forEach(f => f.isHovered = false);
+
+  const anyFactoryHovered = Object.values(this.factories).some(factory => {
+    const panel = this.ui.factoryPanels[factory.type];
+    if (panel?.positioning?.isPointInHoverArea(mouseX, mouseY, factory)) {
+      factory.isHovered = true;
+      return true;
+    }
+    return false;
+  });
+
+  this.showGrid = anyFactoryHovered;  // ← THIS WAS MISSING
+
+  Object.entries(this.ui.factoryPanels).forEach(([type, panel]) => {
+    if (this.factories[type].isHovered) {
+      panel.updateHoverStates?.(mouseX, mouseY, this.factories[type]);
+    }
+  });
+}
 
   setConfirmationDialog(factoryType, show) {
     this.activeConfirmationDialog = show ? factoryType : null;

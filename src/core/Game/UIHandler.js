@@ -29,7 +29,9 @@ export class UIHandler {
   const activeBase = this.bases.find(base =>
     base.compositeBase?.garageUI?.showGrid ||
     base.compositeBase?.factoryManager?.showGrid ||
-    base.compositeBase?.towerManager?.showGrid  // ← tower
+    base.compositeBase?.towerManager?.showGrid ||
+    base.compositeBase?.extensionManager?.showGrid  // ← add
+ 
   );
 
   if (activeBase) {

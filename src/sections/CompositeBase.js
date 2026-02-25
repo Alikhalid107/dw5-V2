@@ -8,6 +8,8 @@ import { GarageUI } from "../ui/GarageUI/GarageUI.js";
 import { TowerManager } from "../managers/TowerManager.js";
 import { BaseInputHandler } from "../utils/BaseInputHandler.js";
 import { BaseObjectUpdater } from "../utils/BaseObjectUpdater.js";
+import { ExtensionManager } from "../managers/ExtensionManager.js";
+
 
 export class CompositeBase {
   constructor(worldWidth, worldHeight) {
@@ -44,6 +46,7 @@ initializeSections() {
   this.flagManager = new FlagManager(gx, gy, gw, gh);
   this.factoryManager = new FactoryManager(gx, gy, gw, gh);
   this.towerManager = new TowerManager(randX, randY, gx, gy, gw, gh);
+  this.extensionManager = new ExtensionManager(randX, randY, this.factoryManager);
 }
 
   createCompositeBase() {
@@ -65,6 +68,8 @@ initializeSections() {
   this.garageUI?.update(deltaTime);
   this.factoryManager?.update(deltaTime);
   this.towerManager?.update(deltaTime);
+  this.extensionManager?.update(deltaTime);
+
 
   if (this.towerManager?.militaryBuilding &&
       !this.objects.includes(this.towerManager.militaryBuilding)) {
@@ -76,7 +81,6 @@ initializeSections() {
     this.objects.push(this.towerManager.militaryBuildingRight);
   }
 
-  // ← THIS WAS MISSING
   if (this.towerManager?.radarBuilding &&
       !this.objects.includes(this.towerManager.radarBuilding)) {
     this.objects.push(this.towerManager.radarBuilding);
@@ -84,12 +88,23 @@ initializeSections() {
   if (this.towerManager?.jammerBuilding &&
     !this.objects.includes(this.towerManager.jammerBuilding)) {
   this.objects.push(this.towerManager.jammerBuilding);
-}
+  }
 
-if (this.towerManager?.detectorBuilding &&
+  if (this.towerManager?.detectorBuilding &&
     !this.objects.includes(this.towerManager.detectorBuilding)) {
   this.objects.push(this.towerManager.detectorBuilding);
-}
+  }
+
+  if (this.extensionManager?.upgradingAll) {
+    this.extensionManager.upgradeAllTimer += deltaTime < 1
+      ? deltaTime * 1000
+      : deltaTime;
+
+    if (this.extensionManager.upgradeAllTimer >= this.extensionManager.upgradeAllTime) {
+      this.extensionManager.completeUpgradeAll(this.objectUpdater, this.objects);
+    }
+  }
+
 
   if (this.flakManager?.update) {
     const buildCompleted = this.flakManager.update(deltaTime);
@@ -100,7 +115,7 @@ if (this.towerManager?.detectorBuilding &&
   if (this.garageUI?.longRangeBuilding &&
     !this.objects.includes(this.garageUI.longRangeBuilding)) {
   this.objects.push(this.garageUI.longRangeBuilding);
-}
+  }
 
   this.objectUpdater.updateFactoryObjects(this.objects);
 }
@@ -108,19 +123,22 @@ if (this.towerManager?.detectorBuilding &&
   handleMouseMove(mouseX, mouseY) {
     this.inputHandler.handleMouseMove(mouseX, mouseY);
     this.towerManager?.handleMouseMove(mouseX, mouseY);  // add in BaseInputHandler too
+    this.extensionManager?.handleMouseMove(mouseX, mouseY);
+
 
   }
 
- handleClick(mouseX, mouseY) {
+  handleClick(mouseX, mouseY) {
   return this.inputHandler.handleClick(mouseX, mouseY) ||
-         this.towerManager?.handleClick(mouseX, mouseY);  // ← add this
+         this.towerManager?.handleClick(mouseX, mouseY) ||
+         this.extensionManager?.handleClick(mouseX, mouseY);
 }
 
   drawUI(ctx, offsetX, offsetY) {
     this.factoryManager?.drawUI?.(ctx, offsetX, offsetY);
     this.garageUI?.drawUI(ctx, offsetX, offsetY);
     this.towerManager?.drawUI?.(ctx, offsetX, offsetY);
-
+    this.extensionManager?.drawUI?.(ctx, offsetX, offsetY);
   }
   
 

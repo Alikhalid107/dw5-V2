@@ -1,11 +1,11 @@
 import { IndividualFactoryPanel } from "../ui/FactoryPanel/IndividualFactoryPanel.js";
-import { UpgradeAllButton } from "../ui/UpgradeAllButton.js";
+// ← UpgradeAllButton import removed
 
 export class FactoryUICoordinator {
   constructor(factoryManager) {
     this.factoryManager = factoryManager;
     this.factoryPanels = this.createFactoryPanels();
-    this.upgradeAllButton = this.createUpgradeAllButton();
+    // ← upgradeAllButton removed
     this.currentOffsetX = 0;
     this.currentOffsetY = 0;
   }
@@ -18,15 +18,7 @@ export class FactoryUICoordinator {
     );
   }
 
-  createUpgradeAllButton() {
-    const { garageX, garageY, garageWidth } = this.factoryManager;
-    const offsetX = -280, offsetY = 100;
-    return new UpgradeAllButton(
-      this.factoryManager, 
-      garageX + garageWidth / 2 + offsetX, 
-      garageY + offsetY
-    );
-  }
+  // ← createUpgradeAllButton removed
 
   drawUI(ctx, offsetX, offsetY) {
     if (!this.factoryManager.showGrid) return;
@@ -34,7 +26,7 @@ export class FactoryUICoordinator {
     this.currentOffsetX = offsetX;
     this.currentOffsetY = offsetY;
 
-    // Draw visible factory panels
+    // Draw visible factory panels only
     Object.entries(this.factoryPanels).forEach(([type, panel]) => {
       const factory = this.factoryManager.factories[type];
       if (factory.isHovered || this.factoryManager.activeConfirmationDialog === type) {
@@ -42,30 +34,14 @@ export class FactoryUICoordinator {
       }
     });
 
-    // Draw upgrade all button
-    if (this.factoryManager.showUpgradeAll) {
-      this.upgradeAllButton.draw(ctx, offsetX, offsetY);
-    }
+    // ← upgradeAllButton draw removed
   }
 
   update(deltaTime) {
-    if (this.upgradeAllButton.update(deltaTime)) {
-      this.completeUpgradeAll();
-    }
-  }
-
-  completeUpgradeAll() {
-    this.upgradeAllButton.completeUpgrade();
-    Object.values(this.factoryManager.factories).forEach(factory => {
-      if (!factory.isMaxLevel()) {
-        factory.level = factory.maxLevel;
-        factory.updateVisuals();
-      }
-    });
+    // ← upgradeAllButton update removed
   }
 
   handleClick(mouseX, mouseY) {
-    // Handle factory panel clicks
     for (const [type, panel] of Object.entries(this.factoryPanels)) {
       const factory = this.factoryManager.factories[type];
       if (factory.isHovered || this.factoryManager.activeConfirmationDialog === type) {
@@ -74,13 +50,7 @@ export class FactoryUICoordinator {
         }
       }
     }
-
-    // Handle upgrade all button
-    if (this.factoryManager.showUpgradeAll && 
-        this.upgradeAllButton.isPointInside(mouseX, mouseY, 0, 0)) {
-      return this.upgradeAllButton.startUpgrade();
-    }
-
+    // ← upgradeAllButton click removed
     return false;
   }
 }

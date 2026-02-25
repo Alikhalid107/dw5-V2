@@ -34,7 +34,8 @@ export class UniversalPanelRenderer {
       upgrade: this.drawUpgradeContent,
       garage: this.drawGarageContent,
       factory: this.drawFactoryContent,
-      tower: this.drawTowerContent       // ← new
+      tower: this.drawTowerContent,       // ← new
+      extension: this.drawExtensionContent,  // ← add
 
     };
 
@@ -123,10 +124,10 @@ if (shouldShowCheck && iconManager?.isLoaded?.()) {
   );
   this.resetShadow(ctx);
 }
-}
+  }
 
 // Helper — checks if a tower box should show the tick mark
-static isTowerBoxComplete(boxIndex, towerManager) {
+  static isTowerBoxComplete(boxIndex, towerManager) {
   if (!towerManager) return false;
   switch (boxIndex) {
     case 0: return towerManager.militaryBuilding?.isMaxLevel() &&
@@ -136,7 +137,7 @@ static isTowerBoxComplete(boxIndex, towerManager) {
     case 3: return !!towerManager.detectorBuilding;
     default: return false;
   }
-}
+  }
 
   static drawUpgradeContent(ctx, state, context) {
   const { factory, spriteManager, iconManager, panelBounds } = context;
@@ -228,7 +229,7 @@ static isTowerBoxComplete(boxIndex, towerManager) {
       iconManager.drawCheckMark(ctx, x + ox, y + oy, size);
     }
   }
-}
+  }
 
   static drawFactoryContent(ctx, state, context) {
   const { boxIndex, panelBounds } = context;
@@ -297,6 +298,19 @@ static isTowerBoxComplete(boxIndex, towerManager) {
     ctx.fillStyle = fillStyle;
     ctx.fillText(text, headerX, headerY);
   }
+
+  static drawExtensionContent(ctx, state, context) {
+  const { x, y, width, height } = state.bounds;
+  const { boxIndex, iconManager, extensionManager } = context;
+  const centerX = x + width / 2;
+  const centerY = y + height / 2;
+
+  // Placeholder text — replace with sprites later
+  ctx.fillStyle = "white";
+  ctx.font = "10px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText(`EXT ${boxIndex + 1}`, centerX, centerY + 4);
+}
 
   static getScaleFactor(factory, isHovered, baseScale) {
     const { STYLING } = UPGRADE_BUTTON_CONFIG;
