@@ -1,4 +1,4 @@
-import { ExtensionPanel } from "../gameObjects/ExtensionPanel.js";
+import { ExtensionPanel } from "../ui/ExtensionPanel/ExtensionPanel.js";
 import { ExtensionBuilding } from "../gameObjects/ExtensionBuilding.js";
 
 export class ExtensionManager {

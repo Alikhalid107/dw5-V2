@@ -1,0 +1,152 @@
+Folder PATH listing
+Volume serial number is EE0B-F36F
+C:.
+|   index.js
+|   project_structure.txt
+|   style.css
+|   
++---config
+|       ExtensionPanelConfig.js
+|       FactoryConfig.js
+|       FlakConfig.js
+|       GarageConfig.js
+|       GarageUIConfig.js
+|       ProductionButtonConfig.js
+|       TowerPanelConfig.js
+|       UIIconsConfig.js
+|       UniversalPanelConfig.js
+|       UpgradeButtonConfig.js
+|       WallConfig.js
+|       worldConfig.js
+|       
++---core
+|   +---CameraController
+|   |       CameraController.js
+|   |       CameraEventHandlers.js
+|   |       RenderingInfoCalculator.js
+|   |       ZoomDetector.js
+|   |       
+|   +---canvasSetup
+|   |       CanvasResizer.js
+|   |       canvasSetup.js
+|   |       ResizeHandler.js
+|   |       ZoomAwareRenderer.js
+|   |       
+|   +---Game
+|   |       Game.js
+|   |       GameInitializer.js
+|   |       GameLoopManager.js
+|   |       MouseInputHandler.js
+|   |       ObjectManager.js
+|   |       UIHandler.js
+|   |       ZoomMonitor.js
+|   |       
+|   \---GameObjectSystem
+|           GameObject.js
+|           GameObjectRenderer.js
+|           ImageLoader.js
+|           RenderProperties.js
+|           SpriteAnimator.js
+|           VisibilityChecker.js
+|           
++---events
+|       EventBus.js
+|       EventTypes.js
+|       
++---gameObjects
+|       Base.js
+|       BaseImage.js
+|       CroppedGameObject.js
+|       ExtensionBuilding.js
+|       FactoryBuilding.js
+|       FactoryEffect.js
+|       Flak.js
+|       GarageDoors.js
+|       GarageStructure.js
+|       Grass.js
+|       JammerBuilding.js
+|       LongRangeBuilding.js
+|       TowerBuilding.js
+|       TreeExtension.js
+|       Wall.js
+|       
++---managers
+|       ExtensionManager.js
+|       ExtensionSpriteManager.js
+|       FactoryManager.js
+|       FactoryUICoordinator.js
+|       FlagManager.js
+|       FlakManager.js
+|       GarageSpriteManager.js
+|       TowerManager.js
+|       TowerSpriteManager.js
+|       
++---sections
+|   |   BaseSection.js
+|   |   CompositeBase.js
+|   |   FlakBuildSystem.js
+|   |   GarageSection.js
+|   |   WallSection.js
+|   |   
+|   \---Factory
+|           Factory.js
+|           FactoryEffects.js
+|           FactoryEffectsManager.js
+|           FactoryProductionSystem.js
+|           FactoryUI.js
+|           
++---ui
+|   +---BasePanel
+|   |       BasePanel.js
+|   |       BasePanelComponents.js
+|   |       
+|   +---ExtensionPanel
+|   |       ExtensionPanel.js
+|   |       ExtensionPanelComponents.js
+|   |       
+|   +---FactoryPanel
+|   |       CorePanelComponents.js
+|   |       IndividualFactoryPanel.js
+|   |       OverlayComponents.js
+|   |       
+|   +---GarageUI
+|   |       GarageUI.js
+|   |       
+|   +---ProductionMenu
+|   |       CancelBadges.js
+|   |       ConfirmationDialog.js
+|   |       MessageDisplay.js
+|   |       PanelBase.js
+|   |       ProductionTimerOverlay.js
+|   |       
+|   +---TowerPanel
+|   |       TowerPanel.js
+|   |       TowerPanelComponents.js
+|   |       
+|   +---universalSystem
+|   |       UniversalBox.js
+|   |       UniversalBoxController.js
+|   |       UniversalBoxesFactory.js
+|   |       UniversalBoxState.js
+|   |       UniversalPositionCalculator.js
+|   |       
+|   \---UpgradeMenu
+|           FactorySpriteManager.js
+|           
++---universal
+|       ConfigurationMerger.js
+|       UniversalPanelRenderer.js
+|       
+\---utils
+        AnimatedSpriteState.js
+        animationUtils.js
+        BaseInputHandler.js
+        BaseObjectUpdater.js
+        clampCamera.js
+        FactoryUtils.js
+        FlakPositioning.js
+        IconManager.js
+        MessageBus.js
+        SpriteFrameUtility.js
+        WallPositioning.js
+        
