@@ -47,19 +47,21 @@ export class ExtensionPanelComponents {
 
   getMinistryDescription(em) {
     const b = em?.ministryBuilding;
+    
     if (b?.isMaxLevel()) {
       return [{ segments: [{ text: "Max level reached", font: "16px Arial", align: "center", color: "white" }] }];
     }
     const level = b ? b.level : 0;
+    let titan = 25 ;
     return [
       { segments: [{ text: "Ministry", color: "white", font: "15px Arial", align: "left" }] },
       { segments: [
-        { text: "Command building", color: "white", font: "12px Arial", align: "left" },
-        { text: `Lv ${level}/${EXTENSION_PANEL_CONFIG.BUILDING.ministry.maxLevel}`, color: "#fcfc8b", font: "12px Arial", align: "right" }
+        { text: "build up", color: "white", font: "12px Arial", align: "left" },
       ]},
-      { segments: [
-        { text: "Click to upgrade", color: "white", font: "12px Arial", align: "left" },
-        { text: "Titan 100", color: "#A6C7FA", font: "12px Arial", align: "right" }
+      { segments:
+         [
+        { text: `to level ${level + 1}`, color: "white", font: "12px Arial", align: "left" },
+        { text: `Titan ${titan}`, color: "#A6C7FA", font: "12px Arial", align: "right" }
       ]},
     ];
   }
@@ -92,15 +94,16 @@ export class ExtensionPanelComponents {
       return [{ segments: [{ text: "Max level reached", font: "16px Arial", align: "center", color: "white" }] }];
     }
     const level = b ? b.level : 0;
+    let titan = 19 + level * 19;
+
     return [
-      { segments: [{ text: "Military Office", color: "white", font: "15px Arial", align: "left" }] },
+      { segments: [{ text: "Mlitary Office", color: "white", font: "15px Arial", align: "left" }] },
       { segments: [
-        { text: "Increases unit cap", color: "white", font: "12px Arial", align: "left" },
-        { text: `Lv ${level}/${EXTENSION_PANEL_CONFIG.BUILDING.militaryOffice.maxLevel}`, color: "#fcfc8b", font: "12px Arial", align: "right" }
+        { text: "Increases MP Maximum by 500", color: "white", font: "12px Arial", align: "left" },
       ]},
       { segments: [
-        { text: "Click to upgrade", color: "white", font: "12px Arial", align: "left" },
-        { text: "Titan 75", color: "#A6C7FA", font: "12px Arial", align: "right" }
+        { text: "on this map", color: "white", font: "12px Arial", align: "left" },
+        { text: `Titan ${titan}`, color: "#A6C7FA", font: "12px Arial", align: "right" }
       ]},
     ];
   }
@@ -111,15 +114,15 @@ export class ExtensionPanelComponents {
       return [{ segments: [{ text: "Max level reached", font: "16px Arial", align: "center", color: "white" }] }];
     }
     const level = b ? b.level : 0;
+    let titan = 39 + level * 39;
     return [
       { segments: [{ text: "Group Limit", color: "white", font: "15px Arial", align: "left" }] },
       { segments: [
-        { text: "Increases group size", color: "white", font: "12px Arial", align: "left" },
-        { text: `Lv ${level}/${EXTENSION_PANEL_CONFIG.BUILDING.groupLimit.maxLevel}`, color: "#fcfc8b", font: "12px Arial", align: "right" }
+        { text: "Increases the group limit by 1", color: "white", font: "12px Arial", align: "left" },
       ]},
       { segments: [
-        { text: "Click to upgrade", color: "white", font: "12px Arial", align: "left" },
-        { text: "Titan 50", color: "#A6C7FA", font: "12px Arial", align: "right" }
+        { text: "on this map", color: "white", font: "12px Arial", align: "left" },
+        { text: `Titan ${titan}`, color: "#A6C7FA", font: "12px Arial", align: "right" }
       ]},
     ];
   }

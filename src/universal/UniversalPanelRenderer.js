@@ -330,19 +330,7 @@ if (shouldShowCheck && iconManager?.isLoaded?.()) {
       checkMarkSize ?? 40
     );
     this.resetShadow(ctx);
-  }
-
-  // Level indicator for buildings
-  const levelText = this.getExtensionLevelText(boxIndex, extensionManager);
-  if (levelText) {
-    ctx.fillStyle = "white";
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
-    ctx.font = "bold 10px Arial";
-    ctx.textAlign = "center";
-    ctx.strokeText(levelText, x + width / 2, y + height - 4);
-    ctx.fillText(levelText, x + width / 2, y + height - 4);
-  }
+    }
   }
 
   static isExtensionBoxComplete(boxIndex, em) {
@@ -354,16 +342,6 @@ if (shouldShowCheck && iconManager?.isLoaded?.()) {
     case 2: return !!em.officeBuilding?.isMaxLevel();
     case 3: return !!em.groupBuilding?.isMaxLevel();
     default: return false;
-  }
-}
-
-static getExtensionLevelText(boxIndex, em) {
-  if (!em) return null;
-  switch (boxIndex) {
-    case 0: return em.ministryBuilding && !em.ministryBuilding.isMaxLevel() ? `Lv${em.ministryBuilding.level}` : null;
-    case 2: return em.officeBuilding && !em.officeBuilding.isMaxLevel() ? `Lv${em.officeBuilding.level}` : null;
-    case 3: return em.groupBuilding && !em.groupBuilding.isMaxLevel() ? `Lv${em.groupBuilding.level}` : null;
-    default: return null;
   }
   }
 

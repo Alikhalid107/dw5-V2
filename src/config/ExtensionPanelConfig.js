@@ -66,10 +66,10 @@ export const EXTENSION_PANEL_CONFIG = {
 
   SPRITES: {
     sizes: {
-      extA: { normal: 1.8, hover: 2.1, anchorX: 0.4, anchorY: 0.5 },
+      extA: { normal: 1.8, hover: 2.2, anchorX: 0.4, anchorY: 0.5 },
       extB: { normal: 1.0, hover: 1.0, anchorX: 0.5, anchorY: 0.5 }, // upgrade all — no sprite
-      extC: { normal: 1.8, hover: 2.1, anchorX: 0.4, anchorY: 0.8 },
-      extD: { normal: 1.8, hover: 2.1, anchorX: 0.4, anchorY: 0.8 },
+      extC: { normal: 1.8, hover: 2.1, anchorX: 1.2, anchorY: 0.8 },
+      extD: { normal: 1.8, hover: 2.1, anchorX: 1.2, anchorY: 0.8 },
     }
   },
 
