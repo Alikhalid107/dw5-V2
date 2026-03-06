@@ -8,6 +8,7 @@ import { TOWER_PANEL_CONFIG } from "../config/TowerPanelConfig.js";
 import { WALL_CONFIG } from "../config/WallConfig.js";
 import { GARAGE_CONFIG } from "../config/GarageConfig.js";
 import { EXTENSION_PANEL_CONFIG } from "../config/ExtensionPanelConfig.js";
+import { COMMAND_PANEL_CONFIG } from "../config/CommandPanelConfig.js";
 
 const iconManager = new IconManager();
 
@@ -37,6 +38,7 @@ export class UniversalPanelRenderer {
       factory: this.drawFactoryContent,
       tower: this.drawTowerContent,       // ← new
       extension: this.drawExtensionContent,  // ← add
+      command: this.drawCommandContent,
 
     };
 
@@ -405,8 +407,7 @@ if (shouldShowCheck && iconManager?.isLoaded?.()) {
 
   let bgColor = UNIVERSAL_PANEL_CONFIG.grid.boxColors.available;
 
-  const isUpgradeLike = renderType === "upgrade" || renderType === "factory" || renderType === "tower" || renderType === "extension";  // ← add this
-; // ← add tower
+  const isUpgradeLike = renderType === "upgrade" || renderType === "factory" || renderType === "tower" || renderType === "extension" || renderType === "command";  // ← add this
 
   if (isUpgradeLike && state.isHovered) {
     bgColor = STYLING.hoverBackgroundColor;
@@ -427,5 +428,37 @@ if (shouldShowCheck && iconManager?.isLoaded?.()) {
   static resetShadow(ctx) {
     ctx.shadowColor = "transparent";
     ctx.shadowBlur = 0;
+  }
+
+  static drawCommandContent(ctx, state, context) {
+  const { x, y, width, height } = state.bounds;
+  const { boxIndex, spriteManager, iconManager, commandManager, panelBounds } = context;
+
+  // Draw sprite for all boxes
+  if (spriteManager) {
+    spriteManager.drawForBox(ctx, boxIndex, state.isHovered, x, y, width, height, panelBounds, iconManager, commandManager?.commandBuilding);
+  }
+
+  // Tick mark for box 0 when max level
+  if (boxIndex === 0) {
+    const shouldShowCheck = commandManager?.commandBuilding?.isMaxLevel();
+    if (shouldShowCheck && iconManager?.isLoaded?.()) {
+      const { checkMarkSize, checkMarkOffsetX, checkMarkOffsetY } = COMMAND_PANEL_CONFIG.styling;
+      iconManager.drawCheckMark(ctx, x + checkMarkOffsetX, y + checkMarkOffsetY, checkMarkSize);
+      this.resetShadow(ctx);
+    }
+
+    // Level text
+    const b = commandManager?.commandBuilding;
+    if (b && !b.isMaxLevel()) {
+      ctx.fillStyle = "white";
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.font = "bold 10px Arial";
+      ctx.textAlign = "center";
+      ctx.strokeText(`Lv${b.level}`, x + width / 2, y + height - 4);
+      ctx.fillText(`Lv${b.level}`, x + width / 2, y + height - 4);
+    }
+  }
   }
 }

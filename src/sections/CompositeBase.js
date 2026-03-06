@@ -9,6 +9,7 @@ import { TowerManager } from "../managers/TowerManager.js";
 import { BaseInputHandler } from "../utils/BaseInputHandler.js";
 import { BaseObjectUpdater } from "../utils/BaseObjectUpdater.js";
 import { ExtensionManager } from "../managers/ExtensionManager.js";
+import { CommandManager } from "../managers/CommandManager.js";
 
 
 export class CompositeBase {
@@ -47,6 +48,8 @@ initializeSections() {
   this.factoryManager = new FactoryManager(gx, gy, gw, gh);
   this.towerManager = new TowerManager(randX, randY, gx, gy, gw, gh);
   this.extensionManager = new ExtensionManager(randX, randY,gx,gy, this.factoryManager);
+  this.commandManager = new CommandManager(randX, randY, gx, gy, this);
+
 }
 
   createCompositeBase() {
@@ -63,12 +66,13 @@ initializeSections() {
 
   getObjects() { return this.objects; }
 
-  update(deltaTime) {
+  update(deltaTime ,box1Hovered, box2Hovered, box4Hovered) {
   this.flagManager?.update(deltaTime);
   this.garageUI?.update(deltaTime);
   this.factoryManager?.update(deltaTime);
   this.towerManager?.update(deltaTime);
   this.extensionManager?.update(deltaTime);
+  this.commandManager?.update(deltaTime);
 
 
   if (this.towerManager?.militaryBuilding &&
@@ -108,15 +112,19 @@ initializeSections() {
     !this.objects.includes(this.extensionManager.ministryBuilding)) {
   this.objects.push(this.extensionManager.ministryBuilding);  
   }
-if (this.extensionManager?.officeBuilding &&
+  if (this.extensionManager?.officeBuilding &&
     !this.objects.includes(this.extensionManager.officeBuilding)) {
   this.objects.push(this.extensionManager.officeBuilding);
   }
-if (this.extensionManager?.groupBuilding &&
+  if (this.extensionManager?.groupBuilding &&
     !this.objects.includes(this.extensionManager.groupBuilding)) {
   this.objects.push(this.extensionManager.groupBuilding);
   }
 
+  if (this.commandManager?.commandBuilding &&
+    !this.objects.includes(this.commandManager.commandBuilding)) {
+  this.objects.push(this.commandManager.commandBuilding);
+  }
 
   if (this.flakManager?.update) {
     const buildCompleted = this.flakManager.update(deltaTime);
@@ -136,21 +144,22 @@ if (this.extensionManager?.groupBuilding &&
     this.inputHandler.handleMouseMove(mouseX, mouseY);
     this.towerManager?.handleMouseMove(mouseX, mouseY);  // add in BaseInputHandler too
     this.extensionManager?.handleMouseMove(mouseX, mouseY);
-
-
+    this.commandManager?.handleMouseMove(mouseX, mouseY);
   }
 
   handleClick(mouseX, mouseY) {
   return this.inputHandler.handleClick(mouseX, mouseY) ||
          this.towerManager?.handleClick(mouseX, mouseY) ||
-         this.extensionManager?.handleClick(mouseX, mouseY);
-}
+         this.extensionManager?.handleClick(mouseX, mouseY) ||
+         this.commandManager?.handleClick(mouseX, mouseY);
+  }
 
   drawUI(ctx, offsetX, offsetY) {
     this.factoryManager?.drawUI?.(ctx, offsetX, offsetY);
     this.garageUI?.drawUI(ctx, offsetX, offsetY);
     this.towerManager?.drawUI?.(ctx, offsetX, offsetY);
     this.extensionManager?.drawUI?.(ctx, offsetX, offsetY);
+    this.commandManager?.drawUI?.(ctx, offsetX, offsetY);
   }
   
 

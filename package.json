@@ -11,15 +11,7 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
-<<<<<<< HEAD
     "vite": "^7.1.2",
     "vitest": "^4.0.18"
   }
 }
-=======
-    "dependency-cruiser": "^17.0.1",
-    "vite": "^7.1.2",
-    "vitest": "^4.0.18"
-  }
-}
->>>>>>> f0709ba1fe7ae5a554b632ec2f2ed4a99855ac59

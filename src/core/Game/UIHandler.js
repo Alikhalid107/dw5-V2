@@ -30,8 +30,8 @@ export class UIHandler {
     base.compositeBase?.garageUI?.showGrid ||
     base.compositeBase?.factoryManager?.showGrid ||
     base.compositeBase?.towerManager?.showGrid ||
-    base.compositeBase?.extensionManager?.showGrid  // ← add
- 
+    base.compositeBase?.extensionManager?.showGrid ||  // ← add
+   base.compositeBase?.commandManager?.showGrid   // ← add
   );
 
   if (activeBase) {
