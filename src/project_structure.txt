@@ -1,0 +1,268 @@
+Folder PATH listing
+Volume serial number is EE0B-F36F
+C:.
+|   index.js
+|   project_structure.txt
+|   style.css
+|   
++---config
+|       ExtensionPanelConfig.js
+|       FactoryConfig.js
+|       FlakConfig.js
+|       GarageConfig.js
+|       GarageUIConfig.js
+|       ProductionButtonConfig.js
+|       TowerPanelConfig.js
+|       UIIconsConfig.js
+|       UniversalPanelConfig.js
+|       UpgradeButtonConfig.js
+|       WallConfig.js
+|       worldConfig.js
+|       
++---core
+|   +---CameraController
+|   |       CameraController.js
+|   |       CameraEventHandlers.js
+|   |       RenderingInfoCalculator.js
+|   |       ZoomDetector.js
+|   |       
+|   +---canvasSetup
+|   |       CanvasResizer.js
+|   |       canvasSetup.js
+|   |       ResizeHandler.js
+|   |       ZoomAwareRenderer.js
+|   |       
+|   +---Game
+|   |       Game.js
+|   |       GameInitializer.js
+|   |       GameLoopManager.js
+|   |       MouseInputHandler.js
+|   |       ObjectManager.js
+|   |       UIHandler.js
+|   |       ZoomMonitor.js
+|   |       
+|   \---GameObjectSystem
+|           GameObject.js
+|           GameObjectRenderer.js
+|           ImageLoader.js
+|           RenderProperties.js
+|           SpriteAnimator.js
+|           VisibilityChecker.js
+|           
++---events
+|       EventBus.js
+|       EventTypes.js
+|       
++---gameObjects
+|       Base.js
+|       BaseImage.js
+|       CroppedGameObject.js
+|       ExtensionBuilding.js
+|       FactoryBuilding.js
+|       FactoryEffect.js
+|       Flak.js
+|       GarageDoors.js
+|       GarageStructure.js
+|       Grass.js
+|       JammerBuilding.js
+|       LongRangeBuilding.js
+|       TowerBuilding.js
+|       TreeExtension.js
+|       Wall.js
+|       
++---managers
+|       ExtensionManager.js
+|       ExtensionSpriteManager.js
+|       FactoryManager.js
+|       FactoryUICoordinator.js
+|       FlagManager.js
+|       FlakManager.js
+|       GarageSpriteManager.js
+|       TowerManager.js
+|       TowerSpriteManager.js
+|       
++---sections
+|   |   BaseSection.js
+|   |   CompositeBase.js
+|   |   FlakBuildSystem.js
+|   |   GarageSection.js
+|   |   WallSection.js
+|   |   
+|   \---Factory
+|           Factory.js
+|           FactoryEffects.js
+|           FactoryEffectsManager.js
+|           FactoryProductionSystem.js
+|           FactoryUI.js
+|           
++---ui
+|   +---BasePanel
+|   |       BasePanel.js
+|   |       BasePanelComponents.js
+|   |       
+|   +---ExtensionPanel
+|   |       ExtensionPanel.js
+|   |       ExtensionPanelComponents.js
+|   |       
+|   +---FactoryPanel
+|   |       CorePanelComponents.js
+|   |       IndividualFactoryPanel.js
+|   |       OverlayComponents.js
+|   |       
+|   +---GarageUI
+|   |       GarageUI.js
+|   |       
+|   +---ProductionMenu
+|   |       CancelBadges.js
+|   |       ConfirmationDialog.js
+|   |       MessageDisplay.js
+|   |       PanelBase.js
+|   |       ProductionTimerOverlay.js
+|   |       
+|   +---TowerPanel
+|   |       TowerPanel.js
+|   |       TowerPanelComponents.js
+|   |       
+|   +---universalSystem
+|   |       UniversalBox.js
+|   |       UniversalBoxController.js
+|   |       UniversalBoxesFactory.js
+|   |       UniversalBoxState.js
+|   |       UniversalPositionCalculator.js
+|   |       
+|   \---UpgradeMenu
+|           FactorySpriteManager.js
+|           
++---universal
+|       ConfigurationMerger.js
+|       UniversalPanelRenderer.js
+|       
+\---utils
+        AnimatedSpriteState.js
+        animationUtils.js
+        BaseInputHandler.js
+        BaseObjectUpdater.js
+        clampCamera.js
+        FactoryUtils.js
+        FlakPositioning.js
+        IconManager.js
+        MessageBus.js
+        SpriteFrameUtility.js
+        WallPositioning.js
+        
+fine , now i want to make same panel like these with same color , same length width of boxses , same hover logic , only some sprites within the box are different and their functionalities, but here a simple change that is panel should contains 5 boxses instead of 4 unlike previous ones 
+
+box -1 sprite =>whose sprite name is commandCenter.png and its width is 870px and height is 117px and it contains 5 sprites of total , box contains static one with sprite 1 frame , when clicked a building appears with respect to garage , give its config setting like you did for militarty central and other bilding and i will set each value manually
+box-2 contains sprite named as oilPump.png , it contains 72 frames , it remains static with 45th frame but when hovered it transforms ot show all 72 frames changes , its dimension is 3400px width and 74px height  , when clicked right now , it did nothing will add functionalities later , gives config for setting frame size and when hovered then size , mean config file and i will set everything manaually
+box-3 it contains a sprite named as explosionBaseBox.png it has width 24200px and height 200px it also contains 72 frames , when at rest or in static one , it shows 45th frame and when hovered it goes through all frames and also very important when it is clicked the whole base should hide or destroy mean no display of the base thing is showed everything of base removed , it actally destoy the base, gives config for setting frame size and when hovered then size , mean config file and i will set everything manaually
+box-4 contains one static image at all and on hover it remains on one frame , it contains only 1 frame at all when hovered it only gets somehow bigger in szie and nothing at all , i will add it functionality later , and its single frame is from ui icon config file that is :
+export const UI_ICONS_CONFIG = {
+  SPRITE_PATH: "../public/newicons.png", // Replace with your actual image path
+  TOTAL_FRAMES: 9,
+  COLS: 9,
+  ROWS: 1,
+  
+  // Frame dimensions - each icon in the sprite sheet
+  FRAME_WIDTH: 90,
+  FRAME_HEIGHT: 100,
+  
+  // Define what each frame represents (adjust based on your actual image)
+  FRAME_DEFINITIONS: {
+    CONCRETE_MIXER: 0,      // Frame 0 - Concrete mixer truck (leftmost)
+    STEEL_FURNACE: 1,       // Frame 1 - Steel factory/furnace  
+    CARBON_PLANT: 2,        // Frame 2 - Carbon factory (green tower)
+    OIL_REFINERY: 3,        // Frame 3 - Oil refinery (dark sphere)
+    CHECK_MARK: 4,          // Frame 4 - Green checkmark ✓
+    CROSS_MARK: 5,          // Frame 5 - Red cross ✗
+    CRANE: 6,               // Frame 6 - Construction crane
+    GEAR: 7,                // Frame 7 - Settings gear (circular)
+    EXPLOSION: 8            // Frame 8 - Explosion effect (rightmost)
+  },
+  
+  // Easy access by name
+  getFrameIndex: function(iconName) {
+    return this.FRAME_DEFINITIONS[iconName] || 0;
+  }
+};
+its crane number 6 
+also you can see form here :
+import { SpriteFrameUtility } from './SpriteFrameUtility.js';
+import { UI_ICONS_CONFIG } from '../config/UIIconsConfig.js';
+
+export class IconManager {
+  constructor() {
+    this.spriteUtil = new SpriteFrameUtility(
+      UI_ICONS_CONFIG.SPRITE_PATH,
+      UI_ICONS_CONFIG.TOTAL_FRAMES,
+      UI_ICONS_CONFIG.COLS,
+      UI_ICONS_CONFIG.ROWS,
+      UI_ICONS_CONFIG.FRAME_WIDTH,   // 90px width
+      UI_ICONS_CONFIG.FRAME_HEIGHT   // 100px height
+    );
+  }
+
+  // Easy methods for common usage
+  drawCheckMark(ctx, x, y, size = null) {
+    const frameIndex = UI_ICONS_CONFIG.getFrameIndex('CHECK_MARK');
+    this.spriteUtil.drawFrame(ctx, frameIndex, x, y, size, size);
+  }
+
+  drawCrossMark(ctx, x, y, size = null) {
+    const frameIndex = UI_ICONS_CONFIG.getFrameIndex('CROSS_MARK');
+    this.spriteUtil.drawFrame(ctx, frameIndex, x, y, size, size);
+  }
+
+  drawConcreteIcon(ctx, x, y, width = null, height = null) {
+    const frameIndex = UI_ICONS_CONFIG.getFrameIndex('CONCRETE_MIXER');
+    this.spriteUtil.drawFrame(ctx, frameIndex, x, y, width, height);
+  }
+
+  drawSteelIcon(ctx, x, y, width = null, height = null) {
+    const frameIndex = UI_ICONS_CONFIG.getFrameIndex('STEEL_FURNACE');
+    this.spriteUtil.drawFrame(ctx, frameIndex, x, y, width, height);
+  }
+
+  drawCarbonIcon(ctx, x, y, width = null, height = null) {
+    const frameIndex = UI_ICONS_CONFIG.getFrameIndex('CARBON_PLANT');
+    this.spriteUtil.drawFrame(ctx, frameIndex, x, y, width, height);
+  }
+
+  drawOilIcon(ctx, x, y, width = null, height = null) {
+    const frameIndex = UI_ICONS_CONFIG.getFrameIndex('OIL_REFINERY');
+    this.spriteUtil.drawFrame(ctx, frameIndex, x, y, width, height);
+  }
+
+  drawCrane(ctx, x, y, width = null, height = null) {
+    const frameIndex = UI_ICONS_CONFIG.getFrameIndex('CRANE');
+    this.spriteUtil.drawFrame(ctx, frameIndex, x, y, width, height);
+  }
+
+  drawGear(ctx, x, y, size = null) {
+    const frameIndex = UI_ICONS_CONFIG.getFrameIndex('GEAR');
+    this.spriteUtil.drawFrame(ctx, frameIndex, x, y, size, size);
+  }
+
+  drawExplosion(ctx, x, y, size = null) {
+    const frameIndex = UI_ICONS_CONFIG.getFrameIndex('EXPLOSION');
+    this.spriteUtil.drawFrame(ctx, frameIndex, x, y, size, size);
+  }
+
+  // Generic method for any frame
+  drawIcon(ctx, iconName, x, y, width = null, height = null) {
+    const frameIndex = UI_ICONS_CONFIG.getFrameIndex(iconName);
+    this.spriteUtil.drawFrame(ctx, frameIndex, x, y, width, height);
+  }
+
+  // Check if icons are loaded
+  isLoaded() {
+    return this.spriteUtil.isFrameLoaded();
+  }
+
+  // Get bounds for click detection
+  getIconBounds(iconName, x, y, width = null, height = null) {
+    const frameIndex = UI_ICONS_CONFIG.getFrameIndex(iconName);
+    return this.spriteUtil.getFrameBounds(frameIndex, x, y, width, height);
+  }
+}
+
+, further last 5th box contains image named as clockBase.png and its width is 5400px and height is 71px and it contains 72 frames , static frame when not hovered is 45th frame and when i go that specific box mean hover over that box it goes through all frame , i will set its size and hover size manually , and when clicked nothign happend at all , i will set its functionality later
