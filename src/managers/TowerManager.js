@@ -47,11 +47,9 @@ export class TowerManager {
   // Radar, jammer, detector are all "place once" buildings — unified into one handler.
   handleOneShotClick(prop, buildingKey) {
     if (this[prop]) {
-      console.log(`${buildingKey} already placed`);
       return false;
     }
     this[prop] = new TowerBuilding(this.garageX, this.garageY, buildingKey);
-    console.log(`${buildingKey} building spawned`);
     return true;
   }
 

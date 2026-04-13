@@ -10,8 +10,8 @@ export const WALL_CONFIG = {
   },
 
   IMAGES: {
-    left: 'simpleWallLeft2.png',
-    right: 'simpleWallRight2.png'
+    left: 'simpleWallLeftHeli.png',
+    right: 'simpleWallRightHeli.png'
   },
   UI: {
   checkMarkSize: 50,      // ← tune size
@@ -22,8 +22,8 @@ export const WALL_CONFIG = {
   // ← new
   UPGRADE: {
     IMAGES: {
-      left: 'greatWallLeft2.png',
-      right: 'greatWallRight2.png'
+      left: 'greatWallLeftHeli.png',
+      right: 'greatWallRightHeli.png'
     },
     DIMENSIONS: {
     width: 492,   // ← set your upgrade wall dimensions

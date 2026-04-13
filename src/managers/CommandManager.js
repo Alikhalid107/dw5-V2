@@ -29,10 +29,10 @@ export class CommandManager {
 
     switch (clickedBox.index) {
       case 0: return this.handleCommandCenterClick();
-      case 1: console.log("Oil pump clicked — functionality pending"); return true;
+      case 1: return true;
       case 2: return this.handleDestroyBase();
-      case 3: console.log("Crane clicked — functionality pending"); return true;
-      case 4: console.log("Clock clicked — functionality pending"); return true;
+      case 3: return true;
+      case 4: return true;
     }
     return false;
   }
@@ -48,15 +48,10 @@ export class CommandManager {
   }
 
   handleDestroyBase() {
-    if (!this.compositeBase) return false;
-    // Hide all objects
-    this.compositeBase.objects.forEach(obj => {
-      if (obj) obj.visible = false;
-    });
-    this.compositeBase.destroyed = true;
-    console.log("Base destroyed");
-    return true;
-  }
+  if (!this.compositeBase) return false;
+  this.compositeBase.destroyEverything();
+  return true;
+}
 
   update(deltaTime) {
     if (this.panel.isVisible) {

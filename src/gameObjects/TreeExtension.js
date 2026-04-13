@@ -1,7 +1,7 @@
 import { CroppedGameObject } from "./CroppedGameObject";
 
 export class TreeExtension extends CroppedGameObject {
-  constructor(x, y, width, height, cropLeft, cropRight) {
+  constructor(x, y, width, height, cropLeft, cropRight, image = "../public/treeExtension.png") {
     const croppedWidth = width - cropLeft - cropRight;
     super(
       x + cropLeft,
@@ -9,7 +9,7 @@ export class TreeExtension extends CroppedGameObject {
       croppedWidth,
       height,
       -102,
-      "../public/treeExtension.png",
+      image,   // ← now configurable
       cropLeft,
       0,
       croppedWidth,

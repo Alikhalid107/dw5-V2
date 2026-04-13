@@ -23,7 +23,6 @@ export class ConfigurationMerger {
   static getFactoryPanelConfig(factoryType) {
     const factoryConfig = FactoryConfig[factoryType];
     if (!factoryConfig) {
-      console.warn(`No config found for factory type: ${factoryType}`);
       return UNIVERSAL_PANEL_CONFIG.PANEL_BACKGROUND;
     }
     

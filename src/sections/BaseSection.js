@@ -2,13 +2,14 @@ import { BaseImage } from "../gameObjects/BaseImage.js";
 import { TreeExtension } from "../gameObjects/TreeExtension.js";
 
 export class BaseSection {
-  constructor(x, y, width, height) {
-    this.paddingTop = 60;
-    this.paddingLeft = 155;
-    this.treeExtensionHeight = 134;
-
-    this.cropLeft = 0;
-    this.cropRight = 0;
+  constructor(x, y, width, height, cfg = {}) {
+    this.paddingTop = cfg.treeExtension?.paddingTop ?? 60;
+    this.paddingLeft = cfg.treeExtension?.paddingLeft ?? 155;
+    this.treeExtensionHeight = cfg.treeExtension?.height ?? 134;
+    this.cropLeft = cfg.treeExtension?.cropLeft ?? 0;
+    this.cropRight = cfg.treeExtension?.cropRight ?? 0;
+    this.baseImage = cfg.baseImage ?? "../public/heliBase.jpg";
+    this.treeImage = cfg.treeExtension?.image ?? "../public/treeExtension.png";
 
     this.objects = this.createObjects(x, y, width, height);
   }
@@ -16,10 +17,8 @@ export class BaseSection {
   createObjects(x, y, width, height) {
     const objects = [];
 
-    // Base image
-    objects.push(new BaseImage(x, y, width, height));
+    objects.push(new BaseImage(x, y, width, height, this.baseImage));
 
-    // Tree extension
     objects.push(
       new TreeExtension(
         x + this.paddingLeft,
@@ -27,14 +26,13 @@ export class BaseSection {
         width,
         this.treeExtensionHeight,
         this.cropLeft,
-        this.cropRight
+        this.cropRight,
+        this.treeImage   // ← pass through
       )
     );
 
     return objects;
   }
 
-  getObjects() {
-    return this.objects;
-  }
+  getObjects() { return this.objects; }
 }

@@ -2,12 +2,12 @@ import { GarageStructure } from "../gameObjects/GarageStructure.js";
 import { GarageDoors } from "../gameObjects/GarageDoors.js";
 
 export class GarageSection {
-  constructor(baseX, baseY, baseWidth, baseHeight) {
-    this.garageWidth = 263;
-    this.garageHeight = 181;
-
-    this.garageOffsetY = -250;
-    this.doorsOffsetY = 0;
+  constructor(baseX, baseY, baseWidth, baseHeight, cfg = {}) {
+    this.garageWidth = cfg.width ?? 263;
+    this.garageHeight = cfg.height ?? 181;
+    this.garageOffsetY = cfg.offsetY ?? -250;
+    this.structureImage = cfg.structureImage ?? "../public/garage_structure.png";
+    this.doorsImage = cfg.doorsImage ?? "../public/garage_doors.png";
 
     this.objects = this.createObjects(baseX, baseY, baseWidth, baseHeight);
   }
@@ -15,17 +15,11 @@ export class GarageSection {
   createObjects(baseX, baseY, baseWidth, baseHeight) {
     const objects = [];
 
-    // Garage
-    const garageX = (baseX + (baseWidth - this.garageWidth) / 2);
+    const garageX = baseX + (baseWidth - this.garageWidth) / 2;
     const garageY = baseY + baseHeight + this.garageOffsetY;
 
-    const structure = new GarageStructure(garageX, garageY, this.garageWidth, this.garageHeight);
-    objects.push(structure);
-
-    // Doors
-    const doorsX = garageX + (this.garageWidth - this.garageWidth) / 2;
-    const doorsY = garageY + this.doorsOffsetY;
-    objects.push(new GarageDoors(doorsX, doorsY, this.garageWidth, this.garageHeight));
+    objects.push(new GarageStructure(garageX, garageY, this.garageWidth, this.garageHeight, this.structureImage));
+    objects.push(new GarageDoors(garageX, garageY, this.garageWidth, this.garageHeight, this.doorsImage));
 
     this.garageX = garageX;
     this.garageY = garageY;
@@ -33,10 +27,7 @@ export class GarageSection {
     return objects;
   }
 
-  getObjects() {
-    return this.objects;
-  }
-
+  getObjects() { return this.objects; }
   getGarageX() { return this.garageX; }
   getGarageY() { return this.garageY; }
   getGarageWidth() { return this.garageWidth; }

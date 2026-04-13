@@ -86,7 +86,6 @@ export class IndividualFactoryPanel {
       headerLines = Array.isArray(result) ? result :
         [{ segments: [{ text: result, color: "white", font: "14px Arial" }] }];
     } catch (err) {
-      console.warn("Description function error:", err);
     }
   } else if (typeof desc === "string") {
     headerLines = [{ segments: [{ text: desc, color: "white", font: "14px Arial" }] }];
@@ -193,7 +192,6 @@ export class IndividualFactoryPanel {
     this.coreComponents.updateBoxCount(totalBoxes);
     this.panelWidth = this.coreComponents.panelWidth;
     this.panelHeight = this.coreComponents.panelHeight;
-    console.log(`Updated panel dimensions: ${this.panelWidth}x${this.panelHeight}`);
   }
 
   get positioning() {

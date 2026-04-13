@@ -2,8 +2,8 @@ import { UNIVERSAL_PANEL_CONFIG } from "./UniversalPanelConfig.js";
 
 export const COMMAND_PANEL_CONFIG = {
   hoverArea: {
-    x: 600,     // ← tune
-    y: 360,     // ← tune
+    x: 430,     // ← tune
+    y: 260,     // ← tune
     width: 260,
     height: 50,
   },
@@ -18,25 +18,31 @@ export const COMMAND_PANEL_CONFIG = {
     headerText: "Command Center",
     headerFont: "bold 13px Arial",
     headerColor: UNIVERSAL_PANEL_CONFIG.COMPONENTS.text.colors.primary,
-    checkMarkSize: 40,
-    checkMarkOffsetX: 0,
-    checkMarkOffsetY: 0,
+    checkMarkSize: 50,
+    checkMarkOffsetX: 10,
+    checkMarkOffsetY: -10,
   },
 
   BUILDING: {
-    commandCenter: {
-      spriteSheet: "commandCenter.png",
-      totalFrames: 5,
-      frameWidth: 174,      // 870 / 5
-      frameHeight: 117,
-      displayWidth: 174,
-      displayHeight: 117,
-      staticFrame: 0,   // ← 5 frames only, use last frame as static (index 4)
-      maxLevel: 5,
-      spawnOffsetX: 200,    // ← tune
-      spawnOffsetY: -120,   // ← tune
-      zIndex: -95,
-    },
+   commandCenter: {
+  spriteSheet: "commandCenter.png",
+  totalFrames: 5,
+  frameWidth: 174,
+  frameHeight: 117,
+  displayWidth: 174,
+  displayHeight: 117,
+  staticFrame: 0,
+  maxLevel: 5,
+  spawnOffsetX: -140,
+  spawnOffsetY: -25,
+  zIndex: -96,
+  box: {
+    sizeMultiplier: 1.3,       // ← tune size inside box
+    hoverSizeMultiplier: 1.7,  // ← tune hover size
+    anchorX: 0.1,              // ← tune horizontal position (0=left, 1=right)
+    anchorY: 0.6,              // ← tune vertical position (0=top, 1=bottom)
+  },
+},
   },
 
   SPRITES: {
@@ -48,8 +54,8 @@ export const COMMAND_PANEL_CONFIG = {
       staticFrame: 44,      // 45th frame = index 44
       animDuration: 2000,   // ← tune hover rotation speed
       box: {
-        sizeMultiplier: 0.9,       // ← tune
-        hoverSizeMultiplier: 1.1,  // ← tune
+        sizeMultiplier: 1.2,       // ← tune
+        hoverSizeMultiplier: 1.4,  // ← tune
         anchorX: 0.5,
         anchorY: 0.5,
       },
@@ -63,9 +69,9 @@ export const COMMAND_PANEL_CONFIG = {
       staticFrame: 44,      // 45th frame = index 44
       animDuration: 1500,   // ← tune hover speed
       box: {
-        sizeMultiplier: 0.9,
-        hoverSizeMultiplier: 1.1,
-        anchorX: 0.5,
+        sizeMultiplier:1.2,
+        hoverSizeMultiplier: 1.4,
+        anchorX: -1.0,
         anchorY: 0.5,
       },
     },
@@ -73,8 +79,8 @@ export const COMMAND_PANEL_CONFIG = {
     crane: {
       // from UI_ICONS_CONFIG frame 6
       box: {
-        sizeMultiplier: 0.7,       // ← tune
-        hoverSizeMultiplier: 0.9,  // ← tune
+        sizeMultiplier: 1.0,       // ← tune
+        hoverSizeMultiplier: 1.2,  // ← tune
         anchorX: 0.5,
         anchorY: 0.5,
       },
@@ -88,8 +94,8 @@ export const COMMAND_PANEL_CONFIG = {
       staticFrame: 44,      // 45th frame = index 44
       animDuration: 2000,   // ← tune
       box: {
-        sizeMultiplier: 0.9,
-        hoverSizeMultiplier: 1.1,
+        sizeMultiplier: 1.0,
+        hoverSizeMultiplier: 1.2,
         anchorX: 0.5,
         anchorY: 0.5,
       },
@@ -97,7 +103,7 @@ export const COMMAND_PANEL_CONFIG = {
   },
 
   debug: {
-    enabled: true,
+    enabled: false,
     hoverAreaColor: "rgba(255, 100, 0, 0.9)",
     panelAreaColor: "rgba(0, 100, 255, 0.9)",
     lineWidth: 2,

@@ -448,17 +448,7 @@ if (shouldShowCheck && iconManager?.isLoaded?.()) {
       this.resetShadow(ctx);
     }
 
-    // Level text
-    const b = commandManager?.commandBuilding;
-    if (b && !b.isMaxLevel()) {
-      ctx.fillStyle = "white";
-      ctx.strokeStyle = "black";
-      ctx.lineWidth = 2;
-      ctx.font = "bold 10px Arial";
-      ctx.textAlign = "center";
-      ctx.strokeText(`Lv${b.level}`, x + width / 2, y + height - 4);
-      ctx.fillText(`Lv${b.level}`, x + width / 2, y + height - 4);
-    }
+    
   }
   }
 }

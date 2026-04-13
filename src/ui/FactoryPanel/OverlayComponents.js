@@ -92,7 +92,6 @@ export class OverlayComponents {
       
       return true;
     } catch (error) {
-      console.error("Error showing confirmation dialog:", error);
       return false;
     }
   }

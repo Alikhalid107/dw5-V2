@@ -10,47 +10,45 @@ import { BaseInputHandler } from "../utils/BaseInputHandler.js";
 import { BaseObjectUpdater } from "../utils/BaseObjectUpdater.js";
 import { ExtensionManager } from "../managers/ExtensionManager.js";
 import { CommandManager } from "../managers/CommandManager.js";
+import { BASE_TYPE2_CONFIG } from "../config/BaseType2Config.js";
 
 
 export class CompositeBase {
-  constructor(worldWidth, worldHeight) {
+  constructor(worldWidth, worldHeight, baseType = 1) {
     this.worldWidth = worldWidth;
     this.worldHeight = worldHeight;
     this.baseWidth = 1500;
     this.baseHeight = 500;
-    
+    this.baseType = baseType;
+    this.cfg = baseType === 2 ? BASE_TYPE2_CONFIG : {};  // ← type1 uses defaults
+
     this.initializeSections();
     this.objects = this.createCompositeBase();
-    
-    
-    this.inputHandler = new BaseInputHandler(this.factoryManager, this.garageUI,);
+    this.inputHandler = new BaseInputHandler(this.factoryManager, this.garageUI);
     this.objectUpdater = new BaseObjectUpdater(this.flakManager, this.factoryManager);
-
   }
 
-initializeSections() {
-  const randX = Math.floor(Math.random() * (this.worldWidth - this.baseWidth));
-  const randY = Math.floor(Math.random() * (this.worldHeight - this.baseHeight));
+  initializeSections() {
+    const randX = Math.floor(Math.random() * (this.worldWidth - this.baseWidth));
+    const randY = Math.floor(Math.random() * (this.worldHeight - this.baseHeight));
 
-  this.baseSection = new BaseSection(randX, randY, this.baseWidth, this.baseHeight);
-  this.garageSection = new GarageSection(randX, randY, this.baseWidth, this.baseHeight);
+    this.baseSection = new BaseSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg);
+    this.garageSection = new GarageSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg.garage);
 
-  const gx = this.garageSection.getGarageX();
-  const gy = this.garageSection.getGarageY();
-  const gw = this.garageSection.getGarageWidth();
-  const gh = this.garageSection.getGarageHeight();
+    const gx = this.garageSection.getGarageX();
+    const gy = this.garageSection.getGarageY();
+    const gw = this.garageSection.getGarageWidth();
+    const gh = this.garageSection.getGarageHeight();
 
-  this.flakManager = new FlakManager(gx, gy, gw, gh);
-  this.wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight); // ← moved up
-  this.garageUI = new GarageUI(this.flakManager, gx, gy, gw, gh, this.wallSection); // ← now valid
-
-  this.flagManager = new FlagManager(gx, gy, gw, gh);
-  this.factoryManager = new FactoryManager(gx, gy, gw, gh);
-  this.towerManager = new TowerManager(randX, randY, gx, gy, gw, gh);
-  this.extensionManager = new ExtensionManager(randX, randY,gx,gy, this.factoryManager);
-  this.commandManager = new CommandManager(randX, randY, gx, gy, this);
-
-}
+    this.flakManager = new FlakManager(gx, gy, gw, gh);
+    this.wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg.walls);
+    this.garageUI = new GarageUI(this.flakManager, gx, gy, gw, gh, this.wallSection);
+    this.flagManager = new FlagManager(gx, gy, gw, gh);
+    this.factoryManager = new FactoryManager(gx, gy, gw, gh);
+    this.towerManager = new TowerManager(randX, randY, gx, gy, gw, gh);
+    this.extensionManager = new ExtensionManager(randX, randY, gx, gy, this.factoryManager);
+    this.commandManager = new CommandManager(randX, randY, gx, gy, this);
+  }
 
   createCompositeBase() {
   const objects = [];
@@ -66,7 +64,7 @@ initializeSections() {
 
   getObjects() { return this.objects; }
 
-  update(deltaTime ,box1Hovered, box2Hovered, box4Hovered) {
+  update(deltaTime) {
   this.flagManager?.update(deltaTime);
   this.garageUI?.update(deltaTime);
   this.factoryManager?.update(deltaTime);
@@ -74,6 +72,7 @@ initializeSections() {
   this.extensionManager?.update(deltaTime);
   this.commandManager?.update(deltaTime);
 
+  if (this.destroyed) return;
 
   if (this.towerManager?.militaryBuilding &&
       !this.objects.includes(this.towerManager.militaryBuilding)) {
@@ -141,6 +140,9 @@ initializeSections() {
 }
 
   handleMouseMove(mouseX, mouseY) {
+
+    if (this.destroyed) return;  // ← add this line
+
     this.inputHandler.handleMouseMove(mouseX, mouseY);
     this.towerManager?.handleMouseMove(mouseX, mouseY);  // add in BaseInputHandler too
     this.extensionManager?.handleMouseMove(mouseX, mouseY);
@@ -148,6 +150,7 @@ initializeSections() {
   }
 
   handleClick(mouseX, mouseY) {
+    if (this.destroyed) return false;
   return this.inputHandler.handleClick(mouseX, mouseY) ||
          this.towerManager?.handleClick(mouseX, mouseY) ||
          this.extensionManager?.handleClick(mouseX, mouseY) ||
@@ -155,6 +158,9 @@ initializeSections() {
   }
 
   drawUI(ctx, offsetX, offsetY) {
+
+    if (this.destroyed) return;  // ← add this line
+
     this.factoryManager?.drawUI?.(ctx, offsetX, offsetY);
     this.garageUI?.drawUI(ctx, offsetX, offsetY);
     this.towerManager?.drawUI?.(ctx, offsetX, offsetY);
@@ -162,6 +168,25 @@ initializeSections() {
     this.commandManager?.drawUI?.(ctx, offsetX, offsetY);
   }
   
+  destroyEverything() {
+  // Clear all renderable objects
+  this.objects.length = 0;
+  this.destroyed = true;
+
+  // Null out all managers so update/draw/input do nothing
+  this.flakManager = null;
+  this.wallSection = null;
+  this.flagManager = null;
+  this.factoryManager = null;
+  this.towerManager = null;
+  this.extensionManager = null;
+  this.commandManager = null;
+  this.garageUI = null;
+  this.inputHandler = null;
+  this.objectUpdater = null;
+  this.baseSection = null;
+  this.garageSection = null;
+}
 
 
   // ---------- Flak Management ----------

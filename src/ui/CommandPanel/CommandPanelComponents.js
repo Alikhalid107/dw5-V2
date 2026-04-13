@@ -42,9 +42,7 @@ export class CommandPanelComponents extends BasePanelComponents {
     return [
       { segments: [{ text: "Command Center", color: "white", font: "15px Arial", align: "left" }] },
       { segments: [
-        { text: "Main base building", color: "white", font: "12px Arial", align: "left" },
-        { text: `Lv ${level}/${COMMAND_PANEL_CONFIG.BUILDING.commandCenter.maxLevel}`, color: "#fcfc8b", font: "12px Arial", align: "right" }
-      ]},
+        { text: "Main base building", color: "white", font: "12px Arial", align: "left" },      ]},
       { segments: [
         { text: "Click to upgrade", color: "white", font: "12px Arial", align: "left" },
         { text: "Titan 150", color: "#A6C7FA", font: "12px Arial", align: "right" }

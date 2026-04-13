@@ -47,11 +47,9 @@ export class CameraController {
 
         // Optional: Listen for other events
         EventBus.on(CAMERA_EVENTS.DRAG_START, (data) => {
-            // console.log("Camera drag started at:", data);
         });
 
         EventBus.on(CAMERA_EVENTS.DRAG_END, () => {
-            // console.log("Camera drag ended");
         });
     }
 

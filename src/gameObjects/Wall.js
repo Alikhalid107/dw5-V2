@@ -10,5 +10,5 @@ export class Wall extends GameObject {
 
   setImage(newImage) {
   this.imageLoader.loadImage(newImage);
-}
+  }
 }

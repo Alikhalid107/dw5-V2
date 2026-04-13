@@ -29,12 +29,12 @@ export class MouseInputHandler {
     }
 
     handleMouseMove(event) {
-        const { x, y } = this.getMouseCoordinates(event);
-        this.forEachCompositeBase('handleMouseMove', x, y);
-    }
+    const { x, y } = this.getMouseCoordinates(event);
+    this.bases.forEach(base => base.handleMouseMove?.(x, y));
+}
 
-    handleClick(event) {
-        const { x, y } = this.getMouseCoordinates(event);
-        this.forEachCompositeBase('handleClick', x, y);
-    }
+handleClick(event) {
+    const { x, y } = this.getMouseCoordinates(event);
+    this.bases.forEach(base => base.handleClick?.(x, y));
+}
 }

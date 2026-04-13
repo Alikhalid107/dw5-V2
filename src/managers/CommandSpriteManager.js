@@ -66,18 +66,19 @@ export class CommandSpriteManager {
     );
   }
 
-  // Use level frame if building placed, otherwise show staticFrame (44)
-  const frame = commandBuilding ? commandBuilding.getCurrentFrame() : (cfg.staticFrame ?? 44);
+  // When building exists use its current level frame, otherwise staticFrame
+  const frame = cfg.staticFrame;
 
-  const sizes = { 
-    sizeMultiplier: 1.6, 
-    hoverSizeMultiplier: 1.9, 
-    anchorX: 0.5, 
-    anchorY: 0.5 
+  // Use box config for positioning — tunable via config
+  const sizeCfg = cfg.box || {
+    sizeMultiplier: 1.0,
+    hoverSizeMultiplier: 1.2,
+    anchorX: 0.5,
+    anchorY: 0.5,
   };
 
-  this._drawSprite(ctx, this._cmdSprite, frame, isHovered, x, y, width, height, panelBounds, sizes);
-    }
+  this._drawSprite(ctx, this._cmdSprite, frame, isHovered, x, y, width, height, panelBounds, sizeCfg);
+}
 
   _drawCrane(ctx, isHovered, x, y, width, height, panelBounds, iconManager) {
   if (!iconManager?.isLoaded()) return;
@@ -100,7 +101,6 @@ export class CommandSpriteManager {
 
   _drawSprite(ctx, sprite, frame, isHovered, x, y, width, height, panelBounds, sizeCfg) {
   if (!sprite.isFrameLoaded()) return;
-  console.log("frameWidth:", sprite.frameWidth, "frameHeight:", sprite.frameHeight, "totalFrames:", sprite.totalFrames, "drawing frame:", frame);
 
   const multiplier = isHovered ? sizeCfg.hoverSizeMultiplier : sizeCfg.sizeMultiplier;
   const frameW = sprite.frameWidth;

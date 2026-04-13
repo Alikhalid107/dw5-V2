@@ -123,7 +123,6 @@ export class CorePanelComponents {
         try {
           callback(msg);
         } catch (e) {
-          console.error("messageCallback error:", e);
         }
       };
       MessageBus.subscribe(this._messageForwarder);
