@@ -2,7 +2,7 @@ import { CommandPanel } from "../ui/CommandPanel/CommandPanel.js";
 import { CommandBuilding } from "../gameObjects/CommandBuilding.js";
 
 export class CommandManager {
-  constructor(baseX, baseY, garageX, garageY, compositeBase = null) {
+constructor(baseX, baseY, garageX, garageY, compositeBase = null, cfg = {}) {
     this.baseX = baseX;
     this.baseY = baseY;
     this.garageX = garageX;
@@ -13,6 +13,10 @@ export class CommandManager {
     this.panel.setCommandManager(this);
 
     this.commandBuilding = null;
+
+    this.cfg = cfg;
+    this.panel = new CommandPanel(baseX, baseY, cfg);
+    this.panel.setCommandManager(this);
   }
 
   handleMouseMove(mouseX, mouseY) {
@@ -38,10 +42,10 @@ export class CommandManager {
   }
 
   handleCommandCenterClick() {
-    if (!this.commandBuilding) {
-      this.commandBuilding = new CommandBuilding(this.garageX, this.garageY);
-      return true;
-    }
+  if (!this.commandBuilding) {
+    this.commandBuilding = new CommandBuilding(this.garageX, this.garageY, this.cfg.buildings);
+    return true;
+  }
     if (this.commandBuilding.isMaxLevel()) return false;
     this.commandBuilding.upgrade();
     return true;

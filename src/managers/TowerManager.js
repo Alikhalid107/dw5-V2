@@ -2,23 +2,19 @@ import { TowerPanel } from "../ui/TowerPanel/TowerPanel.js";
 import { TowerBuilding } from "../gameObjects/TowerBuilding.js";
 
 export class TowerManager {
-  constructor(baseX, baseY, garageX, garageY, garageWidth, garageHeight) {
-    this.baseX        = baseX;
-    this.baseY        = baseY;
-    this.garageX      = garageX;
-    this.garageY      = garageY;
-    this.garageWidth  = garageWidth;
-    this.garageHeight = garageHeight;
+  constructor(baseX, baseY, garageX, garageY, garageWidth, garageHeight, cfg = {}) {
+    this.baseX = baseX; this.baseY = baseY;
+    this.garageX = garageX; this.garageY = garageY;
+    this.garageWidth = garageWidth; this.garageHeight = garageHeight;
+    this.cfg = cfg;
 
-    this.panel = new TowerPanel(baseX, baseY);
+    this.panel = new TowerPanel(baseX, baseY, cfg);  // ← pass cfg
     this.showGrid = false;
-
-    this.militaryBuilding      = null;
+    this.militaryBuilding = null;
     this.militaryBuildingRight = null;
-    this.radarBuilding         = null;
-    this.jammerBuilding        = null;
-    this.detectorBuilding      = null;
-
+    this.radarBuilding = null;
+    this.jammerBuilding = null;
+    this.detectorBuilding = null;
     this.panel.setTowerManager(this);
   }
 
@@ -46,32 +42,24 @@ export class TowerManager {
 
   // Radar, jammer, detector are all "place once" buildings — unified into one handler.
   handleOneShotClick(prop, buildingKey) {
-    if (this[prop]) {
-      return false;
-    }
-    this[prop] = new TowerBuilding(this.garageX, this.garageY, buildingKey);
-    return true;
-  }
+  if (this[prop]) return false;
+  this[prop] = new TowerBuilding(this.garageX, this.garageY, buildingKey, this.cfg.buildings);
+  return true;
+}
 
   handleMilitaryClick() {
-    if (!this.militaryBuilding) {
-      this.militaryBuilding = new TowerBuilding(this.garageX, this.garageY, "left");
-      return true;
-    }
-    if (!this.militaryBuilding.isMaxLevel()) {
-      this.militaryBuilding.upgrade();
-      return true;
-    }
-    if (!this.militaryBuildingRight) {
-      this.militaryBuildingRight = new TowerBuilding(this.garageX, this.garageY, "right");
-      return true;
-    }
-    if (!this.militaryBuildingRight.isMaxLevel()) {
-      this.militaryBuildingRight.upgrade();
-      return true;
-    }
-    return false;
+  if (!this.militaryBuilding) {
+    this.militaryBuilding = new TowerBuilding(this.garageX, this.garageY, "left", this.cfg.buildings);
+    return true;
   }
+  if (!this.militaryBuilding.isMaxLevel()) { this.militaryBuilding.upgrade(); return true; }
+  if (!this.militaryBuildingRight) {
+    this.militaryBuildingRight = new TowerBuilding(this.garageX, this.garageY, "right", this.cfg.buildings);
+    return true;
+  }
+  if (!this.militaryBuildingRight.isMaxLevel()) { this.militaryBuildingRight.upgrade(); return true; }
+  return false;
+}
 
   // ── Scene ──────────────────────────────────────────────────────────────────
 

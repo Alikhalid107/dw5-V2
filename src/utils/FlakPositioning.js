@@ -1,19 +1,20 @@
 import { FLAK_CONFIG } from '../config/FlakConfig.js';
 
 export class FlakPositioning {
-  constructor(garageX, garageY, garageWidth, garageHeight) {
-    this.garageX = garageX;
-    this.garageY = garageY;
-    this.garageWidth = garageWidth;
-    this.garageHeight = garageHeight;
-    this.pendingPositions = new Set();
-  }
+  constructor(garageX, garageY, garageWidth, garageHeight, rowsOverride = null) {
+  this.garageX = garageX;
+  this.garageY = garageY;
+  this.garageWidth = garageWidth;
+  this.garageHeight = garageHeight;
+  this.pendingPositions = new Set();
+  // Use type2 rows if provided, otherwise fall back to FLAK_CONFIG.ROWS
+  this.rows = rowsOverride ?? FLAK_CONFIG.ROWS;
+}
 
   // ---------- capacity calculations ----------
-  totalCapacityForRow(rowIndex) { 
-    return (FLAK_CONFIG.ROWS[rowIndex]?.count || 0) * 2; 
-  }
-
+  totalCapacityForRow(rowIndex) {
+  return (this.rows[rowIndex]?.count || 0) * 2;
+}
   getFlaksOnRow(rowIndex, currentFlakCount) {
     let prev = 0;
     for (let i = 0; i < rowIndex; i++) prev += this.totalCapacityForRow(i);
@@ -26,23 +27,23 @@ export class FlakPositioning {
   }
 
   getCurrentRowIndex(currentFlakCount) {
-    let totalPrev = 0;
-    for (let i = 0; i < FLAK_CONFIG.ROWS.length; i++) {
-      const cap = this.totalCapacityForRow(i);
-      if (currentFlakCount <= totalPrev + cap) return i;
-      totalPrev += cap;
-    }
-    return -1;
+  let totalPrev = 0;
+  for (let i = 0; i < this.rows.length; i++) {
+    const cap = this.totalCapacityForRow(i);
+    if (currentFlakCount <= totalPrev + cap) return i;
+    totalPrev += cap;
   }
+  return -1;
+}
 
   findRowWithSpace(currentFlakCount, startIndex = 0) {
-    for (let i = Math.max(0, startIndex); i < FLAK_CONFIG.ROWS.length; i++) {
-      const { left, right } = this.getLeftRightCounts(i, currentFlakCount);
-      const rowCount = FLAK_CONFIG.ROWS[i].count;
-      if (left < rowCount || right < rowCount) return i;
-    }
-    return -1;
+  for (let i = Math.max(0, startIndex); i < this.rows.length; i++) {
+    const { left, right } = this.getLeftRightCounts(i, currentFlakCount);
+    const rowCount = this.rows[i].count;
+    if (left < rowCount || right < rowCount) return i;
   }
+  return -1;
+}
 
   // ---------- positioning ----------
   scheduleAsyncPositioning(flak, getTargetX) {
@@ -71,7 +72,7 @@ export class FlakPositioning {
   }
 
   calculateFlakPosition(side, rowIndex, currentFlakCount, flakWidth = 0) {
-  const row = FLAK_CONFIG.ROWS[rowIndex];
+  const row = this.rows[rowIndex];  // ← was FLAK_CONFIG.ROWS[rowIndex]
   const baseY = this.garageY + this.garageHeight + row.rowOffsetY;
   const { left, right } = this.getLeftRightCounts(rowIndex, currentFlakCount);
 
@@ -94,9 +95,9 @@ export class FlakPositioning {
 
   determineSideForNewFlak(rowIndex, currentFlakCount) {
     const flaksOnRow = this.getFlaksOnRow(rowIndex, currentFlakCount);
-    const { left: leftCount, right: rightCount } = this.getLeftRightCounts(rowIndex, currentFlakCount);
-    let addLeft = flaksOnRow % 2 === 0;
-    const rowLimit = FLAK_CONFIG.ROWS[rowIndex].count;
+  const { left: leftCount, right: rightCount } = this.getLeftRightCounts(rowIndex, currentFlakCount);
+  let addLeft = flaksOnRow % 2 === 0;
+  const rowLimit = this.rows[rowIndex].count;  // ← was FLAK_CONFIG.ROWS
 
     if (addLeft && leftCount >= rowLimit) addLeft = false;
     else if (!addLeft && rightCount >= rowLimit) addLeft = true;
@@ -111,6 +112,11 @@ export class FlakPositioning {
 
     return addLeft ? "left" : "right";
   }
+  updateFlakRowConfig(index, newConfig) {
+  if (index >= 0 && index < this.positioning.rows.length) {
+    this.positioning.rows[index] = { ...this.positioning.rows[index], ...newConfig };
+  }
+}
 
   cleanup() {
     this.pendingPositions.clear();

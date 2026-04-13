@@ -17,8 +17,11 @@ import { TOWER_PANEL_CONFIG } from "../config/TowerPanelConfig.js";
  *   new TowerBuilding(baseX, baseY, "detector")   → detector (rotor + tower)
  */
 export class TowerBuilding {
-  constructor(garageX, garageY, buildingKey) {
-    const cfg = TOWER_PANEL_CONFIG.BUILDING[buildingKey];
+  constructor(garageX, garageY, buildingKey, buildingsCfg = {}) {
+  const cfg = {
+    ...TOWER_PANEL_CONFIG.BUILDING[buildingKey],
+    ...(buildingsCfg?.[buildingKey] ?? {}),  // ← type2 overrides win
+  };
 
     this.x           = garageX + cfg.spawnOffsetX;
     this.y           = garageY + cfg.spawnOffsetY;

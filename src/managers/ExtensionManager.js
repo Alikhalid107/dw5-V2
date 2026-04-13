@@ -2,7 +2,7 @@ import { ExtensionPanel } from "../ui/ExtensionPanel/ExtensionPanel.js";
 import { ExtensionBuilding } from "../gameObjects/ExtensionBuilding.js";
 
 export class ExtensionManager {
-  constructor(baseX, baseY, garageX, garageY, factoryManager = null) {
+  constructor(baseX, baseY, garageX, garageY, factoryManager = null , cfg={} ) {
     this.baseX = baseX;
     this.baseY = baseY;
     this.garageX = garageX;
@@ -23,6 +23,10 @@ export class ExtensionManager {
 
     this.upgradeAllTimer = 0;
     this.upgradeAllTime = 1000;
+
+    this.cfg = cfg;
+    this.panel = new ExtensionPanel(baseX, baseY, cfg);  // ← pass cfg
+    this.panel.setExtensionManager(this);
   }
 
   handleMouseMove(mouseX, mouseY) {
@@ -45,9 +49,9 @@ export class ExtensionManager {
 
   handleMinistryClick() {
     if (!this.ministryBuilding) {
-      this.ministryBuilding = new ExtensionBuilding(this.garageX, this.garageY, "ministry");
-      return true;
-    }
+    this.ministryBuilding = new ExtensionBuilding(this.garageX, this.garageY, "ministry", this.cfg.buildings);
+    return true;
+  }
     if (this.ministryBuilding.isMaxLevel()) return false;
     this.ministryBuilding.upgrade();
     return true;
@@ -55,7 +59,7 @@ export class ExtensionManager {
 
   handleOfficeClick() {
     if (!this.officeBuilding) {
-      this.officeBuilding = new ExtensionBuilding(this.garageX, this.garageY, "militaryOffice");
+      this.officeBuilding = new ExtensionBuilding(this.garageX, this.garageY, "militaryOffice",this.cfg.buildings);
       return true;
     }
     if (this.officeBuilding.isMaxLevel()) return false;
@@ -65,7 +69,7 @@ export class ExtensionManager {
 
   handleGroupClick() {
     if (!this.groupBuilding) {
-      this.groupBuilding = new ExtensionBuilding(this.garageX, this.garageY, "groupLimit");
+      this.groupBuilding = new ExtensionBuilding(this.garageX, this.garageY, "groupLimit",this.cfg.buildings);
       return true;
     }
     if (this.groupBuilding.isMaxLevel()) return false;

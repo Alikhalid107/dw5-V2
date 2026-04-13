@@ -12,7 +12,7 @@ export class GarageUI {
     garageY,
     garageWidth,
     garageHeight,
-    wallSection = null, // ← add wallSection to constructor
+    wallSection = null,
     customConfig = {}
   ) {
     this.flakManager = flakManager;
@@ -21,18 +21,27 @@ export class GarageUI {
     this.garageWidth = garageWidth;
     this.garageHeight = garageHeight;
     this.wallSection = wallSection;
-    this.iconManager = new IconManager(); // ← add
+    this.iconManager = new IconManager();
     this.showGrid = false;
     this.currentOffsetX = 0;
     this.currentOffsetY = 0;
 
     this.longRangeBuilding = null;
+    this.longRangeCfg = customConfig.longRange ?? {};
     this.garageSpriteManager = new GarageSpriteManager();
-
 
     this.config = ConfigurationMerger.getGarageUIConfig(customConfig);
     this.gridConfig = this.config.grid;
     this.gridConfig.buildableBoxIndex = this.config.panel.buildableBoxIndex;
+
+    // ── Apply type2 hover/panel overrides ──────────────────────────────────
+    if (customConfig.hoverAreaX !== undefined)      this.config.panel.hoverAreaX = customConfig.hoverAreaX;
+    if (customConfig.hoverAreaY !== undefined)      this.config.panel.hoverAreaY = customConfig.hoverAreaY;
+    if (customConfig.hoverAreaWidth !== undefined)  this.config.panel.hoverAreaWidth = customConfig.hoverAreaWidth;
+    if (customConfig.hoverAreaHeight !== undefined) this.config.panel.hoverAreaHeight = customConfig.hoverAreaHeight;
+    if (customConfig.panelOffsetX !== undefined)    this.config.panel.offsetX = customConfig.panelOffsetX;
+    if (customConfig.panelOffsetY !== undefined)    this.config.panel.offsetY = customConfig.panelOffsetY;
+    // ──────────────────────────────────────────────────────────────────────
 
     this.calculatePanelDimensions();
     this.panelBounds = null;
@@ -42,11 +51,11 @@ export class GarageUI {
   }
 
   calculatePanelDimensions() {
-    const alignment = this.gridConfig.alignment ;
-    const paddingLeft = alignment.paddingLeft ;
-    const paddingRight = alignment.paddingRight ;
-    const paddingTop = alignment.paddingTop ;
-    const paddingBottom = alignment.paddingBottom ;
+    const alignment = this.gridConfig.alignment;
+    const paddingLeft = alignment.paddingLeft;
+    const paddingRight = alignment.paddingRight;
+    const paddingTop = alignment.paddingTop;
+    const paddingBottom = alignment.paddingBottom;
 
     const gridWidth =
       this.gridConfig.cols * this.gridConfig.boxWidth +
@@ -61,12 +70,10 @@ export class GarageUI {
 
   calculatePanelPosition() {
     return {
-      x:
-        this.garageX +
-        this.garageWidth / 2 -
-        this.panelWidth / 2 +
-        this.config.panel.offsetX,
-      y: this.garageY + this.garageHeight + this.config.panel.offsetY,
+      x: this.garageX + this.garageWidth / 2 - this.panelWidth / 2 +
+         (this.config.panel.offsetX ?? 0),
+      y: this.garageY + this.garageHeight +
+         (this.config.panel.offsetY ?? 10),
     };
   }
 
@@ -87,16 +94,10 @@ export class GarageUI {
       height: this.panelHeight,
     };
 
-    // draw background
     UniversalPanelRenderer.drawPanelBackground(
-      ctx,
-      x,
-      y,
-      this.panelWidth,
-      this.panelHeight,
+      ctx, x, y, this.panelWidth, this.panelHeight,
     );
 
-    // ---- NEW: determine hovered box and header text ----
     const hoveredBox = this.boxes.find(
       (box) => box.state && box.state.isHovered
     );
@@ -106,28 +107,19 @@ export class GarageUI {
       : this.defaultHeaderText || "Hover a box for details";
 
     UniversalPanelRenderer.drawPanelHeader(
-      ctx,
-      x,
-      y,
-      this.panelWidth,
-      headerText,
-      {
-        padding: 10,
-        offsetY: 20,
-      }
+      ctx, x, y, this.panelWidth, headerText,
+      { padding: 10, offsetY: 20 }
     );
-    // ---- end new --------------------------------------
 
-    // draw boxes (they will draw letters/sprites themselves)
-   this.boxes.forEach((box) => box.draw(ctx, x, y, {
-  renderType: "garage",
-  wallSection: this.wallSection,
-  iconManager: this.iconManager,
-  garageUI: this,
-  garageSpriteManager: this.garageSpriteManager,  // ← add
-  panelBounds: { x, y, width: this.panelWidth, height: this.panelHeight }, // ← add
-}))}
-  
+    this.boxes.forEach((box) => box.draw(ctx, x, y, {
+      renderType: "garage",
+      wallSection: this.wallSection,
+      iconManager: this.iconManager,
+      garageUI: this,
+      garageSpriteManager: this.garageSpriteManager,
+      panelBounds: { x, y, width: this.panelWidth, height: this.panelHeight },
+    }));
+  }
 
   handleMouseMove(mouseX, mouseY) {
     const hoverArea = {
@@ -164,35 +156,37 @@ export class GarageUI {
   }
 
   handleClick(mouseX, mouseY) {
-  return this.boxes.find(box => {
-    if (!box._isPointInWorldBounds(mouseX, mouseY)) return false;
-    return box.controller.handleClick(mouseX, mouseY, box.state, {
-      flakManager: this.flakManager,
-      wallSection: this.wallSection,
-      garageUI: this,              // ← THIS WAS MISSING
-      boxIndex: box.index,
-      gridConfig: this.gridConfig
-    }, 'build');
-  }) || false;
-}
+    return this.boxes.find(box => {
+      if (!box._isPointInWorldBounds(mouseX, mouseY)) return false;
+      return box.controller.handleClick(mouseX, mouseY, box.state, {
+        flakManager: this.flakManager,
+        wallSection: this.wallSection,
+        garageUI: this,
+        boxIndex: box.index,
+        gridConfig: this.gridConfig
+      }, 'build');
+    }) || false;
+  }
 
+  // ── Updated: pass longRangeCfg to LongRangeBuilding ──────────────────────
   spawnLongRange() {
   if (this.longRangeBuilding) return false;
-  this.longRangeBuilding = new LongRangeBuilding(this.garageX, this.garageY);
+  this.longRangeBuilding = new LongRangeBuilding(this.garageX, this.garageY, this.longRangeCfg);
   return true;
 }
 
   update(deltaTime) {
-  const flakBox = this.boxes[0];   // ← verify with log
-  const lrBox = this.boxes[2];     // ← verify with log
+    const flakBox = this.boxes[0];
+    const lrBox = this.boxes[2];
 
-  this.garageSpriteManager.update(
-    deltaTime,
-    flakBox?.state?.isHovered || false,
-    lrBox?.state?.isHovered || false
-  );
-  this.longRangeBuilding?.update(deltaTime);
-}
+    this.garageSpriteManager.update(
+      deltaTime,
+      flakBox?.state?.isHovered || false,
+      lrBox?.state?.isHovered || false
+    );
+    this.longRangeBuilding?.update(deltaTime);
+  }
+
   updateConfig(newConfig) {
     this.config = ConfigurationMerger.getGarageUIConfig(newConfig);
     this.gridConfig = this.config.grid;

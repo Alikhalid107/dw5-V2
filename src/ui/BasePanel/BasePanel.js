@@ -9,13 +9,22 @@ import { UniversalPanelRenderer } from "../../universal/UniversalPanelRenderer.j
  * string and the manager reference name differed.
  */
 export class BasePanel {
-  constructor(config, components, baseX = 0, baseY = 0) {
-    this.config     = config;
-    this.components = components;
-    this.baseX      = baseX;
-    this.baseY      = baseY;
-    this.isVisible  = false;
+  constructor(config, components, baseX = 0, baseY = 0, cfg = {}) {
+  this.config = config;
+  this.components = components;
+  this.baseX = baseX;
+  this.baseY = baseY;
+  this.isVisible = false;
+
+  // Merge type2 overrides into config
+  if (cfg.hoverArea) {
+    this.config = {
+      ...this.config,
+      hoverArea: { ...this.config.hoverArea, ...cfg.hoverArea },
+      panel:     { ...this.config.panel,     ...(cfg.panel ?? {}) },
+    };
   }
+}
 
   // ── Hover / position ────────────────────────────────────────────────────────
 

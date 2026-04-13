@@ -3,10 +3,10 @@ import { TowerPanelComponents } from "./TowerPanelComponents.js";
 import { BasePanel } from "../BasePanel/BasePanel.js";
 
 export class TowerPanel extends BasePanel {
-  constructor(baseX = 0, baseY = 0) {
-    super(TOWER_PANEL_CONFIG, new TowerPanelComponents(), baseX, baseY);
-    this.towerManager = null;
-  }
+  constructor(baseX = 0, baseY = 0, cfg = {}) {
+  super(TOWER_PANEL_CONFIG, new TowerPanelComponents(), baseX, baseY, cfg);
+  this.towerManager = null;
+}
 
   setTowerManager(towerManager) {
     this.towerManager = towerManager;

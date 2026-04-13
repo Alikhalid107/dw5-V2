@@ -4,18 +4,17 @@ import { FlakPositioning } from '../utils/FlakPositioning.js';
 import { FlakBuildSystem } from '../sections/FlakBuildSystem.js';
 
 export class FlakManager {
-  constructor(garageX, garageY, garageWidth, garageHeight) {
-    this.flakScaleFactor = FLAK_CONFIG.DEFAULT_SCALE_FACTOR;
-    this.currentFlakCount = 0;
-    this.maxFlakCapacity = FLAK_CONFIG.MAX_FLAK_CAPACITY;
-    this.objects = [];
+  constructor(garageX, garageY, garageWidth, garageHeight, cfg = {}) {
+  this.flakScaleFactor = FLAK_CONFIG.DEFAULT_SCALE_FACTOR;
+  this.currentFlakCount = 0;
+  this.maxFlakCapacity = FLAK_CONFIG.MAX_FLAK_CAPACITY;
+  this.objects = [];
 
-    // Composition: delegate positioning and building logic
-    this.positioning = new FlakPositioning(garageX, garageY, garageWidth, garageHeight);
-    this.buildSystem = new FlakBuildSystem();
+  this.positioning = new FlakPositioning(garageX, garageY, garageWidth, garageHeight, cfg.rows ?? null);
+  this.buildSystem = new FlakBuildSystem();
 
-    this.initializeFirstFlaks();
-  }
+  this.initializeFirstFlaks();
+}
 
   // ---------- flak creation ----------
   createFlakAt(side, rowIndex) {

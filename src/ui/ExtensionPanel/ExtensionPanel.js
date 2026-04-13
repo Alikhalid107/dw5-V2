@@ -3,10 +3,10 @@ import { ExtensionPanelComponents } from "./ExtensionPanelComponents.js";
 import { BasePanel } from "../BasePanel/BasePanel.js";
 
 export class ExtensionPanel extends BasePanel {
-  constructor(baseX = 0, baseY = 0) {
-    super(EXTENSION_PANEL_CONFIG, new ExtensionPanelComponents(), baseX, baseY);
-    this.extensionManager = null;
-  }
+  constructor(baseX = 0, baseY = 0, cfg = {}) {
+  super(EXTENSION_PANEL_CONFIG, new ExtensionPanelComponents(), baseX, baseY, cfg);
+  this.extensionManager = null;
+}
 
   setExtensionManager(extensionManager) {
     this.extensionManager = extensionManager;

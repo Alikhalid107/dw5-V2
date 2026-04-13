@@ -2,22 +2,26 @@ import { SpriteFrameUtility } from "../utils/SpriteFrameUtility.js";
 import { GARAGE_CONFIG } from "../config/GarageConfig.js";
 
 export class LongRangeBuilding {
-  constructor(garageX, garageY) {
-    const cfg = GARAGE_CONFIG.longRange;
+  constructor(garageX, garageY, cfg = {}) {
+  const baseCfg = GARAGE_CONFIG.longRange;
 
-    this.x = garageX + cfg.spawnOffsetX;
-    this.y = garageY + cfg.spawnOffsetY;
-    this.width = cfg.displayWidth;
-    this.height = cfg.displayHeight;
-    this.type = "longRangeBuilding";
-    this.zIndex = cfg.zIndex;
+  this.x = garageX + (cfg.spawnOffsetX ?? baseCfg.spawnOffsetX);
+  this.y = garageY + (cfg.spawnOffsetY ?? baseCfg.spawnOffsetY);
 
-    this.sprite = new SpriteFrameUtility(cfg.spriteSheet, cfg.totalFrames, cfg.totalFrames, 1);
+  // ← always fall back to baseCfg for everything else
+  this.width        = baseCfg.displayWidth;
+  this.height       = baseCfg.displayHeight;
+  this.type         = "longRangeBuilding";
+  this.zIndex       = baseCfg.zIndex;
 
-    this.currentFrame = 0;
-    this.frameTimer = 0;
-    this.frameDuration = cfg.animDuration / cfg.totalFrames;
-  }
+  this.sprite = new SpriteFrameUtility(
+    baseCfg.spriteSheet, baseCfg.totalFrames, baseCfg.totalFrames, 1
+  );
+
+  this.currentFrame  = 0;
+  this.frameTimer    = 0;
+  this.frameDuration = baseCfg.animDuration / baseCfg.totalFrames;
+}
 
   update(deltaTime) {
     const dt = deltaTime < 1 ? deltaTime * 1000 : deltaTime;

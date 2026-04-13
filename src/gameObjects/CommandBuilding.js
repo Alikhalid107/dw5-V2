@@ -2,8 +2,11 @@ import { SpriteFrameUtility } from "../utils/SpriteFrameUtility.js";
 import { COMMAND_PANEL_CONFIG } from "../config/CommandPanelConfig.js";
 
 export class CommandBuilding {
-  constructor(garageX, garageY) {
-    const cfg = COMMAND_PANEL_CONFIG.BUILDING.commandCenter;
+  constructor(garageX, garageY, buildingsCfg = {}) {
+  const cfg = {
+    ...COMMAND_PANEL_CONFIG.BUILDING.commandCenter,
+    ...(buildingsCfg?.commandCenter ?? {}),
+  };
 
     this.x = garageX + cfg.spawnOffsetX;
     this.y = garageY + cfg.spawnOffsetY;

@@ -4,10 +4,10 @@ import { COMMAND_PANEL_CONFIG } from "../../config/CommandPanelConfig.js";
 import { UniversalPanelRenderer } from "../../universal/UniversalPanelRenderer.js";
 
 export class CommandPanel extends BasePanel {
-  constructor(baseX = 0, baseY = 0) {
-    super(COMMAND_PANEL_CONFIG, new CommandPanelComponents(), baseX, baseY);
-    this.commandManager = null;
-  }
+  constructor(baseX = 0, baseY = 0, cfg = {}) {
+  super(COMMAND_PANEL_CONFIG, new CommandPanelComponents(), baseX, baseY, cfg);
+  this.commandManager = null;
+}
 
   setCommandManager(commandManager) {
     this.commandManager = commandManager;

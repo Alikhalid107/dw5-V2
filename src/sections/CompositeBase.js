@@ -10,7 +10,7 @@ import { BaseInputHandler } from "../utils/BaseInputHandler.js";
 import { BaseObjectUpdater } from "../utils/BaseObjectUpdater.js";
 import { ExtensionManager } from "../managers/ExtensionManager.js";
 import { CommandManager } from "../managers/CommandManager.js";
-import { BASE_TYPE2_CONFIG } from "../config/BaseType2Config.js";
+import { BASE_TYPE2_CONFIG } from "../config/BASE_TYPE2_CONFIG.js";
 
 
 export class CompositeBase {
@@ -28,27 +28,33 @@ export class CompositeBase {
     this.objectUpdater = new BaseObjectUpdater(this.flakManager, this.factoryManager);
   }
 
-  initializeSections() {
-    const randX = Math.floor(Math.random() * (this.worldWidth - this.baseWidth));
-    const randY = Math.floor(Math.random() * (this.worldHeight - this.baseHeight));
+initializeSections() {
+  const randX = Math.floor(Math.random() * (this.worldWidth - this.baseWidth));
+  const randY = Math.floor(Math.random() * (this.worldHeight - this.baseHeight));
 
-    this.baseSection = new BaseSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg);
-    this.garageSection = new GarageSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg.garage);
+  this.baseSection = new BaseSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg);
+  this.garageSection = new GarageSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg.garage);
 
-    const gx = this.garageSection.getGarageX();
-    const gy = this.garageSection.getGarageY();
-    const gw = this.garageSection.getGarageWidth();
-    const gh = this.garageSection.getGarageHeight();
+  const gx = this.garageSection.getGarageX();
+  const gy = this.garageSection.getGarageY();
+  const gw = this.garageSection.getGarageWidth();
+  const gh = this.garageSection.getGarageHeight();
 
-    this.flakManager = new FlakManager(gx, gy, gw, gh);
-    this.wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg.walls);
-    this.garageUI = new GarageUI(this.flakManager, gx, gy, gw, gh, this.wallSection);
-    this.flagManager = new FlagManager(gx, gy, gw, gh);
-    this.factoryManager = new FactoryManager(gx, gy, gw, gh);
-    this.towerManager = new TowerManager(randX, randY, gx, gy, gw, gh);
-    this.extensionManager = new ExtensionManager(randX, randY, gx, gy, this.factoryManager);
-    this.commandManager = new CommandManager(randX, randY, gx, gy, this);
+  this.flakManager = new FlakManager(gx, gy, gw, gh, this.cfg.flak ?? {});
+  this.wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg.walls);
+this.garageUI = new GarageUI(
+  this.flakManager, gx, gy, gw, gh, 
+  this.wallSection, 
+  {
+    ...(this.cfg.garage_ui ?? {}),
+    longRange: this.cfg.longRange ?? {},  // ← add this
   }
+);  this.flagManager = new FlagManager(gx, gy, gw, gh, this.cfg.flag ?? {});
+  this.factoryManager = new FactoryManager(gx, gy, gw, gh);
+  this.towerManager = new TowerManager(randX, randY, gx, gy, gw, gh, this.cfg.tower ?? {});       // ← cfg
+  this.extensionManager = new ExtensionManager(randX, randY, gx, gy, this.factoryManager, this.cfg.extension ?? {}); // ← cfg
+  this.commandManager = new CommandManager(randX, randY, gx, gy, this, this.cfg.command ?? {});   // ← cfg
+}
 
   createCompositeBase() {
   const objects = [];

@@ -2,8 +2,11 @@ import { SpriteFrameUtility } from "../utils/SpriteFrameUtility.js";
 import { EXTENSION_PANEL_CONFIG } from "../config/ExtensionPanelConfig.js";
 
 export class ExtensionBuilding {
-  constructor(garageX, garageY, buildingKey) {
-    const cfg = EXTENSION_PANEL_CONFIG.BUILDING[buildingKey];
+  constructor(garageX, garageY, buildingKey, buildingsCfg = {}) {
+  const cfg = {
+    ...EXTENSION_PANEL_CONFIG.BUILDING[buildingKey],
+    ...(buildingsCfg?.[buildingKey] ?? {}),
+  };
 
     this.x = garageX + cfg.spawnOffsetX;
     this.y = garageY + cfg.spawnOffsetY;
