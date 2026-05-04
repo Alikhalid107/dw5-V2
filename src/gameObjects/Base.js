@@ -1,7 +1,7 @@
 import { CompositeBase } from "../sections/CompositeBase.js";
 
 export class Base {
-  constructor(worldWidth, worldHeight, type1Count = 0, type2Count = 1 ) {
+  constructor(worldWidth, worldHeight, type1Count = 1, type2Count = 1 ) {
     this.compositeBases = [];
 
     for (let i = 0; i < type1Count; i++) {

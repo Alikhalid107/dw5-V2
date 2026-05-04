@@ -5,10 +5,11 @@ import { Factory } from "../sections/Factory/Factory.js";
 import { FactoryUICoordinator } from "./FactoryUICoordinator.js";
 
 export class FactoryManager {
-  constructor(garageX, garageY, garageWidth, garageHeight) {
+  constructor(garageX, garageY, garageWidth, garageHeight, factoryOverrides = {}) {
     Object.assign(this, { 
       garageX, garageY, garageWidth, garageHeight, 
-      factoryProperties: FactoryConfig, 
+      factoryProperties: FactoryConfig,
+      factoryOverrides: factoryOverrides, // Store overrides for base type 2
       showGrid: false, 
       activeConfirmationDialog: null
     });
@@ -20,9 +21,22 @@ export class FactoryManager {
 
   createFactories() {
     return Object.fromEntries(
-      Object.keys(this.factoryProperties).map(type => [
-        type, new Factory(type, this.factoryProperties[type], this.garageX, this.garageY)
-      ])
+      Object.keys(this.factoryProperties).map(type => {
+        // Merge base config with overrides
+        const baseConfig = this.factoryProperties[type];
+        const override = this.factoryOverrides[type] || {};
+        const mergedConfig = {
+          ...baseConfig,
+          offsetX: override.offsetX !== undefined ? override.offsetX : baseConfig.offsetX,
+          offsetY: override.offsetY !== undefined ? override.offsetY : baseConfig.offsetY,
+          additionalOffsetX: override.additionalOffsetX !== undefined ? override.additionalOffsetX : baseConfig.additionalOffsetX,
+          additionalOffsetY: override.additionalOffsetY !== undefined ? override.additionalOffsetY : baseConfig.additionalOffsetY,
+          zIndex: override.zIndex !== undefined ? override.zIndex : baseConfig.zIndex,
+          additionalZIndex: override.additionalZIndex !== undefined ? override.additionalZIndex : baseConfig.additionalZIndex,
+        };
+        
+        return [type, new Factory(type, mergedConfig, this.garageX, this.garageY)];
+      })
     );
   }
 

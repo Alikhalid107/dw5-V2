@@ -27,6 +27,10 @@ export class ObjectManager {
         this.grassObjects.forEach(obj => obj.update?.(deltaTime));
     }
 
+    updateBases(newBases) {
+        this.bases = newBases;
+    }
+
     getBase(index = 0) { return this.bases[index]; }
     getAllBases() { return this.bases; }
 }

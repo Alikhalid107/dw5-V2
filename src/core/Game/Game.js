@@ -7,6 +7,7 @@ import { MouseInputHandler } from "./MouseInputHandler.js";
 import { UIHandler } from "./UIHandler.js";
 import { ZoomMonitor } from "./ZoomMonitor.js";
 import { GameLoopManager } from "./GameLoopManager.js";
+import { PositioningTool } from "../../tools/PositioningTool.js";
 
 export class Game {
     constructor(canvas, baseCount = 1) {
@@ -18,7 +19,18 @@ export class Game {
         this.worldHeight = worldConfig.height;
         this.baseCount = baseCount;
         
-        this.camera = new CameraController(canvas, this.worldWidth, this.worldHeight, this.viewW, this.viewH);
+        // Initialize positioning tool first (before camera)
+        this.positioningTool = new PositioningTool(this);
+        
+        // Create camera with positioning tool reference
+        this.camera = new CameraController(
+            canvas, 
+            this.worldWidth, 
+            this.worldHeight, 
+            this.viewW, 
+            this.viewH,
+            this.positioningTool
+        );
         
         // Initialize components
         this.grassObjects = [];
@@ -41,7 +53,7 @@ export class Game {
         // Initialize managers
         this.objectManager = new ObjectManager(this.grassObjects, this.bases);
         this.mouseInputHandler = new MouseInputHandler(this.canvas, this.camera, this.bases);
-        this.uiHandler = new UIHandler(this.bases, this.camera, this.ctx);
+        this.uiHandler = new UIHandler(this.bases, this.camera, this.ctx, this.positioningTool);
         this.zoomMonitor = new ZoomMonitor(this.camera);
         this.gameLoopManager = new GameLoopManager(this.ctx, this.camera, this.objectManager, this.uiHandler);
         

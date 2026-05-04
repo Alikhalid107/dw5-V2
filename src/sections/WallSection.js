@@ -3,11 +3,12 @@ import { WALL_CONFIG } from "../config/WallConfig.js";
 import { WallPositioning } from "../utils/WallPositioning.js";
 
 export class WallSection {
-  constructor(baseX, baseY, baseWidth, baseHeight,cfg ={}) {
+  constructor(baseX, baseY, baseWidth, baseHeight, cfg = {}, garageRelative = false) {
     this.baseX = baseX;
     this.baseY = baseY;
     this.baseWidth = baseWidth;
     this.baseHeight = baseHeight;
+    this.garageRelative = garageRelative; // New parameter for base type 2
 
     this.wallImages = {
     left: cfg.leftImage ?? WALL_CONFIG.IMAGES.left,
@@ -44,22 +45,45 @@ this.upgradeOffsetRight = cfg.upgradeOffsetRight ?? WALL_CONFIG.UPGRADE.OFFSETS.
   createWalls() {
     this.objects = [];
     
-    
-    // Create left wall
-    const leftPos = WallPositioning.calculateWallPosition('left', this.baseX, this.baseY, this.baseWidth, this.offsetLeft);
-   this.leftWall = new Wall(
-  leftPos.x, leftPos.y,
-  this.leftWidth, this.leftHeight,
-  WALL_CONFIG.Z_INDEX, this.wallImages.left, 'left'
-);
+    if (this.garageRelative) {
+      // Base type 2: Garage-relative positioning
+      // baseX, baseY are actually garageX, garageY in this mode
+      const leftPos = { 
+        x: this.baseX + this.offsetLeft.x, 
+        y: this.baseY + this.offsetLeft.y 
+      };
+      const rightPos = { 
+        x: this.baseX + this.offsetRight.x, 
+        y: this.baseY + this.offsetRight.y 
+      };
+      
+      this.leftWall = new Wall(
+        leftPos.x, leftPos.y,
+        this.leftWidth, this.leftHeight,
+        WALL_CONFIG.Z_INDEX, this.wallImages.left, 'left'
+      );
 
-    // Create right wall
-    const rightPos = WallPositioning.calculateWallPosition('right', this.baseX, this.baseY, this.baseWidth, this.offsetRight);
-    this.rightWall = new Wall(
-  rightPos.x, rightPos.y,
-  this.rightWidth, this.rightHeight,
-  WALL_CONFIG.Z_INDEX, this.wallImages.right, 'right'
-);
+      this.rightWall = new Wall(
+        rightPos.x, rightPos.y,
+        this.rightWidth, this.rightHeight,
+        WALL_CONFIG.Z_INDEX, this.wallImages.right, 'right'
+      );
+    } else {
+      // Base type 1: Traditional base-relative positioning
+      const leftPos = WallPositioning.calculateWallPosition('left', this.baseX, this.baseY, this.baseWidth, this.offsetLeft);
+      this.leftWall = new Wall(
+        leftPos.x, leftPos.y,
+        this.leftWidth, this.leftHeight,
+        WALL_CONFIG.Z_INDEX, this.wallImages.left, 'left'
+      );
+
+      const rightPos = WallPositioning.calculateWallPosition('right', this.baseX, this.baseY, this.baseWidth, this.offsetRight);
+      this.rightWall = new Wall(
+        rightPos.x, rightPos.y,
+        this.rightWidth, this.rightHeight,
+        WALL_CONFIG.Z_INDEX, this.wallImages.right, 'right'
+      );
+    }
 
     this.objects.push(this.leftWall, this.rightWall);
   }
@@ -71,9 +95,22 @@ this.upgradeOffsetRight = cfg.upgradeOffsetRight ?? WALL_CONFIG.UPGRADE.OFFSETS.
     if (rightOffsetX !== undefined) this.offsetRight.x = rightOffsetX;
     if (rightOffsetY !== undefined) this.offsetRight.y = rightOffsetY;
 
-    WallPositioning.updateWallPosition(this.leftWall, this.baseX, this.baseY, this.baseWidth, this.offsetLeft);
-    WallPositioning.updateWallPosition(this.rightWall, this.baseX, this.baseY, this.baseWidth, this.offsetRight);
-}
+    if (this.garageRelative) {
+      // Base type 2: Direct garage-relative positioning
+      if (this.leftWall) {
+        this.leftWall.x = this.baseX + this.offsetLeft.x;
+        this.leftWall.y = this.baseY + this.offsetLeft.y;
+      }
+      if (this.rightWall) {
+        this.rightWall.x = this.baseX + this.offsetRight.x;
+        this.rightWall.y = this.baseY + this.offsetRight.y;
+      }
+    } else {
+      // Base type 1: Traditional base-relative positioning
+      WallPositioning.updateWallPosition(this.leftWall, this.baseX, this.baseY, this.baseWidth, this.offsetLeft);
+      WallPositioning.updateWallPosition(this.rightWall, this.baseX, this.baseY, this.baseWidth, this.offsetRight);
+    }
+  }
 
   setWallDimensions(width, height) {
     if (this.leftWall) {
@@ -90,22 +127,29 @@ this.upgradeOffsetRight = cfg.upgradeOffsetRight ?? WALL_CONFIG.UPGRADE.OFFSETS.
   if (this.wallsUpgraded) return false;
 
   this.leftWall.setImage(this.wallImages.upgradeLeft);
-this.rightWall.setImage(this.wallImages.upgradeRight);
+  this.rightWall.setImage(this.wallImages.upgradeRight);
 
-this.leftWall.width  = this.upgradeLeftWidth;
-this.leftWall.height = this.upgradeLeftHeight;
-this.rightWall.width  = this.upgradeRightWidth;
-this.rightWall.height = this.upgradeRightHeight;
+  this.leftWall.width  = this.upgradeLeftWidth;
+  this.leftWall.height = this.upgradeLeftHeight;
+  this.rightWall.width  = this.upgradeRightWidth;
+  this.rightWall.height = this.upgradeRightHeight;
 
-  // Apply upgrade-specific positions
-  const leftPos  = WallPositioning.calculateWallPosition('left',  this.baseX, this.baseY, this.baseWidth, this.upgradeOffsetLeft);
-  const rightPos = WallPositioning.calculateWallPosition('right', this.baseX, this.baseY, this.baseWidth, this.upgradeOffsetRight);
+  if (this.garageRelative) {
+    // Base type 2: Direct garage-relative positioning
+    this.leftWall.x = this.baseX + this.upgradeOffsetLeft.x;
+    this.leftWall.y = this.baseY + this.upgradeOffsetLeft.y;
+    this.rightWall.x = this.baseX + this.upgradeOffsetRight.x;
+    this.rightWall.y = this.baseY + this.upgradeOffsetRight.y;
+  } else {
+    // Base type 1: Traditional base-relative positioning
+    const leftPos  = WallPositioning.calculateWallPosition('left',  this.baseX, this.baseY, this.baseWidth, this.upgradeOffsetLeft);
+    const rightPos = WallPositioning.calculateWallPosition('right', this.baseX, this.baseY, this.baseWidth, this.upgradeOffsetRight);
 
-
-  this.leftWall.x = leftPos.x;
-  this.leftWall.y = leftPos.y;
-  this.rightWall.x = rightPos.x;
-  this.rightWall.y = rightPos.y;
+    this.leftWall.x = leftPos.x;
+    this.leftWall.y = leftPos.y;
+    this.rightWall.x = rightPos.x;
+    this.rightWall.y = rightPos.y;
+  }
 
   this.wallsUpgraded = true;
   return true;

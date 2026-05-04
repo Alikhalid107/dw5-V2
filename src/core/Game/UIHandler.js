@@ -1,8 +1,9 @@
 export class UIHandler {
-    constructor(bases, camera, ctx) {
+    constructor(bases, camera, ctx, positioningTool = null) {
         this.bases = bases;
         this.camera = camera;
         this.ctx = ctx;
+        this.positioningTool = positioningTool;
     }
 
     drawUI() {
@@ -47,6 +48,11 @@ export class UIHandler {
 
         if (activeCB) {
             activeCB.drawUI(this.ctx, offsetX, offsetY);
+        }
+
+        // Draw positioning tool overlay
+        if (this.positioningTool) {
+            this.positioningTool.draw(this.ctx, offsetX, offsetY);
         }
 
         this.drawMessageDisplays();

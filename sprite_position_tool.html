@@ -1,0 +1,272 @@
+
+<h2 class="sr-only">Sprite Overlay Positioning Tool — drag sprites over a background and export offsetX/offsetY config</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.wrap{padding:1rem 0;font-family:var(--font-sans);}
+.panel{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:1rem 1.25rem;margin-bottom:1rem;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;}
+.row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+label{font-size:12px;color:var(--color-text-secondary);display:block;margin-bottom:4px;}
+input[type=number]{width:100%;padding:5px 8px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);}
+input[type=text]{width:100%;padding:5px 8px;font-size:13px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);}
+button{font-size:12px;padding:5px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;color:var(--color-text-primary);cursor:pointer;}
+button:hover{background:var(--color-background-secondary);}
+.btn-blue{background:var(--color-background-info);color:var(--color-text-info);border-color:transparent;}
+.btn-red{background:var(--color-background-danger);color:var(--color-text-danger);border-color:transparent;}
+.upload-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.badge{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--color-background-secondary);color:var(--color-text-secondary);}
+#canvas-wrap{position:relative;overflow:auto;background:repeating-conic-gradient(#8882 0% 25%,transparent 0% 50%) 0 0/16px 16px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);margin-bottom:8px;min-height:200px;cursor:default;}
+canvas{display:block;}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 10px;text-align:center;}
+.stat-num{font-size:17px;font-weight:500;color:var(--color-text-primary);}
+.stat-lbl{font-size:10px;color:var(--color-text-secondary);margin-top:2px;}
+textarea{width:100%;font-size:12px;font-family:var(--font-mono);padding:10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary);resize:vertical;}
+#coord-bar{font-size:12px;color:var(--color-text-secondary);margin-bottom:6px;height:16px;}
+.sprite-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.sprite-chip{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;border:0.5px solid var(--color-border-tertiary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary);}
+.sprite-chip.active{border-color:#378ADD;background:var(--color-background-info);color:var(--color-text-info);}
+.dot{width:8px;height:8px;border-radius:50%;}
+</style>
+
+<div class="wrap">
+<div class="panel">
+  <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:10px;">1 — load images</div>
+  <div class="upload-row" style="margin-bottom:10px;">
+    <button onclick="$('bg-inp').click()">Load background</button>
+    <span class="badge" id="bg-lbl">none</span>
+    <input type="file" id="bg-inp" accept="image/*" style="display:none">
+  </div>
+  <div class="upload-row">
+    <button onclick="$('sp-inp').click()">Add sprite image</button>
+    <input type="text" id="sp-name" placeholder="sprite name (e.g. oilPump)" style="width:160px;">
+    <span class="badge" id="sp-lbl">no sprite loaded</span>
+    <input type="file" id="sp-inp" accept="image/*" style="display:none">
+  </div>
+</div>
+
+<div class="panel">
+  <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:8px;">2 — sprites</div>
+  <div class="sprite-list" id="sprite-list"><span style="font-size:12px;color:var(--color-text-secondary);">no sprites yet</span></div>
+  <div style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin:10px 0 8px;">3 — fine-tune selected sprite</div>
+  <div class="row4">
+    <div><label>offset X</label><input type="number" id="off-x" value="0" oninput="updateFromInputs()"></div>
+    <div><label>offset Y</label><input type="number" id="off-y" value="0" oninput="updateFromInputs()"></div>
+    <div><label>scale</label><input type="number" id="scale" value="1" step="0.05" min="0.05" oninput="updateFromInputs()"></div>
+    <div><label>opacity</label><input type="number" id="opacity" value="1" step="0.05" min="0.05" max="1" oninput="updateFromInputs()"></div>
+  </div>
+  <div class="row4">
+    <div><label>anchor X (%)</label><input type="number" id="anc-x" value="0" min="0" max="100" oninput="updateFromInputs()"></div>
+    <div><label>anchor Y (%)</label><input type="number" id="anc-y" value="0" min="0" max="100" oninput="updateFromInputs()"></div>
+    <div><label>frame W</label><input type="number" id="f-w" value="0" min="0" oninput="updateFromInputs()"></div>
+    <div><label>frame H</label><input type="number" id="f-h" value="0" min="0" oninput="updateFromInputs()"></div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;margin:0;"><input type="checkbox" id="snap" checked> snap to grid (8px)</label>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;margin:0;"><input type="checkbox" id="show-anchor" checked> show anchor</label>
+    <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;margin:0;"><input type="checkbox" id="show-bounds" checked> show bounds</label>
+    <button class="btn-red" id="del-btn" style="margin-left:auto;" onclick="deleteActive()">Remove sprite</button>
+  </div>
+</div>
+
+<div class="panel" style="padding-bottom:0.5rem;">
+  <div id="coord-bar">hover to see coordinates</div>
+  <div id="canvas-wrap"><canvas id="cv"></canvas></div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:0;">
+    <label style="margin:0;font-size:12px;display:inline-flex;align-items:center;gap:4px;">Zoom</label>
+    <input type="range" id="zoom" min="0.25" max="4" step="0.25" value="1" style="width:80px;" oninput="zoomChanged()">
+    <span id="zoom-val" style="font-size:12px;min-width:28px;">1×</span>
+    <div class="stat-row" style="margin:0;flex:1;">
+      <div class="stat"><div class="stat-num" id="s-x">0</div><div class="stat-lbl">offsetX</div></div>
+      <div class="stat"><div class="stat-num" id="s-y">0</div><div class="stat-lbl">offsetY</div></div>
+      <div class="stat"><div class="stat-num" id="s-rx">0</div><div class="stat-lbl">rel X (from base center)</div></div>
+      <div class="stat"><div class="stat-num" id="s-ry">0</div><div class="stat-lbl">rel Y</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+    <span style="font-size:13px;font-weight:500;color:var(--color-text-primary);">4 — export config</span>
+    <button class="btn-blue" onclick="copyConfig()">Copy</button>
+    <button onclick="sendToChat()">Ask Claude to integrate ↗</button>
+  </div>
+  <textarea id="cfg-out" rows="10" readonly></textarea>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let bgImg=null,bgW=0,bgH=0;
+let sprites=[];
+let activeIdx=-1;
+let zoom=1;
+let dragging=false,dragOffX=0,dragOffY=0;
+const COLORS=['#378ADD','#1D9E75','#D85A30','#D4537E','#7F77DD','#BA7517','#E24B4A'];
+
+function zoomChanged(){zoom=parseFloat($('zoom').value)||1;$('zoom-val').textContent=zoom+'×';redraw();}
+
+$('bg-inp').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const url=URL.createObjectURL(f);
+  const i=new Image();i.onload=()=>{bgImg=i;bgW=i.width;bgH=i.height;$('bg-lbl').textContent=f.name+' ('+bgW+'×'+bgH+')';redraw();};i.src=url;
+};
+
+$('sp-inp').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  $('sp-lbl').textContent=f.name;
+  const url=URL.createObjectURL(f);
+  const i=new Image();i.onload=()=>{
+    const name=$('sp-name').value||('sprite'+sprites.length);
+    sprites.push({img:i,name,x:bgW?Math.round(bgW/2-i.width/2):0,y:bgH?Math.round(bgH/2-i.height/2):0,scale:1,opacity:1,ancX:0,ancY:0,fw:0,fh:0});
+    activeIdx=sprites.length-1;
+    rebuildChips();syncInputs();redraw();
+  };i.src=url;
+};
+
+function rebuildChips(){
+  const list=$('sprite-list');
+  if(!sprites.length){list.innerHTML='<span style="font-size:12px;color:var(--color-text-secondary);">no sprites yet</span>';return;}
+  list.innerHTML=sprites.map((s,i)=>`<div class="sprite-chip${i===activeIdx?' active':''}" onclick="selectSprite(${i})"><div class="dot" style="background:${COLORS[i%COLORS.length]}"></div>${s.name}</div>`).join('');
+}
+
+function selectSprite(i){activeIdx=i;rebuildChips();syncInputs();redraw();}
+
+function syncInputs(){
+  if(activeIdx<0||activeIdx>=sprites.length)return;
+  const s=sprites[activeIdx];
+  $('off-x').value=s.x;$('off-y').value=s.y;
+  $('scale').value=s.scale;$('opacity').value=s.opacity;
+  $('anc-x').value=s.ancX;$('anc-y').value=s.ancY;
+  $('f-w').value=s.fw;$('f-h').value=s.fh;
+  updateStats();
+}
+
+function updateFromInputs(){
+  if(activeIdx<0)return;
+  const s=sprites[activeIdx];
+  s.x=parseInt($('off-x').value)||0;s.y=parseInt($('off-y').value)||0;
+  s.scale=parseFloat($('scale').value)||1;s.opacity=parseFloat($('opacity').value)||1;
+  s.ancX=parseInt($('anc-x').value)||0;s.ancY=parseInt($('anc-y').value)||0;
+  s.fw=parseInt($('f-w').value)||0;s.fh=parseInt($('f-h').value)||0;
+  updateStats();redraw();
+}
+
+function updateStats(){
+  if(activeIdx<0)return;
+  const s=sprites[activeIdx];
+  $('s-x').textContent=s.x;$('s-y').textContent=s.y;
+  $('s-rx').textContent=bgW?s.x-Math.round(bgW/2):s.x;
+  $('s-ry').textContent=bgH?s.y-Math.round(bgH/2):s.y;
+  genConfig();
+}
+
+function deleteActive(){
+  if(activeIdx<0)return;
+  sprites.splice(activeIdx,1);
+  activeIdx=Math.min(activeIdx,sprites.length-1);
+  rebuildChips();syncInputs();redraw();
+}
+
+function snap8(v){return $('snap').checked?Math.round(v/8)*8:Math.round(v);}
+
+const cv=$('cv');
+cv.onmousemove=e=>{
+  const r=cv.getBoundingClientRect();
+  const mx=Math.round((e.clientX-r.left)/zoom);
+  const my=Math.round((e.clientY-r.top)/zoom);
+  $('coord-bar').textContent=`x: ${mx}  y: ${my}${activeIdx>=0?' — sprite: '+sprites[activeIdx].name:''}`;
+  if(dragging&&activeIdx>=0){
+    const s=sprites[activeIdx];
+    s.x=snap8(mx-dragOffX);s.y=snap8(my-dragOffY);
+    $('off-x').value=s.x;$('off-y').value=s.y;
+    updateStats();redraw();
+  }
+};
+
+cv.onmousedown=e=>{
+  const r=cv.getBoundingClientRect();
+  const mx=(e.clientX-r.left)/zoom;
+  const my=(e.clientY-r.top)/zoom;
+  let hit=-1;
+  for(let i=sprites.length-1;i>=0;i--){
+    const s=sprites[i];
+    const w=(s.fw||s.img.width)*s.scale;
+    const h=(s.fh||s.img.height)*s.scale;
+    const ax=s.ancX/100*w,ay=s.ancY/100*h;
+    if(mx>=s.x-ax&&mx<=s.x-ax+w&&my>=s.y-ay&&my<=s.y-ay+h){hit=i;break;}
+  }
+  if(hit>=0){
+    activeIdx=hit;rebuildChips();syncInputs();
+    const s=sprites[activeIdx];
+    const w=(s.fw||s.img.width)*s.scale;
+    const h=(s.fh||s.img.height)*s.scale;
+    const ax=s.ancX/100*w,ay=s.ancY/100*h;
+    dragOffX=mx-(s.x-ax);dragOffY=my-(s.y-ay);
+    dragging=true;cv.style.cursor='grabbing';
+  }
+};
+
+cv.onmouseup=()=>{dragging=false;cv.style.cursor='default';};
+cv.onmouseleave=()=>{dragging=false;cv.style.cursor='default';};
+
+function redraw(){
+  const cw=bgW||400,ch=bgH||300;
+  cv.width=cw*zoom;cv.height=ch*zoom;
+  const ctx=cv.getContext('2d');
+  ctx.imageSmoothingEnabled=false;
+  ctx.save();ctx.scale(zoom,zoom);
+  if(bgImg) ctx.drawImage(bgImg,0,0,cw,ch);
+  else{ctx.fillStyle='#aaa8';ctx.fillRect(0,0,cw,ch);ctx.fillStyle='#8888';ctx.font='14px sans-serif';ctx.textAlign='center';ctx.fillText('load background first',cw/2,ch/2);}
+
+  sprites.forEach((s,i)=>{
+    const w=(s.fw||s.img.width)*s.scale;
+    const h=(s.fh||s.img.height)*s.scale;
+    const ax=s.ancX/100*w,ay=s.ancY/100*h;
+    const dx=s.x-ax,dy=s.y-ay;
+    ctx.globalAlpha=s.opacity;
+    if(s.fw&&s.fh) ctx.drawImage(s.img,0,0,s.fw,s.fh,dx,dy,w,h);
+    else ctx.drawImage(s.img,dx,dy,w,h);
+    ctx.globalAlpha=1;
+
+    const isActive=i===activeIdx;
+    if($('show-bounds').checked){
+      ctx.strokeStyle=isActive?COLORS[i%COLORS.length]:(COLORS[i%COLORS.length]+'88');
+      ctx.lineWidth=isActive?1.5:0.8;
+      ctx.setLineDash(isActive?[]:[4,3]);
+      ctx.strokeRect(dx,dy,w,h);
+      ctx.setLineDash([]);
+    }
+    if($('show-anchor').checked){
+      ctx.fillStyle=COLORS[i%COLORS.length];
+      ctx.beginPath();ctx.arc(s.x,s.y,isActive?4:3,0,Math.PI*2);ctx.fill();
+    }
+    if(isActive){
+      ctx.font='bold 11px sans-serif';ctx.fillStyle=COLORS[i%COLORS.length];
+      ctx.fillText(s.name,dx+2,dy-3);
+    }
+  });
+  ctx.restore();
+}
+
+function genConfig(){
+  const out={sprites:{}};
+  sprites.forEach(s=>{
+    const w=s.fw||s.img.width,h=s.fh||s.img.height;
+    out.sprites[s.name]={offsetX:s.x,offsetY:s.y,scale:s.scale,opacity:s.opacity,anchorX:s.ancX,anchorY:s.ancY,frameW:w,frameH:h,drawW:Math.round(w*s.scale),drawH:Math.round(h*s.scale),relX:bgW?s.x-Math.round(bgW/2):s.x,relY:bgH?s.y-Math.round(bgH/2):s.y};
+  });
+  if(bgImg){out.background={width:bgW,height:bgH};}
+  $('cfg-out').value=JSON.stringify(out,null,2);
+}
+
+function copyConfig(){
+  navigator.clipboard.writeText($('cfg-out').value).catch(()=>{});
+  const b=event.target;b.textContent='Copied!';setTimeout(()=>b.textContent='Copy',1500);
+}
+
+function sendToChat(){
+  sendPrompt('Here is my sprite positioning config:\n```json\n'+$('cfg-out').value+'\n```\nHelp me use these offsetX/offsetY values in my canvas game render loop.');
+}
+
+redraw();
+</script>

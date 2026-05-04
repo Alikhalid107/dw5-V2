@@ -10,7 +10,7 @@ export class FlakManager {
   this.maxFlakCapacity = FLAK_CONFIG.MAX_FLAK_CAPACITY;
   this.objects = [];
 
-  this.positioning = new FlakPositioning(garageX, garageY, garageWidth, garageHeight, cfg.rows ?? null);
+  this.positioning = new FlakPositioning(garageX, garageY, garageWidth, garageHeight, cfg);
   this.buildSystem = new FlakBuildSystem();
 
   this.initializeFirstFlaks();
@@ -94,6 +94,27 @@ export class FlakManager {
   updateFlakRowConfig(index, newConfig) {
     if (index >= 0 && index < FLAK_CONFIG.ROWS.length) {
       FLAK_CONFIG.ROWS[index] = { ...FLAK_CONFIG.ROWS[index], ...newConfig };
+      
+      // Reposition existing flaks in this row
+      const flaks = this.getAllFlaks();
+      let flakIndex = 0;
+      
+      // Calculate which flaks belong to this row
+      for (let r = 0; r < index; r++) {
+        flakIndex += FLAK_CONFIG.ROWS[r].count;
+      }
+      
+      // Update positions for flaks in this row
+      const rowFlakCount = Math.min(FLAK_CONFIG.ROWS[index].count, flaks.length - flakIndex);
+      for (let i = 0; i < rowFlakCount; i++) {
+        const flak = flaks[flakIndex + i];
+        if (flak) {
+          const side = i < Math.ceil(rowFlakCount / 2) ? 'left' : 'right';
+          const positionData = this.positioning.calculateFlakPosition(side, index, flakIndex + i);
+          flak.zIndex = positionData.zIndex;
+          this.positioning.scheduleAsyncPositioning(flak, positionData.getTargetX);
+        }
+      }
     }
   }
 }

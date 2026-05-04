@@ -16,7 +16,7 @@ export class GarageUI {
     customConfig = {}
   ) {
     this.flakManager = flakManager;
-    this.garageX = garageX;
+    this.garageX = garageX;  // Visual garage position (for UI panel)
     this.garageY = garageY;
     this.garageWidth = garageWidth;
     this.garageHeight = garageHeight;
@@ -25,6 +25,10 @@ export class GarageUI {
     this.showGrid = false;
     this.currentOffsetX = 0;
     this.currentOffsetY = 0;
+
+    // Store logical garage position for object spawning
+    this.logicalGarageX = customConfig.logicalGarageX ?? garageX;
+    this.logicalGarageY = customConfig.logicalGarageY ?? garageY;
 
     this.longRangeBuilding = null;
     this.longRangeCfg = customConfig.longRange ?? {};
@@ -170,10 +174,11 @@ export class GarageUI {
 
   // ── Updated: pass longRangeCfg to LongRangeBuilding ──────────────────────
   spawnLongRange() {
-  if (this.longRangeBuilding) return false;
-  this.longRangeBuilding = new LongRangeBuilding(this.garageX, this.garageY, this.longRangeCfg);
-  return true;
-}
+    if (this.longRangeBuilding) return false;
+    // Use logical garage position for spawning objects
+    this.longRangeBuilding = new LongRangeBuilding(this.logicalGarageX, this.logicalGarageY, this.longRangeCfg);
+    return true;
+  }
 
   update(deltaTime) {
     const flakBox = this.boxes[0];

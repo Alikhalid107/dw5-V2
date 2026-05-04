@@ -2,8 +2,9 @@ import { EventBus } from "../../events/EventBus.js";
 import { CAMERA_EVENTS } from "../../events/EventTypes.js";
 
 export class CameraEventHandlers {
-    constructor(cameraController) {
+    constructor(cameraController, positioningTool = null) {
         this.cameraController = cameraController;
+        this.positioningTool = positioningTool;
     }
 
     handleContextMenu(e) {
@@ -11,6 +12,9 @@ export class CameraEventHandlers {
     }
 
     handleMouseDown(e) {
+        // Don't start camera drag if positioning tool is active
+        if (this.positioningTool?.isBlockingCameraMovement?.()) return;
+        
         if (e.button === 2) {
             this.cameraController.dragging = true;
             this.cameraController.lastMouse = { x: e.clientX, y: e.clientY };
@@ -40,6 +44,9 @@ export class CameraEventHandlers {
     }
 
     handleMouseMove(e) {
+        // Don't move camera if positioning tool is active
+        if (this.positioningTool?.isBlockingCameraMovement?.()) return;
+        
         if (!this.cameraController.dragging) return;
         
         const dx = e.clientX - this.cameraController.lastMouse.x;

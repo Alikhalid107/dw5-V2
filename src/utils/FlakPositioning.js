@@ -1,15 +1,22 @@
 import { FLAK_CONFIG } from '../config/FlakConfig.js';
 
 export class FlakPositioning {
-  constructor(garageX, garageY, garageWidth, garageHeight, rowsOverride = null) {
-  this.garageX = garageX;
-  this.garageY = garageY;
-  this.garageWidth = garageWidth;
-  this.garageHeight = garageHeight;
-  this.pendingPositions = new Set();
-  // Use type2 rows if provided, otherwise fall back to FLAK_CONFIG.ROWS
-  this.rows = rowsOverride ?? FLAK_CONFIG.ROWS;
-}
+  constructor(garageX, garageY, garageWidth, garageHeight, flakConfig = null) {
+    this.garageX = garageX;
+    this.garageY = garageY;
+    this.garageWidth = garageWidth;
+    this.garageHeight = garageHeight;
+    this.pendingPositions = new Set();
+    
+    // Use type2 config if provided, otherwise fall back to FLAK_CONFIG
+    if (flakConfig) {
+      this.rows = flakConfig.rows || FLAK_CONFIG.ROWS;
+      this.positioningMode = flakConfig.positioningMode || "straight";
+    } else {
+      this.rows = FLAK_CONFIG.ROWS;
+      this.positioningMode = "straight";
+    }
+  }
 
   // ---------- capacity calculations ----------
   totalCapacityForRow(rowIndex) {
@@ -72,25 +79,55 @@ export class FlakPositioning {
   }
 
   calculateFlakPosition(side, rowIndex, currentFlakCount, flakWidth = 0) {
-  const row = this.rows[rowIndex];  // ← was FLAK_CONFIG.ROWS[rowIndex]
-  const baseY = this.garageY + this.garageHeight + row.rowOffsetY;
-  const { left, right } = this.getLeftRightCounts(rowIndex, currentFlakCount);
+    const row = this.rows[rowIndex];
+    const { left, right } = this.getLeftRightCounts(rowIndex, currentFlakCount);
 
-  let getTargetX;
-  if (side === "left") {
-    const indexOnSide = left + 1;
-    getTargetX = () =>
-      this.garageX - row.rowOffsetX - indexOnSide * row.spacing;
-  } else {
-    // Use rowOffsetXRight if defined, otherwise fall back to rowOffsetX
-    const rightOffset = row.rowOffsetXRight !== undefined ? row.rowOffsetXRight : row.rowOffsetX;
-    const indexOnSide = right + 1;
-    getTargetX = () =>
-      this.garageX + this.garageWidth + rightOffset + (indexOnSide - 1) * row.spacing - flakWidth;
+    let baseY, getTargetX;
+
+    if (this.positioningMode === "curved") {
+      // Curved positioning: flaks follow wall angles
+      if (side === "left") {
+        const indexOnSide = left;
+        const angle = (row.leftAngle || 0) * Math.PI / 180; // Convert to radians
+        const spacing = row.leftSpacing || 33;
+        
+        // Calculate position along the curve
+        // For left side: build backward (right to left), so negate deltaX
+        const distanceAlongCurve = indexOnSide * spacing;
+        const deltaX = -distanceAlongCurve * Math.cos(angle); // Negative for backward direction
+        const deltaY = distanceAlongCurve * Math.sin(angle);
+        
+        baseY = this.garageY + (row.leftStartY || 0) + deltaY;
+        getTargetX = () => this.garageX + (row.leftStartX || 0) + deltaX;
+      } else {
+        const indexOnSide = right;
+        const angle = (row.rightAngle || 0) * Math.PI / 180;
+        const spacing = row.rightSpacing || 33;
+        
+        // For right side: build forward (left to right), keep deltaX positive
+        const distanceAlongCurve = indexOnSide * spacing;
+        const deltaX = distanceAlongCurve * Math.cos(angle);
+        const deltaY = distanceAlongCurve * Math.sin(angle);
+        
+        baseY = this.garageY + (row.rightStartY || 0) + deltaY;
+        getTargetX = () => this.garageX + this.garageWidth + (row.rightStartX || 0) + deltaX - flakWidth;
+      }
+    } else {
+      // Straight positioning (original behavior)
+      baseY = this.garageY + this.garageHeight + row.rowOffsetY;
+      
+      if (side === "left") {
+        const indexOnSide = left + 1;
+        getTargetX = () => this.garageX - row.rowOffsetX - indexOnSide * row.spacing;
+      } else {
+        const rightOffset = row.rowOffsetXRight !== undefined ? row.rowOffsetXRight : row.rowOffsetX;
+        const indexOnSide = right + 1;
+        getTargetX = () => this.garageX + this.garageWidth + rightOffset + (indexOnSide - 1) * row.spacing - flakWidth;
+      }
+    }
+
+    return { baseY, getTargetX, zIndex: row.zIndex };
   }
-
-  return { baseY, getTargetX, zIndex: row.zIndex };
-}
 
 
   determineSideForNewFlak(rowIndex, currentFlakCount) {

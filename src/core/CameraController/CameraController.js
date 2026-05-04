@@ -6,7 +6,7 @@ import { EventBus } from "../../events/EventBus.js";
 import { CAMERA_EVENTS } from "../../events/EventTypes.js";
 
 export class CameraController {
-    constructor(canvas, worldWidth, worldHeight, viewW, viewH) {
+    constructor(canvas, worldWidth, worldHeight, viewW, viewH, positioningTool = null) {
         this.canvas = canvas;
         this.worldWidth = worldWidth;
         this.worldHeight = worldHeight;
@@ -23,7 +23,7 @@ export class CameraController {
         this.minZoomForFullScreen = 0.8; // 80%
         this.currentZoom = ZoomDetector.detectZoomLevel(this.baseWidth);
 
-        this.eventHandlers = new CameraEventHandlers(this);
+        this.eventHandlers = new CameraEventHandlers(this, positioningTool);
         this.eventHandlers.addEventListeners(this.canvas);
 
         // Setup event listeners

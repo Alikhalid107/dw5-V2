@@ -10,7 +10,9 @@ import { BaseInputHandler } from "../utils/BaseInputHandler.js";
 import { BaseObjectUpdater } from "../utils/BaseObjectUpdater.js";
 import { ExtensionManager } from "../managers/ExtensionManager.js";
 import { CommandManager } from "../managers/CommandManager.js";
+import { BASE_TYPE1_CONFIG } from "../config/BASE_TYPE1_CONFIG.js";
 import { BASE_TYPE2_CONFIG } from "../config/BASE_TYPE2_CONFIG.js";
+import { AircraftCarrierSection } from "./AircraftCarrierSection.js";
 
 
 export class CompositeBase {
@@ -20,7 +22,7 @@ export class CompositeBase {
     this.baseWidth = 1500;
     this.baseHeight = 500;
     this.baseType = baseType;
-    this.cfg = baseType === 2 ? BASE_TYPE2_CONFIG : {};  // ← type1 uses defaults
+    this.cfg = baseType === 2 ? BASE_TYPE2_CONFIG : BASE_TYPE1_CONFIG;  // ← Use BASE_TYPE1_CONFIG for type 1
 
     this.initializeSections();
     this.objects = this.createCompositeBase();
@@ -35,31 +37,55 @@ initializeSections() {
   this.baseSection = new BaseSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg);
   this.garageSection = new GarageSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg.garage);
 
+  // Garage position (used for both UI and object positioning)
   const gx = this.garageSection.getGarageX();
   const gy = this.garageSection.getGarageY();
   const gw = this.garageSection.getGarageWidth();
   const gh = this.garageSection.getGarageHeight();
 
   this.flakManager = new FlakManager(gx, gy, gw, gh, this.cfg.flak ?? {});
-  this.wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg.walls);
-this.garageUI = new GarageUI(
-  this.flakManager, gx, gy, gw, gh, 
-  this.wallSection, 
-  {
-    ...(this.cfg.garage_ui ?? {}),
-    longRange: this.cfg.longRange ?? {},  // ← add this
+  
+  // For base type 2, make walls garage-relative like other objects
+  if (this.baseType === 2) {
+    this.wallSection = new WallSection(gx, gy, gw, gh, this.cfg.walls, true); // true = garage-relative mode
+  } else {
+    this.wallSection = new WallSection(randX, randY, this.baseWidth, this.baseHeight, this.cfg.walls); // base-relative mode
   }
-);  this.flagManager = new FlagManager(gx, gy, gw, gh, this.cfg.flag ?? {});
-  this.factoryManager = new FactoryManager(gx, gy, gw, gh);
-  this.towerManager = new TowerManager(randX, randY, gx, gy, gw, gh, this.cfg.tower ?? {});       // ← cfg
-  this.extensionManager = new ExtensionManager(randX, randY, gx, gy, this.factoryManager, this.cfg.extension ?? {}); // ← cfg
-  this.commandManager = new CommandManager(randX, randY, gx, gy, this, this.cfg.command ?? {});   // ← cfg
+  
+  // GarageUI uses the same garage position for both panel and object spawning
+  this.garageUI = new GarageUI(
+    this.flakManager, gx, gy, gw, gh,  // ← Use same garage position for UI panel
+    this.wallSection, 
+    {
+      ...(this.cfg.garage_ui ?? {}),
+      longRange: this.cfg.longRange ?? {},
+      logicalGarageX: gx,  // ← Same as UI position now
+      logicalGarageY: gy,
+    }
+  );
+  
+  this.flagManager = new FlagManager(gx, gy, gw, gh, this.cfg.flag ?? {});
+  this.factoryManager = new FactoryManager(gx, gy, gw, gh, this.cfg.factories ?? {});
+  this.towerManager = new TowerManager(randX, randY, gx, gy, gw, gh, this.cfg.tower ?? {});
+  this.extensionManager = new ExtensionManager(randX, randY, gx, gy, this.factoryManager, this.cfg.extension ?? {});
+  this.commandManager = new CommandManager(randX, randY, gx, gy, this, this.cfg.command ?? {});
+  
+  // Aircraft Carrier (only for base type 2)
+  if (this.baseType === 2) {
+    this.aircraftCarrierSection = new AircraftCarrierSection(gx, gy, this.cfg.aircraftCarrier ?? {});
+  }
 }
 
   createCompositeBase() {
   const objects = [];
   objects.push(...this.baseSection.getObjects());
   objects.push(...this.garageSection.getObjects());
+  
+  // Add aircraft carrier objects (only for base type 2)
+  if (this.baseType === 2 && this.aircraftCarrierSection) {
+    objects.push(...this.aircraftCarrierSection.getObjects());
+  }
+  
   objects.push(...this.flakManager.getObjects());
   objects.push(...this.wallSection.getObjects());
   objects.push(...this.flagManager.getObjects());
